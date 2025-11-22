@@ -12,7 +12,7 @@
             <h4
               class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left"
             >
-              Musharof Chowdhury
+              {{ user.name }}
             </h4>
             <div
               class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left"
@@ -312,14 +312,27 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import Modal from './Modal.vue'
+import { ref, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import Modal from '@/components/profile/Modal.vue'
 
+const authStore = useAuthStore()
+const user = computed(() => authStore.user || {})
 const isProfileInfoModal = ref(false)
 
-const saveProfile = () => {
-  // Implement save profile logic here
-  console.log('Profile saved')
-  isProfileInfoModal.value = false
+const form = ref({
+  name: user.value.name,
+  email: user.value.email,
+  // Add other fields as needed
+})
+
+const saveProfile = async () => {
+  try {
+    await authStore.updateProfile(form.value)
+    isProfileInfoModal.value = false
+    // Show success message
+  } catch (error) {
+    console.error('Error updating profile', error)
+  }
 }
 </script>

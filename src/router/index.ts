@@ -8,18 +8,26 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'Ecommerce',
-      component: () => import('../views/Ecommerce.vue'),
+      name: 'Dashboard',
+      component: () => import('../views/Dashboard/DashboardView.vue'),
       meta: {
-        title: 'eCommerce Dashboard',
+        title: 'Dashboard',
       },
     },
     {
-      path: '/calendar',
-      name: 'Calendar',
-      component: () => import('../views/Others/Calendar.vue'),
+      path: '/admin/users',
+      name: 'Users',
+      component: () => import('../views/Admin/UsersView.vue'),
       meta: {
-        title: 'Calendar',
+        title: 'User Management',
+      },
+    },
+    {
+      path: '/admin/roles',
+      name: 'Roles',
+      component: () => import('../views/Admin/RolesView.vue'),
+      meta: {
+        title: 'Role Management',
       },
     },
     {
@@ -147,5 +155,18 @@ export default router
 
 router.beforeEach((to, from, next) => {
   document.title = `Vue.js ${to.meta.title} | TailAdmin - Vue.js Tailwind CSS Dashboard Template`
+
+  const token = localStorage.getItem('token')
+  const publicPages = ['/signin', '/signup']
+  const authRequired = !publicPages.includes(to.path)
+
+  if (authRequired && !token) {
+    return next('/signin')
+  }
+
+  if (token && publicPages.includes(to.path)) {
+    return next('/')
+  }
+
   next()
 })

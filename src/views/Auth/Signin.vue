@@ -274,23 +274,35 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import CommonGridShape from '@/components/common/CommonGridShape.vue'
 import FullScreenLayout from '@/components/layout/FullScreenLayout.vue'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const keepLoggedIn = ref(false)
+const errorMessage = ref('')
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleSubmit = () => {
-  // Handle form submission
-  console.log('Form submitted', {
-    email: email.value,
-    password: password.value,
-    keepLoggedIn: keepLoggedIn.value,
-  })
+const handleSubmit = async () => {
+  errorMessage.value = ''
+  try {
+    await authStore.login({
+      email: email.value,
+      password: password.value
+    })
+    router.push('/')
+  } catch (error: any) {
+    console.error('Login failed', error)
+    errorMessage.value = error.response?.data?.message || 'Login failed. Please check your credentials.'
+  }
 }
 </script>
