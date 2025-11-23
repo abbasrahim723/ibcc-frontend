@@ -39,6 +39,22 @@ const router = createRouter({
       },
     },
     {
+      path: '/settings',
+      name: 'Settings',
+      component: () => import('../views/Pages/Settings.vue'),
+      meta: {
+        title: 'Account Settings',
+      },
+    },
+    {
+      path: '/security',
+      name: 'Security',
+      component: () => import('../views/Pages/SecuritySettings.vue'),
+      meta: {
+        title: 'Security Settings',
+      },
+    },
+    {
       path: '/form-elements',
       name: 'Form Elements',
       component: () => import('../views/Forms/FormElements.vue'),
@@ -146,6 +162,22 @@ const router = createRouter({
       component: () => import('../views/Auth/Signup.vue'),
       meta: {
         title: 'Signup',
+      },
+    },
+    {
+      path: '/my-activity',
+      name: 'MyActivity',
+      component: () => import('../views/Pages/MyActivityLogs.vue'),
+      meta: {
+        title: 'My Activity',
+      },
+    },
+    {
+      path: '/admin/activity-logs',
+      name: 'AdminActivityLogs',
+      component: () => import('../views/Admin/AdminActivityLogs.vue'),
+      meta: {
+        title: 'System Activity Logs',
       },
     },
   ],

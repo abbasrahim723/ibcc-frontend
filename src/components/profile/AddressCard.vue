@@ -1,3 +1,59 @@
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
+import Modal from './Modal.vue'
+
+const authStore = useAuthStore()
+const toast = useToast()
+const user = computed(() => authStore.user || {})
+const isProfileAddressModal = ref(false)
+const isLoading = ref(false)
+
+const form = ref({
+  country: '',
+  city: '',
+  postal_code: '',
+  tax_id: '',
+})
+
+// Watch for user changes and update form
+// Watch for user changes and update form
+watch(() => authStore.user, (newUser) => {
+  if (newUser) {
+    form.value = {
+      country: newUser.country || '',
+      city: newUser.city || '',
+      postal_code: newUser.postal_code || '',
+      tax_id: newUser.tax_id || '',
+    }
+  }
+}, { immediate: true, deep: true })
+
+const errors = ref({})
+
+const saveProfile = async () => {
+  isLoading.value = true
+  errors.value = {}
+  try {
+    await authStore.updateProfile(form.value)
+    await authStore.fetchUser()
+    isProfileAddressModal.value = false
+    toast.success('Address updated successfully!')
+  } catch (error) {
+    console.error('Error updating address', error)
+    if (error.response?.status === 422) {
+      errors.value = error.response.data.errors
+      toast.error('Please check the form for errors.')
+    } else {
+      toast.error('Failed to update address. Please try again.')
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
+</script>
+
 <template>
   <div>
     <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -8,13 +64,13 @@
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Country</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">United States</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.country || 'N/A' }}</p>
             </div>
 
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">City/State</p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                Phoenix, United States
+                {{ user?.city || 'N/A' }}
               </p>
             </div>
 
@@ -22,12 +78,12 @@
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Postal Code
               </p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">ERT 2489</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.postal_code || 'N/A' }}</p>
             </div>
 
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">TAX ID</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">AS4568384</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.tax_id || 'N/A' }}</p>
             </div>
           </div>
         </div>
@@ -89,7 +145,7 @@
               Update your details to keep your profile up-to-date.
             </p>
           </div>
-          <form class="flex flex-col">
+          <form class="flex flex-col" @submit.prevent="saveProfile">
             <div class="px-2 overflow-y-auto custom-scrollbar">
               <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
@@ -97,10 +153,14 @@
                     Country
                   </label>
                   <input
+                    v-model="form.country"
                     type="text"
-                    value="United States"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                    :class="{ 'border-red-500 focus:border-red-500': errors.country }"
                   />
+                  <p v-if="errors.country" class="mt-1 text-sm text-red-500">
+                    {{ errors.country[0] }}
+                  </p>
                 </div>
 
                 <div>
@@ -108,10 +168,14 @@
                     City/State
                   </label>
                   <input
+                    v-model="form.city"
                     type="text"
-                    value="Poenix, Arizona, United States"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                    :class="{ 'border-red-500 focus:border-red-500': errors.city }"
                   />
+                  <p v-if="errors.city" class="mt-1 text-sm text-red-500">
+                    {{ errors.city[0] }}
+                  </p>
                 </div>
 
                 <div>
@@ -119,10 +183,14 @@
                     Postal Code
                   </label>
                   <input
+                    v-model="form.postal_code"
                     type="text"
-                    value="ERT 2489"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                    :class="{ 'border-red-500 focus:border-red-500': errors.postal_code }"
                   />
+                  <p v-if="errors.postal_code" class="mt-1 text-sm text-red-500">
+                    {{ errors.postal_code[0] }}
+                  </p>
                 </div>
 
                 <div>
@@ -130,10 +198,14 @@
                     TAX ID
                   </label>
                   <input
+                    v-model="form.tax_id"
                     type="text"
-                    value="AS4568384"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                    :class="{ 'border-red-500 focus:border-red-500': errors.tax_id }"
                   />
+                  <p v-if="errors.tax_id" class="mt-1 text-sm text-red-500">
+                    {{ errors.tax_id[0] }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -146,11 +218,15 @@
                 Close
               </button>
               <button
-                @click="saveProfile"
-                type="button"
-                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
+                type="submit"
+                :disabled="isLoading"
+                class="flex w-full justify-center items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
               >
-                Save Changes
+                <svg v-if="isLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ isLoading ? 'Saving...' : 'Save Changes' }}
               </button>
             </div>
           </form>
@@ -159,18 +235,5 @@
     </Modal>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue'
-import Modal from './Modal.vue'
-
-const isProfileAddressModal = ref(false)
-
-const saveProfile = () => {
-  // Implement save profile logic here
-  console.log('Profile saved')
-  isProfileInfoModal.value = false
-}
-</script>
 
 <style></style>

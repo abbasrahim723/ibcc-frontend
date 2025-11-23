@@ -41,6 +41,7 @@
                   Enter your email and password to sign in!
                 </p>
               </div>
+
               <div>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
                   <button
@@ -117,8 +118,17 @@
                         id="email"
                         name="email"
                         placeholder="info@gmail.com"
-                        class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                        required
+                        :class="[
+                          'dark:bg-dark-900 h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30',
+                          validationErrors.email
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10'
+                            : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/10 dark:border-gray-700 dark:focus:border-brand-800'
+                        ]"
                       />
+                      <p v-if="validationErrors.email" class="mt-1 text-xs text-red-600 dark:text-red-400">
+                        {{ validationErrors.email[0] }}
+                      </p>
                     </div>
                     <!-- Password -->
                     <div>
@@ -134,7 +144,13 @@
                           :type="showPassword ? 'text' : 'password'"
                           id="password"
                           placeholder="Enter your password"
-                          class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                          required
+                          :class="[
+                            'dark:bg-dark-900 h-11 w-full rounded-lg border bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30',
+                            validationErrors.password
+                              ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10'
+                              : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/10 dark:border-gray-700 dark:focus:border-brand-800'
+                          ]"
                         />
                         <span
                           @click="togglePasswordVisibility"
@@ -174,6 +190,9 @@
                           </svg>
                         </span>
                       </div>
+                      <p v-if="validationErrors.password" class="mt-1 text-xs text-red-600 dark:text-red-400">
+                        {{ validationErrors.password[0] }}
+                      </p>
                     </div>
                     <!-- Checkbox -->
                     <div class="flex items-center justify-between">
@@ -229,9 +248,31 @@
                     <div>
                       <button
                         type="submit"
-                        class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                        :disabled="isLoading"
+                        class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Sign In
+                        <svg
+                          v-if="isLoading"
+                          class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        {{ isLoading ? 'Signing In...' : 'Sign In' }}
                       </button>
                     </div>
                   </div>
@@ -276,33 +317,73 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import CommonGridShape from '@/components/common/CommonGridShape.vue'
 import FullScreenLayout from '@/components/layout/FullScreenLayout.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const keepLoggedIn = ref(false)
-const errorMessage = ref('')
+const isLoading = ref(false)
+const validationErrors = ref<any>({})
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
 const handleSubmit = async () => {
-  errorMessage.value = ''
+  // Reset errors
+  validationErrors.value = {}
+  isLoading.value = true
+
   try {
     await authStore.login({
       email: email.value,
       password: password.value
     })
-    router.push('/')
+    
+    // Show success toast
+    toast.success('Login successful! Redirecting...')
+    
+    // Redirect immediately after successful login
+    setTimeout(() => {
+      router.push('/')
+      // Fetch user data after redirect (non-blocking)
+      authStore.fetchUser().catch(err => {
+        console.error('Error fetching user data:', err)
+      })
+    }, 500)
   } catch (error: any) {
     console.error('Login failed', error)
-    errorMessage.value = error.response?.data?.message || 'Login failed. Please check your credentials.'
+    
+    // Handle validation errors
+    if (error.response?.status === 422 && error.response?.data?.errors) {
+      validationErrors.value = error.response.data.errors
+      toast.error('Please fix the validation errors below.')
+    } 
+    // Handle authentication errors
+    else if (error.response?.status === 401) {
+      toast.error('Invalid email or password. Please try again.')
+    }
+    // Handle network errors
+    else if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+      toast.error('Unable to connect to the server. Please make sure the Laravel backend is running.')
+    }
+    // Handle connection refused
+    else if (error.code === 'ERR_CONNECTION_REFUSED') {
+      toast.error('Connection refused. Please start the Laravel backend server.')
+    }
+    // Generic error
+    else {
+      toast.error(error.response?.data?.message || 'Login failed. Please try again.')
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 </script>

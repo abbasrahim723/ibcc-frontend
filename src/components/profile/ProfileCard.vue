@@ -3,28 +3,29 @@
     <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
         <div class="flex flex-col items-center w-full gap-6 xl:flex-row">
-          <div
-            class="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800"
-          >
-            <img src="/images/user/owner.jpg" alt="user" />
+          <div class="shrink-0">
+            <ProfilePhotoManager />
           </div>
           <div class="order-3 xl:order-2">
             <h4
               class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left"
             >
-              {{ user.name }}
+              {{ user.first_name }} {{ user.last_name }}
             </h4>
             <div
               class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left"
             >
-              <p class="text-sm text-gray-500 dark:text-gray-400">Team Manager</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ user.job_title || 'Team Manager' }}</p>
               <div class="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Arizona, United States</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ [user.city, user.country].filter(Boolean).join(', ') || 'Location N/A' }}
+              </p>
             </div>
           </div>
           <div class="flex items-center order-2 gap-2 grow xl:order-3 xl:justify-end">
             <a
-              href="https://www.facebook.com/PimjoHQ"
+              v-if="socialLinks.facebook"
+              :href="socialLinks.facebook"
               target="_blank"
               rel="noopener"
               class="social-button"
@@ -43,7 +44,7 @@
                 />
               </svg>
             </a>
-            <a href="https://x.com/PimjoHQ" target="_blank" rel="noopener" class="social-button">
+            <a v-if="socialLinks.twitter" :href="socialLinks.twitter" target="_blank" rel="noopener" class="social-button">
               <svg
                 class="fill-current"
                 width="20"
@@ -59,7 +60,8 @@
               </svg>
             </a>
             <a
-              href="https://www.linkedin.com/company/pimjo/"
+              v-if="socialLinks.linkedin"
+              :href="socialLinks.linkedin"
               target="_blank"
               rel="noopener"
               class="social-button"
@@ -79,7 +81,8 @@
               </svg>
             </a>
             <a
-              href="https://www.instagram.com/PimjoHQ"
+              v-if="socialLinks.instagram"
+              :href="socialLinks.instagram"
               target="_blank"
               rel="noopener"
               class="social-button"
@@ -154,8 +157,11 @@
               Update your details to keep your profile up-to-date.
             </p>
           </div>
-          <form class="flex flex-col">
+          <form class="flex flex-col" @submit.prevent="saveProfile">
             <div class="custom-scrollbar h-[458px] overflow-y-auto p-2">
+              <div class="relative z-30 mx-auto mb-6 h-30 w-full max-w-30 rounded-full p-1 sm:h-44 sm:max-w-44 sm:p-3">
+                <ProfilePhotoManager />
+              </div>
               <div>
                 <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
                   Social Links
@@ -169,8 +175,8 @@
                       Facebook
                     </label>
                     <input
+                      v-model="socialForm.facebook"
                       type="text"
-                      value="https://www.facebook.com/PimjoHQ"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                   </div>
@@ -182,8 +188,8 @@
                       X.com
                     </label>
                     <input
+                      v-model="socialForm.twitter"
                       type="text"
-                      value="https://x.com/PimjoHQ"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                   </div>
@@ -195,8 +201,8 @@
                       Linkedin
                     </label>
                     <input
+                      v-model="socialForm.linkedin"
                       type="text"
-                      value="https://www.linkedin.com/company/pimjo/posts/?feedView=all"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                   </div>
@@ -208,8 +214,8 @@
                       Instagram
                     </label>
                     <input
+                      v-model="socialForm.instagram"
                       type="text"
-                      value="https://instagram.com/PimjoHQ"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                   </div>
@@ -228,8 +234,8 @@
                       First Name
                     </label>
                     <input
+                      v-model="form.first_name"
                       type="text"
-                      value="Musharof"
                       class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                   </div>
@@ -241,8 +247,8 @@
                       Last Name
                     </label>
                     <input
+                      v-model="form.last_name"
                       type="text"
-                      value="Chowdhury"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                   </div>
@@ -254,9 +260,10 @@
                       Email Address
                     </label>
                     <input
+                      v-model="form.email"
                       type="text"
-                      value="randomuser@pimjo.com"
-                      class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      disabled
+                      class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 shadow-theme-xs focus:outline-none cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
                     />
                   </div>
 
@@ -267,8 +274,8 @@
                       Phone
                     </label>
                     <input
+                      v-model="form.phone"
                       type="text"
-                      value="+09 363 398 46"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                   </div>
@@ -280,8 +287,8 @@
                       Bio
                     </label>
                     <input
+                      v-model="form.bio"
                       type="text"
-                      value="Team Manager"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                   </div>
@@ -297,11 +304,15 @@
                 Close
               </button>
               <button
-                @click="saveProfile"
-                type="button"
-                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
+                type="submit"
+                :disabled="isLoading"
+                class="flex w-full justify-center items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
               >
-                Save Changes
+                <svg v-if="isLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ isLoading ? 'Saving...' : 'Save Changes' }}
               </button>
             </div>
           </form>
@@ -312,27 +323,77 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import Modal from '@/components/profile/Modal.vue'
+import ProfilePhotoManager from '@/components/profile/ProfilePhotoManager.vue'
 
 const authStore = useAuthStore()
+const toast = useToast()
 const user = computed(() => authStore.user || {})
+const socialLinks = computed(() => authStore.preferences?.social_links || {})
 const isProfileInfoModal = ref(false)
+const isLoading = ref(false)
 
 const form = ref({
-  name: user.value.name,
-  email: user.value.email,
-  // Add other fields as needed
+  name: user.value.name || '',
+  email: user.value.email || '',
+  first_name: user.value.first_name || '',
+  last_name: user.value.last_name || '',
+  phone: user.value.phone || '',
+  bio: user.value.bio || '',
+  location: user.value.location || '',
+  job_title: user.value.job_title || '',
 })
 
+const socialForm = ref({
+  facebook: socialLinks.value.facebook || '',
+  twitter: socialLinks.value.twitter || '',
+  linkedin: socialLinks.value.linkedin || '',
+  instagram: socialLinks.value.instagram || '',
+})
+
+// Watch for user changes and update form
+watch(user, (newUser) => {
+  if (newUser) {
+    form.value = {
+      name: newUser.name || '',
+      email: newUser.email || '',
+      first_name: newUser.first_name || '',
+      last_name: newUser.last_name || '',
+      phone: newUser.phone || '',
+      bio: newUser.bio || '',
+      location: newUser.location || '',
+      job_title: newUser.job_title || '',
+    }
+  }
+}, { immediate: true })
+
+watch(socialLinks, (newLinks) => {
+  if (newLinks) {
+    socialForm.value = {
+      facebook: newLinks.facebook || '',
+      twitter: newLinks.twitter || '',
+      linkedin: newLinks.linkedin || '',
+      instagram: newLinks.instagram || '',
+    }
+  }
+}, { immediate: true })
+
 const saveProfile = async () => {
+  isLoading.value = true
   try {
     await authStore.updateProfile(form.value)
+    await authStore.updateSocialLinks(socialForm.value)
+    await authStore.fetchUser()
     isProfileInfoModal.value = false
-    // Show success message
+    toast.success('Profile updated successfully!')
   } catch (error) {
     console.error('Error updating profile', error)
+    toast.error('Failed to update profile. Please try again.')
+  } finally {
+    isLoading.value = false
   }
 }
 </script>

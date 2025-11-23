@@ -1,3 +1,79 @@
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
+import Modal from './Modal.vue'
+
+const authStore = useAuthStore()
+const toast = useToast()
+const user = computed(() => authStore.user || {})
+const socialLinks = computed(() => authStore.preferences?.social_links || {})
+const isProfileInfoModal = ref(false)
+const isLoading = ref(false)
+
+const form = ref({
+  first_name: '',
+  last_name: '',
+  phone: '',
+  bio: '',
+})
+
+const socialForm = ref({
+  facebook: '',
+  twitter: '',
+  linkedin: '',
+  instagram: '',
+})
+
+// Watch for user changes and update form
+// Watch for user changes and update form
+watch(() => authStore.user, (newUser) => {
+  if (newUser) {
+    form.value = {
+      first_name: newUser.first_name || '',
+      last_name: newUser.last_name || '',
+      phone: newUser.phone || '',
+      bio: newUser.bio || '',
+    }
+  }
+}, { immediate: true, deep: true })
+
+watch(() => authStore.preferences?.social_links, (newLinks) => {
+  if (newLinks) {
+    socialForm.value = {
+      facebook: newLinks.facebook || '',
+      twitter: newLinks.twitter || '',
+      linkedin: newLinks.linkedin || '',
+      instagram: newLinks.instagram || '',
+    }
+  }
+}, { immediate: true, deep: true })
+
+const errors = ref({})
+
+const saveProfile = async () => {
+  isLoading.value = true
+  errors.value = {}
+  try {
+    await authStore.updateProfile(form.value)
+    await authStore.updateSocialLinks(socialForm.value)
+    await authStore.fetchUser()
+    isProfileInfoModal.value = false
+    toast.success('Profile updated successfully!')
+  } catch (error) {
+    console.error('Error updating profile', error)
+    if (error.response?.status === 422) {
+      errors.value = error.response.data.errors
+      toast.error('Please check the form for errors.')
+    } else {
+      toast.error('Failed to update profile. Please try again.')
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
+</script>
+
 <template>
   <div>
     <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -10,12 +86,12 @@
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">First Name</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">Musharof</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.first_name || 'N/A' }}</p>
             </div>
 
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Last Name</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">Chowdhury</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.last_name || 'N/A' }}</p>
             </div>
 
             <div>
@@ -23,18 +99,18 @@
                 Email address
               </p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                randomuser@pimjo.com
+                {{ user?.email }}
               </p>
             </div>
 
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Phone</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">+09 363 398 46</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.phone || 'N/A' }}</p>
             </div>
 
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Bio</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">Team Manager</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.bio || 'N/A' }}</p>
             </div>
           </div>
         </div>
@@ -93,7 +169,7 @@
               Update your details to keep your profile up-to-date.
             </p>
           </div>
-          <form class="flex flex-col">
+          <form class="flex flex-col" @submit.prevent="saveProfile">
             <div class="custom-scrollbar h-[458px] overflow-y-auto p-2">
               <div>
                 <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
@@ -108,10 +184,14 @@
                       Facebook
                     </label>
                     <input
+                      v-model="socialForm.facebook"
                       type="text"
-                      value="https://www.facebook.com/PimjoHQ"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      :class="{ 'border-red-500 focus:border-red-500': errors['social_links.facebook'] }"
                     />
+                    <p v-if="errors['social_links.facebook']" class="mt-1 text-sm text-red-500">
+                      {{ errors['social_links.facebook'][0] }}
+                    </p>
                   </div>
 
                   <div>
@@ -121,10 +201,14 @@
                       X.com
                     </label>
                     <input
+                      v-model="socialForm.twitter"
                       type="text"
-                      value="https://x.com/PimjoHQ"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      :class="{ 'border-red-500 focus:border-red-500': errors['social_links.twitter'] }"
                     />
+                    <p v-if="errors['social_links.twitter']" class="mt-1 text-sm text-red-500">
+                      {{ errors['social_links.twitter'][0] }}
+                    </p>
                   </div>
 
                   <div>
@@ -134,10 +218,14 @@
                       Linkedin
                     </label>
                     <input
+                      v-model="socialForm.linkedin"
                       type="text"
-                      value="https://www.linkedin.com/company/pimjo/posts/?feedView=all"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      :class="{ 'border-red-500 focus:border-red-500': errors['social_links.linkedin'] }"
                     />
+                    <p v-if="errors['social_links.linkedin']" class="mt-1 text-sm text-red-500">
+                      {{ errors['social_links.linkedin'][0] }}
+                    </p>
                   </div>
 
                   <div>
@@ -147,10 +235,14 @@
                       Instagram
                     </label>
                     <input
+                      v-model="socialForm.instagram"
                       type="text"
-                      value="https://instagram.com/PimjoHQ"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      :class="{ 'border-red-500 focus:border-red-500': errors['social_links.instagram'] }"
                     />
+                    <p v-if="errors['social_links.instagram']" class="mt-1 text-sm text-red-500">
+                      {{ errors['social_links.instagram'][0] }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -167,10 +259,14 @@
                       First Name
                     </label>
                     <input
+                      v-model="form.first_name"
                       type="text"
-                      value="Musharof"
                       class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      :class="{ 'border-red-500 focus:border-red-500': errors.first_name }"
                     />
+                    <p v-if="errors.first_name" class="mt-1 text-sm text-red-500">
+                      {{ errors.first_name[0] }}
+                    </p>
                   </div>
 
                   <div class="col-span-2 lg:col-span-1">
@@ -180,23 +276,14 @@
                       Last Name
                     </label>
                     <input
+                      v-model="form.last_name"
                       type="text"
-                      value="Chowdhury"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      :class="{ 'border-red-500 focus:border-red-500': errors.last_name }"
                     />
-                  </div>
-
-                  <div class="col-span-2 lg:col-span-1">
-                    <label
-                      class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
-                    >
-                      Email Address
-                    </label>
-                    <input
-                      type="text"
-                      value="emirhanboruch55@gmail.com"
-                      class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                    />
+                    <p v-if="errors.last_name" class="mt-1 text-sm text-red-500">
+                      {{ errors.last_name[0] }}
+                    </p>
                   </div>
 
                   <div class="col-span-2 lg:col-span-1">
@@ -206,10 +293,14 @@
                       Phone
                     </label>
                     <input
+                      v-model="form.phone"
                       type="text"
-                      value="+09 363 398 46"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      :class="{ 'border-red-500 focus:border-red-500': errors.phone }"
                     />
+                    <p v-if="errors.phone" class="mt-1 text-sm text-red-500">
+                      {{ errors.phone[0] }}
+                    </p>
                   </div>
 
                   <div class="col-span-2">
@@ -219,10 +310,14 @@
                       Bio
                     </label>
                     <input
+                      v-model="form.bio"
                       type="text"
-                      value="Team Manager"
                       class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      :class="{ 'border-red-500 focus:border-red-500': errors.bio }"
                     />
+                    <p v-if="errors.bio" class="mt-1 text-sm text-red-500">
+                      {{ errors.bio[0] }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -236,11 +331,15 @@
                 Close
               </button>
               <button
-                @click="saveProfile"
-                type="button"
-                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
+                type="submit"
+                :disabled="isLoading"
+                class="flex w-full justify-center items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
               >
-                Save Changes
+                <svg v-if="isLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ isLoading ? 'Saving...' : 'Save Changes' }}
               </button>
             </div>
           </form>
@@ -249,16 +348,3 @@
     </Modal>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue'
-import Modal from './Modal.vue'
-
-const isProfileInfoModal = ref(false)
-
-const saveProfile = () => {
-  // Implement save profile logic here
-  console.log('Profile saved')
-  isProfileInfoModal.value = false
-}
-</script>

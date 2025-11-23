@@ -253,12 +253,6 @@ const menuGroups = [
         path: "/calendar",
       },
       {
-        icon: UserCircleIcon,
-        name: "User Profile",
-        path: "/profile",
-      },
-
-      {
         name: "Forms",
         icon: ListIcon,
         subItems: [
@@ -310,6 +304,16 @@ const menuGroups = [
           { name: "Signin", path: "/signin", pro: false },
           { name: "Signup", path: "/signup", pro: false },
         ],
+      },
+      {
+        icon: ListIcon,
+        name: "Activity Logs",
+        path: "/admin/activity-logs",
+      },
+      {
+        icon: UserCircleIcon,
+        name: "Roles & Permissions",
+        path: "/admin/roles",
       },
       // ... Add other menu items here
     ],
