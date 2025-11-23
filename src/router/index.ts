@@ -55,6 +55,77 @@ const router = createRouter({
       },
     },
     {
+      path: '/users',
+      name: 'Users',
+      component: () => import('../views/Admin/UsersView.vue'),
+      meta: {
+        title: 'User Management',
+      },
+    },
+    {
+      path: '/users/create',
+      name: 'CreateUser',
+      component: () => import('../views/Admin/UserFormView.vue'),
+      meta: {
+        title: 'Create User',
+      },
+    },
+    {
+      path: '/users/:id/edit',
+      name: 'EditUser',
+      component: () => import('../views/Admin/UserFormView.vue'),
+      meta: {
+        title: 'Edit User',
+      },
+    },
+    {
+      path: '/customers',
+      name: 'Customers',
+      component: () => import('../views/Admin/CustomersView.vue'),
+      meta: {
+        title: 'Customer Management',
+      },
+    },
+    {
+      path: '/customers/create',
+      name: 'CreateCustomer',
+      component: () => import('../views/Admin/CustomerFormView.vue'),
+      meta: {
+        title: 'Create Customer',
+      },
+    },
+    {
+      path: '/customers/:id/edit',
+      name: 'customer-edit',
+      component: () => import('../views/Admin/CustomerFormView.vue'),
+      meta: { requiresAuth: true }
+    },
+    // Location Management
+    {
+      path: '/admin/locations/countries',
+      name: 'countries',
+      component: () => import('../views/Admin/Locations/CountriesView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/admin/locations/states',
+      name: 'states',
+      component: () => import('../views/Admin/Locations/StatesView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/admin/locations/cities',
+      name: 'cities',
+      component: () => import('../views/Admin/Locations/CitiesView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/admin/locations/towns',
+      name: 'towns',
+      component: () => import('../views/Admin/Locations/TownsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/form-elements',
       name: 'Form Elements',
       component: () => import('../views/Forms/FormElements.vue'),

@@ -219,6 +219,7 @@ import {
   GridIcon,
   CalenderIcon,
   UserCircleIcon,
+  UserGroupIcon,
   ChatIcon,
   MailIcon,
   DocsIcon,
@@ -315,7 +316,32 @@ const menuGroups = [
         name: "Roles & Permissions",
         path: "/admin/roles",
       },
+      {
+        icon: UserGroupIcon,
+        name: "Users",
+        path: "/users",
+      },
+      {
+        icon: UserGroupIcon,
+        name: "Customers",
+        path: "/customers",
+      },
       // ... Add other menu items here
+    ],
+  },
+  {
+    title: "Settings",
+    items: [
+      {
+        icon: GridIcon, // You might want to import a MapIcon or similar
+        name: "Locations",
+        subItems: [
+          { name: "Countries", path: "/admin/locations/countries", pro: false },
+          { name: "States", path: "/admin/locations/states", pro: false },
+          { name: "Cities", path: "/admin/locations/cities", pro: false },
+          { name: "Towns", path: "/admin/locations/towns", pro: false },
+        ],
+      },
     ],
   },
 ];

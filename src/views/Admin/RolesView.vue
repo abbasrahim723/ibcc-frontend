@@ -52,8 +52,11 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
-              <tr v-for="role in roles" :key="role.id">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ role.name }}</td>
+              <tr v-for="role in roles" :key="role.id" :class="{ 'opacity-60': !role.is_active }">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                  {{ role.name }}
+                  <span v-if="!role.is_active" class="ml-2 text-xs text-gray-500">(Inactive)</span>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                   <span
                     :class="[
@@ -78,7 +81,14 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button @click="openRoleModal(role)" class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3">Edit</button>
-                  <button @click="deleteRole(role.id)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                  <button 
+                    @click="deleteRole(role.id)" 
+                    :class="role.is_active 
+                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300' 
+                      : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
+                  >
+                    {{ role.is_active ? 'Delete' : 'Restore' }}
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -108,14 +118,24 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
-              <tr v-for="permission in permissions" :key="permission.id">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ permission.name }}</td>
+              <tr v-for="permission in permissions" :key="permission.id" :class="{ 'opacity-60': !permission.is_active }">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                  {{ permission.name }}
+                  <span v-if="!permission.is_active" class="ml-2 text-xs text-gray-500">(Inactive)</span>
+                </td>
                 <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                   {{ permission.roles ? permission.roles.length : 0 }} roles
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button @click="openPermissionModal(permission)" class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3">Edit</button>
-                  <button @click="deletePermission(permission.id)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                  <button 
+                    @click="deletePermission(permission.id)" 
+                    :class="permission.is_active 
+                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300' 
+                      : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
+                  >
+                    {{ permission.is_active ? 'Delete' : 'Restore' }}
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -234,6 +254,7 @@
       v-if="showDeleteModal"
       :title="deleteModalTitle"
       :message="deleteModalMessage"
+      :confirmButtonText="deleteModalButtonText"
       @close="closeDeleteModal"
       @confirm="confirmDelete"
     />
@@ -276,6 +297,7 @@ const permissionForm = ref({
 const showDeleteModal = ref(false)
 const deleteModalTitle = ref('')
 const deleteModalMessage = ref('')
+const deleteModalButtonText = ref('Delete')
 const itemToDelete = ref<{ type: 'role' | 'permission', id: number } | null>(null)
 
 // Fetch Data
@@ -333,9 +355,19 @@ const saveRole = async () => {
 }
 
 const deleteRole = (id: number) => {
+  const role = roles.value.find(r => r.id === id)
+  if (!role) return
+  
   itemToDelete.value = { type: 'role', id }
-  deleteModalTitle.value = 'Delete Role'
-  deleteModalMessage.value = 'Are you sure you want to delete this role? This action cannot be undone.'
+  if (role.is_active) {
+    deleteModalTitle.value = 'Deactivate Role'
+    deleteModalMessage.value = 'Are you sure you want to deactivate this role? It will be marked as inactive but can be restored later.'
+    deleteModalButtonText.value = 'Delete'
+  } else {
+    deleteModalTitle.value = 'Restore Role'
+    deleteModalMessage.value = 'Are you sure you want to restore this role? It will be marked as active again.'
+    deleteModalButtonText.value = 'Restore'
+  }
   showDeleteModal.value = true
 }
 
@@ -368,9 +400,19 @@ const savePermission = async () => {
 }
 
 const deletePermission = (id: number) => {
+  const permission = permissions.value.find(p => p.id === id)
+  if (!permission) return
+  
   itemToDelete.value = { type: 'permission', id }
-  deleteModalTitle.value = 'Delete Permission'
-  deleteModalMessage.value = 'Are you sure you want to delete this permission? This action cannot be undone.'
+  if (permission.is_active) {
+    deleteModalTitle.value = 'Deactivate Permission'
+    deleteModalMessage.value = 'Are you sure you want to deactivate this permission? It will be marked as inactive but can be restored later.'
+    deleteModalButtonText.value = 'Delete'
+  } else {
+    deleteModalTitle.value = 'Restore Permission'
+    deleteModalMessage.value = 'Are you sure you want to restore this permission? It will be marked as active again.'
+    deleteModalButtonText.value = 'Restore'
+  }
   showDeleteModal.value = true
 }
 
@@ -380,17 +422,17 @@ const confirmDelete = async () => {
   
   try {
     if (itemToDelete.value.type === 'role') {
-      await api.delete(`/roles/${itemToDelete.value.id}`)
-      toast.success('Role deleted successfully')
+      const response = await api.delete(`/roles/${itemToDelete.value.id}`)
+      toast.success(response.data.message)
       fetchRoles()
     } else {
-      await api.delete(`/permissions/${itemToDelete.value.id}`)
-      toast.success('Permission deleted successfully')
+      const response = await api.delete(`/permissions/${itemToDelete.value.id}`)
+      toast.success(response.data.message)
       fetchPermissions()
       fetchRoles()
     }
   } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Error deleting item')
+    toast.error(error.response?.data?.message || 'Error processing request')
   } finally {
     closeDeleteModal()
   }
