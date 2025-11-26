@@ -78,7 +78,7 @@ const userPhoto = computed(() => {
 
 const menuItems = [
   { href: '/profile', icon: UserCircleIcon, text: 'My Profile' },
-  { href: '/my-activity', icon: ListIcon, text: 'My Activity' },
+  { href: '/admin/activity-logs?my_activity=true', icon: ListIcon, text: 'My Activity' },
   { href: '/settings', icon: SettingsIcon, text: 'Account Settings' },
   { href: '/security', icon: PlugInIcon, text: 'Security Settings' },
 ]

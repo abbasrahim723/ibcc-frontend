@@ -1,12 +1,8 @@
 <template>
-  <div class="fixed inset-0 flex items-center justify-center overflow-y-auto modal z-99999">
-    <div
-      class="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px]"
-      aria-hidden="true"
-      @click="$emit('close')"
-    ></div>
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div @click="handleBackdropClick" class="fixed inset-0 h-full w-full bg-transparent"></div>
     
-    <div class="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-lg dark:bg-gray-900 lg:p-10">
+    <div class="relative z-10 w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 lg:p-10">
       <div class="flex flex-col items-center text-center">
         <div 
           :class="[
@@ -82,6 +78,10 @@
 import { computed } from 'vue'
 
 const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: true
+  },
   title: {
     type: String,
     default: 'Are you sure?',
@@ -96,7 +96,11 @@ const props = defineProps({
   },
 })
 
-defineEmits(['close', 'confirm'])
+const emit = defineEmits(['close', 'confirm'])
+
+const handleBackdropClick = () => {
+  emit('close')
+}
 
 // Determine if this is a restore action based on the title or button text
 const isRestore = computed(() => {

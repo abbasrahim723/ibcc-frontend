@@ -54,17 +54,20 @@
                     </div>
                   </div>
                   <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                    <router-link 
+                      :to="`/customers/${customer.id}`"
+                      class="text-sm font-medium text-gray-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400"
+                    >
                       {{ customer.name }}
                       <span v-if="!customer.is_active" class="ml-2 text-xs text-gray-500">(Inactive)</span>
-                    </div>
+                    </router-link>
                     <div class="text-sm text-gray-500 dark:text-gray-400">{{ customer.email || 'No email' }}</div>
                   </div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-900 dark:text-white">{{ customer.phone_primary || 'No phone' }}</div>
-                <div class="text-xs text-gray-500">{{ customer.address || 'No address' }}</div>
+                <div class="text-xs text-gray-500 max-w-[12rem] truncate" :title="customer.address || 'No address'">{{ customer.address || 'No address' }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <button

@@ -31,6 +31,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/admin/activity-logs',
+      name: 'ActivityLogs',
+      component: () => import('../views/Admin/ActivityLogsView.vue'),
+      meta: {
+        title: 'Activity Logs',
+        requiresAuth: true
+      },
+    },
+    {
       path: '/profile',
       name: 'Profile',
       component: () => import('../views/Others/UserProfile.vue'),
@@ -100,6 +109,24 @@ const router = createRouter({
       component: () => import('../views/Admin/CustomerFormView.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/customers/:id',
+      name: 'CustomerDetail',
+      component: () => import('../views/Admin/CustomerDetailView.vue'),
+      meta: {
+        title: 'Customer Details',
+        requiresAuth: true
+      },
+    },
+    {
+      path: '/documents',
+      name: 'Documents',
+      component: () => import('../views/Admin/DocumentsView.vue'),
+      meta: {
+        title: 'Document Management',
+        requiresAuth: true
+      },
+    },
     // Location Management
     {
       path: '/admin/locations/countries',
@@ -142,113 +169,75 @@ const router = createRouter({
       },
     },
     {
-      path: '/line-chart',
-      name: 'Line Chart',
-      component: () => import('../views/Chart/LineChart/LineChart.vue'),
-    },
-    {
-      path: '/bar-chart',
-      name: 'Bar Chart',
-      component: () => import('../views/Chart/BarChart/BarChart.vue'),
-    },
-    {
-      path: '/alerts',
-      name: 'Alerts',
-      component: () => import('../views/UiElements/Alerts.vue'),
+      path: '/calendar',
+      name: 'Calendar',
+      component: () => import('../views/Pages/ComingSoon.vue'),
       meta: {
-        title: 'Alerts',
+        title: 'Calendar',
       },
     },
     {
-      path: '/avatars',
-      name: 'Avatars',
-      component: () => import('../views/UiElements/Avatars.vue'),
+      path: '/projects',
+      name: 'Projects',
+      component: () => import('../views/Pages/ComingSoon.vue'),
       meta: {
-        title: 'Avatars',
+        title: 'Projects',
       },
     },
     {
-      path: '/badge',
-      name: 'Badge',
-      component: () => import('../views/UiElements/Badges.vue'),
+      path: '/payments',
+      name: 'Payments',
+      component: () => import('../views/Pages/ComingSoon.vue'),
       meta: {
-        title: 'Badge',
-      },
-    },
-
-    {
-      path: '/buttons',
-      name: 'Buttons',
-      component: () => import('../views/UiElements/Buttons.vue'),
-      meta: {
-        title: 'Buttons',
-      },
-    },
-
-    {
-      path: '/images',
-      name: 'Images',
-      component: () => import('../views/UiElements/Images.vue'),
-      meta: {
-        title: 'Images',
+        title: 'Payments',
       },
     },
     {
-      path: '/videos',
-      name: 'Videos',
-      component: () => import('../views/UiElements/Videos.vue'),
+      path: '/admin/locations/prefixes',
+      name: 'Prefixes',
+      component: () => import('../views/Admin/Locations/PrefixesView.vue'),
       meta: {
-        title: 'Videos',
+        title: 'Prefixes Management',
       },
     },
     {
-      path: '/blank',
-      name: 'Blank',
-      component: () => import('../views/Pages/BlankPage.vue'),
+      path: '/admin/locations/towns/create',
+      name: 'CreateTown',
+      component: () => import('../views/Admin/Locations/TownFormView.vue'),
       meta: {
-        title: 'Blank',
-      },
-    },
-
-    {
-      path: '/error-404',
-      name: '404 Error',
-      component: () => import('../views/Errors/FourZeroFour.vue'),
-      meta: {
-        title: '404 Error',
-      },
-    },
-
-    {
-      path: '/signin',
-      name: 'Signin',
-      component: () => import('../views/Auth/Signin.vue'),
-      meta: {
-        title: 'Signin',
+        title: 'Create Town',
       },
     },
     {
-      path: '/signup',
-      name: 'Signup',
-      component: () => import('../views/Auth/Signup.vue'),
+      path: '/admin/locations/towns/:id/edit',
+      name: 'EditTown',
+      component: () => import('../views/Admin/Locations/TownFormView.vue'),
       meta: {
-        title: 'Signup',
+        title: 'Edit Town',
       },
     },
     {
-      path: '/my-activity',
-      name: 'MyActivity',
-      component: () => import('../views/Pages/MyActivityLogs.vue'),
+      path: '/admin/locations/phases',
+      name: 'Phases',
+      component: () => import('../views/Admin/Locations/PhasesView.vue'),
       meta: {
-        title: 'My Activity',
+        title: 'Phases Management',
       },
     },
     {
-      path: '/admin/activity-logs',
-      name: 'AdminActivityLogs',
-      component: () => import('../views/Admin/AdminActivityLogs.vue'),
+      path: '/admin/locations/phases/create',
+      name: 'CreatePhase',
+      component: () => import('../views/Admin/Locations/PhaseFormView.vue'),
       meta: {
-        title: 'System Activity Logs',
+        title: 'Create Phase',
+      },
+    },
+    {
+      path: '/admin/locations/phases/:id/edit',
+      name: 'EditPhase',
+      component: () => import('../views/Admin/Locations/PhaseFormView.vue'),
+      meta: {
+        title: 'Edit Phase',
       },
     },
   ],

@@ -1,14 +1,25 @@
 <template>
-  <div class="fixed inset-0 flex items-center justify-center overflow-y-auto modal z-99999">
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div @click="handleBackdropClick" class="fixed inset-0 h-full w-full bg-transparent"></div>
     <div
-      class="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px]"
-      aria-hidden="true"
-      @click="$emit('close')"
-    ></div>
-    <slot name="body"></slot>
+      class="relative z-10 w-full max-w-md transform rounded-2xl bg-white p-6 shadow-2xl transition-all dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700"
+    >
+      <slot></slot>
+    </div>
   </div>
 </template>
 
 <script setup>
-// No additional setup needed
+defineProps({
+  isOpen: {
+    type: Boolean,
+    default: true
+  }
+})
+
+const emit = defineEmits(['close'])
+
+const handleBackdropClick = () => {
+  emit('close')
+}
 </script>

@@ -4,7 +4,7 @@
     
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Towns</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Phases / Sectors</h3>
         
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- State Filter -->
@@ -31,21 +31,33 @@
             </option>
           </select>
 
+          <!-- Town Filter -->
+          <select
+            v-model="selectedTownId"
+            @change="handleTownChange"
+            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          >
+            <option value="">All Towns</option>
+            <option v-for="town in filteredTowns" :key="town.id" :value="town.id">
+              {{ town.name }}
+            </option>
+          </select>
+
           <!-- Search -->
           <input
             v-model="searchQuery"
             @input="handleSearch"
             type="text"
-            placeholder="Search towns..."
+            placeholder="Search phases..."
             class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
           
           <!-- Add Button -->
           <router-link
-            to="/admin/locations/towns/create"
+            to="/admin/locations/phases/create"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
           >
-            Add Town
+            Add Phase
           </router-link>
         </div>
       </div>
@@ -56,29 +68,25 @@
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Town</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">City</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">State</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Zip Code</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-            <tr v-for="town in towns" :key="town.id" :class="!town.is_active ? 'opacity-60' : ''">
+            <tr v-for="phase in phases" :key="phase.id" :class="!phase.is_active ? 'opacity-60' : ''">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                {{ town.name }}
+                {{ phase.name }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {{ getCityName(town.city_id) }}
+                {{ phase.town?.name || 'Unknown' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {{ getStateName(town.city_id) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {{ town.zip_code || '-' }}
+                {{ phase.town?.city?.name || 'Unknown' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span v-if="town.is_active" class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900 dark:text-green-200">
+                <span v-if="phase.is_active" class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900 dark:text-green-200">
                   Active
                 </span>
                 <span v-else class="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800 dark:bg-red-900 dark:text-red-200">
@@ -87,20 +95,20 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button 
-                  @click="toggleActive(town)" 
-                  :class="town.is_active ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
+                  @click="toggleActive(phase)" 
+                  :class="phase.is_active ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
                   class="mr-3"
                 >
-                  {{ town.is_active ? 'Deactivate' : 'Activate' }}
+                  {{ phase.is_active ? 'Deactivate' : 'Activate' }}
                 </button>
                 <router-link 
-                  :to="`/admin/locations/towns/${town.id}/edit`"
+                  :to="`/admin/locations/phases/${phase.id}/edit`"
                   class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3"
                 >
                   Edit
                 </router-link>
                 <button 
-                  @click="deleteTown(town)" 
+                  @click="deletePhase(phase)" 
                   class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                 >
                   Delete
@@ -138,8 +146,8 @@
     <!-- Delete Confirmation Modal -->
     <ConfirmationModal
       :isOpen="showDeleteModal"
-      :title="`Delete ${townToDelete?.name}?`"
-      message="Are you sure you want to delete this town? This action cannot be undone."
+      :title="`Delete ${phaseToDelete?.name}?`"
+      message="Are you sure you want to delete this phase/sector? This action cannot be undone."
       confirmButtonText="Delete"
       @close="showDeleteModal = false"
       @confirm="confirmDelete"
@@ -155,12 +163,25 @@ import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 
+interface Phase {
+  id: number
+  name: string
+  town_id: number
+  is_active: boolean
+  town?: {
+    id: number
+    name: string
+    city?: {
+      id: number
+      name: string
+    }
+  }
+}
+
 interface Town {
   id: number
   name: string
   city_id: number
-  zip_code: string | null
-  is_active: boolean
 }
 
 interface City {
@@ -175,15 +196,17 @@ interface State {
 }
 
 const toast = useToast()
-const currentPageTitle = ref('Towns')
-const towns = ref<Town[]>([])
+const currentPageTitle = ref('Phases / Sectors')
+const phases = ref<Phase[]>([])
 const states = ref<State[]>([])
 const allCities = ref<City[]>([])
+const allTowns = ref<Town[]>([])
 const searchQuery = ref('')
 const selectedStateId = ref('')
 const selectedCityId = ref('') // Default to "All Cities"
+const selectedTownId = ref('') // Default to "All Towns"
 const showDeleteModal = ref(false)
-const townToDelete = ref<Town | null>(null)
+const phaseToDelete = ref<Phase | null>(null)
 const isDeleting = ref(false)
 
 const pagination = ref({
@@ -198,6 +221,11 @@ const pagination = ref({
 const filteredCities = computed(() => {
   if (!selectedStateId.value) return []
   return allCities.value.filter(c => c.state_id === Number(selectedStateId.value))
+})
+
+const filteredTowns = computed(() => {
+  if (!selectedCityId.value) return []
+  return allTowns.value.filter(t => t.city_id === Number(selectedCityId.value))
 })
 
 const fetchStates = async () => {
@@ -229,16 +257,29 @@ const fetchCities = async () => {
   }
 }
 
-const fetchTowns = async (page = 1) => {
+const fetchTowns = async () => {
+  try {
+    const response = await api.get('/towns', { params: { all: true } })
+    allTowns.value = response.data
+    
+    // Set default town if city is selected
+    if (selectedCityId.value && filteredTowns.value.length > 0) {
+      selectedTownId.value = String(filteredTowns.value[0].id)
+    }
+  } catch (error) {
+    console.error('Error fetching towns', error)
+  }
+}
+
+const fetchPhases = async (page = 1) => {
   try {
     const params = {
       page,
       search: searchQuery.value || undefined,
-      state_id: selectedStateId.value || undefined,
-      city_id: selectedCityId.value || undefined
+      town_id: selectedTownId.value || undefined,
     }
-    const response = await api.get('/towns', { params })
-    towns.value = response.data.data
+    const response = await api.get('/phases', { params })
+    phases.value = response.data.data
     pagination.value = {
       current_page: response.data.current_page,
       last_page: response.data.last_page,
@@ -248,77 +289,71 @@ const fetchTowns = async (page = 1) => {
       to: response.data.to,
     }
   } catch (error: any) {
-    toast.error('Error fetching towns')
+    toast.error('Error fetching phases')
   }
 }
 
 const handleSearch = () => {
-  fetchTowns(1)
+  fetchPhases(1)
 }
 
 const handleStateChange = () => {
   selectedCityId.value = ''
-  fetchTowns(1)
+  selectedTownId.value = ''
+  fetchPhases(1)
 }
 
 const handleCityChange = () => {
-  fetchTowns(1)
+  selectedTownId.value = ''
+  fetchPhases(1)
+}
+
+const handleTownChange = () => {
+  fetchPhases(1)
 }
 
 const changePage = (page: number) => {
-  fetchTowns(page)
+  fetchPhases(page)
 }
 
-const getCityName = (cityId: number) => {
-  const city = allCities.value.find(c => c.id === cityId)
-  return city ? city.name : 'Unknown'
-}
-
-const getStateName = (cityId: number) => {
-  const city = allCities.value.find(c => c.id === cityId)
-  if (!city) return 'Unknown'
-  const state = states.value.find(s => s.id === city.state_id)
-  return state ? state.name : 'Unknown'
-}
-
-const toggleActive = async (town: Town) => {
-  const newStatus = !town.is_active
+const toggleActive = async (phase: Phase) => {
+  const newStatus = !phase.is_active
   const actionText = newStatus ? 'Activating' : 'Deactivating'
   
-  toast.info(`${actionText} town...`)
+  toast.info(`${actionText} phase...`)
   
   try {
-    await api.put(`/towns/${town.id}`, {
-      ...town,
+    await api.put(`/phases/${phase.id}`, {
+      ...phase,
       is_active: newStatus
     })
-    toast.success(`Town ${newStatus ? 'activated' : 'deactivated'} successfully`)
-    fetchTowns(pagination.value.current_page)
+    toast.success(`Phase ${newStatus ? 'activated' : 'deactivated'} successfully`)
+    fetchPhases(pagination.value.current_page)
   } catch (error: any) {
     console.error('Toggle error:', error)
-    toast.error(error.response?.data?.message || 'Error updating town status')
+    toast.error(error.response?.data?.message || 'Error updating phase status')
   }
 }
 
-const deleteTown = (town: Town) => {
-  townToDelete.value = town
+const deletePhase = (phase: Phase) => {
+  phaseToDelete.value = phase
   showDeleteModal.value = true
 }
 
 const confirmDelete = async () => {
-  if (!townToDelete.value) return
+  if (!phaseToDelete.value) return
   
   isDeleting.value = true
-  toast.info('Deleting town...')
+  toast.info('Deleting phase...')
   
   try {
-    await api.delete(`/towns/${townToDelete.value.id}`)
-    toast.success('Town deleted successfully')
+    await api.delete(`/phases/${phaseToDelete.value.id}`)
+    toast.success('Phase deleted successfully')
     showDeleteModal.value = false
-    townToDelete.value = null
-    fetchTowns(pagination.value.current_page)
+    phaseToDelete.value = null
+    fetchPhases(pagination.value.current_page)
   } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Error deleting town')
+    toast.error(error.response?.data?.message || 'Error deleting phase')
   } finally {
     isDeleting.value = false
   }
@@ -327,6 +362,7 @@ const confirmDelete = async () => {
 onMounted(async () => {
   await fetchStates()
   await fetchCities()
-  fetchTowns()
+  await fetchTowns()
+  fetchPhases()
 })
 </script>

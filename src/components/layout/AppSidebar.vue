@@ -206,7 +206,6 @@
           </div>
         </div>
       </nav>
-      <SidebarWidget v-if="isExpanded || isHovered || isMobileOpen" />
     </div>
   </aside>
 </template>
@@ -230,8 +229,9 @@ import {
   TableIcon,
   ListIcon,
   PlugInIcon,
+  HomeIcon,
+  SettingsIcon,
 } from "../../icons";
-import SidebarWidget from "./SidebarWidget.vue";
 import BoxCubeIcon from "@/icons/BoxCubeIcon.vue";
 import { useSidebar } from "@/composables/useSidebar";
 
@@ -249,67 +249,39 @@ const menuGroups = [
         subItems: [{ name: "Ecommerce", path: "/", pro: false }],
       },
       {
+        icon: UserGroupIcon,
+        name: "Customers",
+        path: "/customers",
+      },
+      {
+        icon: DocsIcon,
+        name: "Documents",
+        path: "/documents",
+      },
+      {
         icon: CalenderIcon,
         name: "Calendar",
         path: "/calendar",
       },
       {
-        name: "Forms",
-        icon: ListIcon,
-        subItems: [
-          { name: "Form Elements", path: "/form-elements", pro: false },
-        ],
+        icon: HomeIcon,
+        name: "Projects",
+        path: "/projects",
       },
       {
-        name: "Tables",
-        icon: TableIcon,
-        subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-      },
-      {
-        name: "Pages",
-        icon: PageIcon,
-        subItems: [
-          { name: "Black Page", path: "/blank", pro: false },
-          { name: "404 Page", path: "/error-404", pro: false },
-        ],
+        icon: DocsIcon,
+        name: "Payments",
+        path: "/payments",
       },
     ],
   },
   {
-    title: "Others",
+    title: "System",
     items: [
       {
-        icon: PieChartIcon,
-        name: "Charts",
-        subItems: [
-          { name: "Line Chart", path: "/line-chart", pro: false },
-          { name: "Bar Chart", path: "/bar-chart", pro: false },
-        ],
-      },
-      {
-        icon: BoxCubeIcon,
-        name: "Ui Elements",
-        subItems: [
-          { name: "Alerts", path: "/alerts", pro: false },
-          { name: "Avatars", path: "/avatars", pro: false },
-          { name: "Badge", path: "/badge", pro: false },
-          { name: "Buttons", path: "/buttons", pro: false },
-          { name: "Images", path: "/images", pro: false },
-          { name: "Videos", path: "/videos", pro: false },
-        ],
-      },
-      {
-        icon: PlugInIcon,
-        name: "Authentication",
-        subItems: [
-          { name: "Signin", path: "/signin", pro: false },
-          { name: "Signup", path: "/signup", pro: false },
-        ],
-      },
-      {
-        icon: ListIcon,
-        name: "Activity Logs",
-        path: "/admin/activity-logs",
+        icon: UserGroupIcon,
+        name: "Users",
+        path: "/users",
       },
       {
         icon: UserCircleIcon,
@@ -317,30 +289,30 @@ const menuGroups = [
         path: "/admin/roles",
       },
       {
-        icon: UserGroupIcon,
-        name: "Users",
-        path: "/users",
+        icon: ListIcon,
+        name: "Activity Logs",
+        path: "/admin/activity-logs",
       },
-      {
-        icon: UserGroupIcon,
-        name: "Customers",
-        path: "/customers",
-      },
-      // ... Add other menu items here
     ],
   },
   {
     title: "Settings",
     items: [
       {
-        icon: GridIcon, // You might want to import a MapIcon or similar
+        icon: GridIcon, 
         name: "Locations",
         subItems: [
           { name: "Countries", path: "/admin/locations/countries", pro: false },
           { name: "States", path: "/admin/locations/states", pro: false },
           { name: "Cities", path: "/admin/locations/cities", pro: false },
           { name: "Towns", path: "/admin/locations/towns", pro: false },
+          { name: "Phases", path: "/admin/locations/phases", pro: false },
         ],
+      },
+      {
+        icon: ListIcon,
+        name: "Prefixes",
+        path: "/admin/locations/prefixes",
       },
     ],
   },

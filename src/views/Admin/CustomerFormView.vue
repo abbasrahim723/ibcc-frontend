@@ -122,13 +122,34 @@
           </div>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <!-- Gender -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gender</label>
+              <select
+                v-model="customerForm.gender"
+                :class="[
+                  'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-1',
+                  validationErrors.gender
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700',
+                  'dark:bg-gray-800 dark:text-white'
+                ]"
+              >
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+              <p v-if="validationErrors.gender" class="mt-1 text-xs text-red-600">{{ validationErrors.gender }}</p>
+            </div>
+
+            <!-- CNIC Number -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CNIC Number</label>
-              <input
+              <CnicInput
                 v-model="customerForm.cnic_number"
-                type="text"
-                placeholder="e.g. 12345-1234567-1"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                :has-error="!!validationErrors.cnic_number"
+                :error-message="validationErrors.cnic_number"
               />
             </div>
           </div>
@@ -202,6 +223,24 @@
               </select>
             </div>
 
+            <!-- Phase / Sector -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phase / Sector</label>
+              <div class="relative">
+                <select
+                  v-model="customerForm.phase_id"
+                  :disabled="!customerForm.town_id || loadingPhases"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-900"
+                >
+                  <option value="">Select Phase</option>
+                  <option v-for="phase in phases" :key="phase.id" :value="phase.id">
+                    {{ phase.name }}
+                  </option>
+                </select>
+                <LoadingSpinner v-if="loadingPhases" size="sm" class="absolute right-8 top-2.5" />
+              </div>
+            </div>
+
             <!-- Street Address -->
             <div class="sm:col-span-2">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Street Address</label>
@@ -234,6 +273,49 @@
           </div>
         </div>
 
+        <!-- Document Uploads -->
+        <div class="space-y-4">
+          <h4 class="text-md font-medium text-gray-900 dark:text-white">Documents (Optional)</h4>
+          
+          <!-- CNIC Documents -->
+          <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-4">CNIC Documents</h5>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <DocumentUploader
+                v-model="customerForm.cnic_front"
+                title="CNIC Front Side"
+                accept="image/*"
+                accept-text="PNG, JPG up to 10MB"
+                :multiple="false"
+                :max-files="1"
+                :allow-camera="true"
+              />
+              <DocumentUploader
+                v-model="customerForm.cnic_back"
+                title="CNIC Back Side"
+                accept="image/*"
+                accept-text="PNG, JPG up to 10MB"
+                :multiple="false"
+                :max-files="1"
+                :allow-camera="true"
+              />
+            </div>
+          </div>
+
+          <!-- Other Documents -->
+          <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <DocumentUploader
+              v-model="customerForm.other_documents"
+              title="Other Documents"
+              accept="image/*,application/pdf,.doc,.docx"
+              accept-text="PNG, JPG, PDF, DOC up to 10MB each"
+              :multiple="true"
+              :max-files="10"
+              :allow-camera="true"
+            />
+          </div>
+        </div>
+
         <!-- Contact Information -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Contact Information</h4>
@@ -241,28 +323,25 @@
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone (Primary)</label>
-              <input
+              <PhoneInputPK
                 v-model="customerForm.phone_primary"
-                type="tel"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                placeholder="3001234567"
               />
             </div>
             
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone (Secondary)</label>
-              <input
+              <PhoneInputPK
                 v-model="customerForm.phone_secondary"
-                type="tel"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                placeholder="3001234567"
               />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">WhatsApp Number</label>
-              <input
+              <PhoneInputPK
                 v-model="customerForm.whatsapp_number"
-                type="tel"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                placeholder="3001234567"
               />
             </div>
           </div>
@@ -312,6 +391,10 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import PhoneInputPK from '@/components/common/PhoneInputPK.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import CnicInput from '@/components/common/CnicInput.vue'
+import DocumentUploader from '@/components/common/DocumentUploader.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 
@@ -335,11 +418,20 @@ const countries = ref<any[]>([])
 const states = ref<any[]>([])
 const cities = ref<any[]>([])
 const towns = ref<any[]>([])
+const phases = ref<any[]>([])
+const prefixes = ref<any[]>([])
+
+const loadingPrefixes = ref(false)
+const loadingStates = ref(false)
+const loadingCities = ref(false)
+const loadingTowns = ref(false)
+const loadingPhases = ref(false)
 
 const customerForm = ref({
   name_prefix: '',
   name: '',
   email: '',
+  gender: '',
   phone_primary: '',
   phone_secondary: '',
   whatsapp_number: '',
@@ -352,9 +444,13 @@ const customerForm = ref({
   state_id: '' as number | '',
   city_id: '' as number | '',
   town_id: '' as number | '',
+  phase_id: '' as number | '',
   is_active: true,
   profile_photo: null as File | null,
-  profile_photo_url: ''
+  profile_photo_url: '',
+  cnic_front: [] as any[],
+  cnic_back: [] as any[],
+  other_documents: [] as any[]
 })
 
 const triggerFileInput = () => {
@@ -412,11 +508,26 @@ const fetchCities = async (stateId: number) => {
 }
 
 const fetchTowns = async (cityId: number) => {
+  loadingTowns.value = true
   try {
     const response = await api.get('/towns', { params: { city_id: cityId, active_only: true, all: true } })
     towns.value = response.data
   } catch (error) {
     console.error('Error fetching towns', error)
+  } finally {
+    loadingTowns.value = false
+  }
+}
+
+const fetchPhases = async (townId: number) => {
+  loadingPhases.value = true
+  try {
+    const response = await api.get('/phases', { params: { town_id: townId, active_only: true, all: true } })
+    phases.value = response.data
+  } catch (error) {
+    console.error('Error fetching phases', error)
+  } finally {
+    loadingPhases.value = false
   }
 }
 
@@ -460,7 +571,11 @@ const handleCityChange = () => {
 }
 
 const handleTownChange = () => {
+  customerForm.value.phase_id = ''
+  phases.value = []
+  
   if (customerForm.value.town_id) {
+    fetchPhases(Number(customerForm.value.town_id))
     // Auto-fill zip code if available in town
     const town = towns.value.find(t => t.id === Number(customerForm.value.town_id))
     if (town && town.zip_code) {
@@ -519,6 +634,7 @@ const fetchCustomer = async () => {
       name_prefix: customer.name_prefix || '',
       name: customer.name,
       email: customer.email || '',
+      gender: customer.gender || '',
       phone_primary: customer.phone_primary || '',
       phone_secondary: customer.phone_secondary || '',
       whatsapp_number: customer.whatsapp_number || '',
@@ -531,15 +647,20 @@ const fetchCustomer = async () => {
       state_id: customer.state_id || '',
       city_id: customer.city_id || '',
       town_id: customer.town_id || '',
+      phase_id: customer.phase_id || '',
       is_active: customer.is_active !== undefined ? Boolean(customer.is_active) : true,
       profile_photo: null,
-      profile_photo_url: customer.profile_photo_url || ''
+      profile_photo_url: customer.profile_photo_url || '',
+      cnic_front: [],
+      cnic_back: [],
+      other_documents: []
     }
 
     // Load cascading data
     if (customer.country_id) await fetchStates(customer.country_id)
     if (customer.state_id) await fetchCities(customer.state_id)
     if (customer.city_id) await fetchTowns(customer.city_id)
+    if (customer.town_id) await fetchPhases(customer.town_id)
 
   } catch (error: any) {
     toast.error(error.response?.data?.message || 'Error fetching customer')
@@ -568,6 +689,7 @@ const saveCustomer = async () => {
     if (customerForm.value.name_prefix) formData.append('name_prefix', customerForm.value.name_prefix)
     
     if (customerForm.value.email) formData.append('email', customerForm.value.email)
+    if (customerForm.value.gender) formData.append('gender', customerForm.value.gender)
     if (customerForm.value.phone_primary) formData.append('phone_primary', customerForm.value.phone_primary)
     if (customerForm.value.phone_secondary) formData.append('phone_secondary', customerForm.value.phone_secondary)
     if (customerForm.value.whatsapp_number) formData.append('whatsapp_number', customerForm.value.whatsapp_number)
@@ -581,6 +703,7 @@ const saveCustomer = async () => {
     if (customerForm.value.state_id) formData.append('state_id', String(customerForm.value.state_id))
     if (customerForm.value.city_id) formData.append('city_id', String(customerForm.value.city_id))
     if (customerForm.value.town_id) formData.append('town_id', String(customerForm.value.town_id))
+    if (customerForm.value.phase_id) formData.append('phase_id', String(customerForm.value.phase_id))
     
     // Construct full address for backward compatibility
     const fullAddress = [
@@ -600,6 +723,19 @@ const saveCustomer = async () => {
     // Handle profile photo
     if (customerForm.value.profile_photo) {
       formData.append('profile_photo', customerForm.value.profile_photo)
+    }
+
+    // Handle Documents
+    if (customerForm.value.cnic_front && customerForm.value.cnic_front.length > 0) {
+      formData.append('cnic_front', customerForm.value.cnic_front[0].file)
+    }
+    if (customerForm.value.cnic_back && customerForm.value.cnic_back.length > 0) {
+      formData.append('cnic_back', customerForm.value.cnic_back[0].file)
+    }
+    if (customerForm.value.other_documents && customerForm.value.other_documents.length > 0) {
+      customerForm.value.other_documents.forEach((doc: any) => {
+        formData.append('other_documents[]', doc.file)
+      })
     }
 
     if (isEditMode.value) {

@@ -4,7 +4,7 @@
     
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Countries</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Prefixes</h3>
         
         <div class="flex items-center gap-4">
           <!-- Search -->
@@ -12,9 +12,17 @@
             v-model="searchQuery"
             @input="handleSearch"
             type="text"
-            placeholder="Search countries..."
+            placeholder="Search prefixes..."
             class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
+          
+          <!-- Add Button -->
+          <button
+            @click="openModal()"
+            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
+          >
+            Add Prefix
+          </button>
         </div>
       </div>
 
@@ -24,29 +32,43 @@
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">ISO3</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Phone Code</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-            <tr v-for="country in countries" :key="country.id" :class="!country.is_active ? 'opacity-60' : ''">
+            <tr v-for="prefix in prefixes" :key="prefix.id" :class="!prefix.is_active ? 'opacity-60' : ''">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                {{ country.name }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {{ country.iso3 }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {{ country.phonecode }}
+                {{ prefix.name }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span v-if="country.is_active" class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900 dark:text-green-200">
+                <span v-if="prefix.is_active" class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900 dark:text-green-200">
                   Active
                 </span>
                 <span v-else class="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800 dark:bg-red-900 dark:text-red-200">
                   Inactive
                 </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button 
+                  @click="toggleActive(prefix)" 
+                  :class="prefix.is_active ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
+                  class="mr-3"
+                >
+                  {{ prefix.is_active ? 'Deactivate' : 'Activate' }}
+                </button>
+                <button 
+                  @click="openModal(prefix)" 
+                  class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3"
+                >
+                  Edit
+                </button>
+                <button 
+                  @click="deletePrefix(prefix)" 
+                  class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           </tbody>
@@ -77,27 +99,18 @@
       </div>
     </div>
 
-    <!-- Form Modal -->
-    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-800">
+    <!-- Add/Edit Modal -->
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="fixed inset-0 bg-transparent" @click="closeModal"></div>
+      <div class="relative z-10 w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
         <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-          {{ isEditMode ? 'Edit Country' : 'Add Country' }}
+          {{ isEditMode ? 'Edit Prefix' : 'Add Prefix' }}
         </h3>
         
-        <form @submit.prevent="saveCountry" class="space-y-4">
+        <form @submit.prevent="savePrefix" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
             <input v-model="form.name" type="text" required class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">ISO3 Code</label>
-            <input v-model="form.iso3" type="text" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Code</label>
-            <input v-model="form.phonecode" type="text" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
           </div>
 
           <div class="flex items-center">
@@ -112,6 +125,16 @@
         </form>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <ConfirmationModal
+      :isOpen="showDeleteModal"
+      :title="`Delete ${prefixToDelete?.name}?`"
+      message="Are you sure you want to delete this prefix? This action cannot be undone."
+      confirmButtonText="Delete"
+      @close="showDeleteModal = false"
+      @confirm="confirmDelete"
+    />
   </admin-layout>
 </template>
 
@@ -119,35 +142,29 @@
 import { ref, onMounted } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 
-interface Country {
+interface Prefix {
   id: number
   name: string
-  iso3: string
-  phonecode: string
-  currency: string
-  region: string
-  subregion: string
   is_active: boolean
 }
 
 const toast = useToast()
-const currentPageTitle = ref('Countries')
-const countries = ref<Country[]>([])
-const searchQuery = ref('Pakistan')
+const currentPageTitle = ref('Prefixes')
+const prefixes = ref<Prefix[]>([])
+const searchQuery = ref('')
 const showModal = ref(false)
+const showDeleteModal = ref(false)
+const prefixToDelete = ref<Prefix | null>(null)
+const isDeleting = ref(false)
 const isEditMode = ref(false)
 const editingId = ref<number | null>(null)
 
 const form = ref({
   name: '',
-  iso3: '',
-  phonecode: '',
-  currency: '',
-  region: '',
-  subregion: '',
   is_active: true
 })
 
@@ -160,14 +177,14 @@ const pagination = ref({
   to: 0,
 })
 
-const fetchCountries = async (page = 1) => {
+const fetchPrefixes = async (page = 1) => {
   try {
     const params = {
       page,
       search: searchQuery.value || undefined,
     }
-    const response = await api.get('/countries', { params })
-    countries.value = response.data.data
+    const response = await api.get('/prefixes', { params })
+    prefixes.value = response.data.data
     pagination.value = {
       current_page: response.data.current_page,
       last_page: response.data.last_page,
@@ -177,33 +194,28 @@ const fetchCountries = async (page = 1) => {
       to: response.data.to,
     }
   } catch (error: any) {
-    toast.error('Error fetching countries')
+    toast.error('Error fetching prefixes')
   }
 }
 
 const handleSearch = () => {
-  fetchCountries(1)
+  fetchPrefixes(1)
 }
 
 const changePage = (page: number) => {
-  fetchCountries(page)
+  fetchPrefixes(page)
 }
 
-const openModal = (country?: Country) => {
-  if (country) {
+const openModal = (prefix?: Prefix) => {
+  if (prefix) {
     isEditMode.value = true
-    editingId.value = country.id
-    form.value = { ...country }
+    editingId.value = prefix.id
+    form.value = { ...prefix }
   } else {
     isEditMode.value = false
     editingId.value = null
     form.value = {
       name: '',
-      iso3: '',
-      phonecode: '',
-      currency: '',
-      region: '',
-      subregion: '',
       is_active: true
     }
   }
@@ -214,35 +226,78 @@ const closeModal = () => {
   showModal.value = false
 }
 
-const saveCountry = async () => {
+const savePrefix = async () => {
   try {
     if (isEditMode.value && editingId.value) {
-      await api.put(`/countries/${editingId.value}`, form.value)
-      toast.success('Country updated successfully')
+      await api.put(`/prefixes/${editingId.value}`, form.value)
+      toast.success('Prefix updated successfully')
     } else {
-      await api.post('/countries', form.value)
-      toast.success('Country created successfully')
+      await api.post('/prefixes', form.value)
+      toast.success('Prefix created successfully')
     }
     closeModal()
-    fetchCountries(pagination.value.current_page)
+    fetchPrefixes(pagination.value.current_page)
   } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Error saving country')
+    // Display validation errors
+    if (error.response?.status === 422 && error.response?.data?.errors) {
+      const errors = error.response.data.errors
+      // Display the first validation error
+      const firstError = Object.values(errors)[0]
+      if (Array.isArray(firstError) && firstError.length > 0) {
+        toast.error(firstError[0])
+      } else {
+        toast.error(error.response?.data?.message || 'Validation error')
+      }
+    } else {
+      toast.error(error.response?.data?.message || 'Error saving prefix')
+    }
   }
 }
 
-const deleteCountry = async (country: Country) => {
-  if (!confirm('Are you sure you want to delete this country?')) return
+const toggleActive = async (prefix: Prefix) => {
+  const newStatus = !prefix.is_active
+  const actionText = newStatus ? 'Activating' : 'Deactivating'
+  
+  toast.info(`${actionText} prefix...`)
   
   try {
-    await api.delete(`/countries/${country.id}`)
-    toast.success('Country deleted successfully')
-    fetchCountries(pagination.value.current_page)
+    await api.put(`/prefixes/${prefix.id}`, {
+      ...prefix,
+      is_active: newStatus
+    })
+    toast.success(`Prefix ${newStatus ? 'activated' : 'deactivated'} successfully`)
+    fetchPrefixes(pagination.value.current_page)
   } catch (error: any) {
-    toast.error('Error deleting country')
+    console.error('Toggle error:', error)
+    toast.error(error.response?.data?.message || 'Error updating prefix status')
+  }
+}
+
+const deletePrefix = (prefix: Prefix) => {
+  prefixToDelete.value = prefix
+  showDeleteModal.value = true
+}
+
+const confirmDelete = async () => {
+  if (!prefixToDelete.value) return
+  
+  isDeleting.value = true
+  toast.info('Deleting prefix...')
+  
+  try {
+    await api.delete(`/prefixes/${prefixToDelete.value.id}`)
+    toast.success('Prefix deleted successfully')
+    showDeleteModal.value = false
+    prefixToDelete.value = null
+    fetchPrefixes(pagination.value.current_page)
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Error deleting prefix')
+  } finally {
+    isDeleting.value = false
   }
 }
 
 onMounted(() => {
-  fetchCountries()
+  fetchPrefixes()
 })
 </script>

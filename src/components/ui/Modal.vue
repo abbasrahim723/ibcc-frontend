@@ -1,20 +1,35 @@
 <template>
-  <div class="fixed inset-0 flex items-center justify-center overflow-y-auto z-99999">
-    <div
-      v-if="fullScreenBackdrop"
-      class="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px]"
-      aria-hidden="true"
-      @click="$emit('close')"
-    ></div>
-    <slot name="body"></slot>
-  </div>
+  <Teleport to="body">
+    <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        @click="handleBackdropClick"
+        class="fixed inset-0 h-full w-full bg-transparent"
+      ></div>
+      <div
+        class="relative z-10 w-full max-w-md transform rounded-2xl bg-white p-6 shadow-2xl transition-all dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700"
+      >
+        <slot></slot>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
 interface ModalProps {
+  isOpen?: boolean
   fullScreenBackdrop?: boolean
 }
 
-defineProps<ModalProps>()
-defineEmits(['close'])
+const props = withDefaults(defineProps<ModalProps>(), {
+  isOpen: true,
+  fullScreenBackdrop: true
+})
+
+const emit = defineEmits(['close'])
+
+const handleBackdropClick = () => {
+  if (props.fullScreenBackdrop) {
+    emit('close')
+  }
+}
 </script>

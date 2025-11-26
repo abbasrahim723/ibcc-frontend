@@ -27,14 +27,6 @@
             placeholder="Search states..."
             class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
-          
-          <!-- Add Button -->
-          <button
-            @click="openModal()"
-            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
-          >
-            Add State
-          </button>
         </div>
       </div>
 
@@ -67,16 +59,10 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button 
-                  @click="openModal(state)" 
-                  class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3"
+                  @click="toggleActive(state)" 
+                  :class="state.is_active ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
                 >
-                  Edit
-                </button>
-                <button 
-                  @click="deleteState(state)" 
-                  class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                >
-                  Delete
+                  {{ state.is_active ? 'Deactivate' : 'Activate' }}
                 </button>
               </td>
             </tr>
@@ -105,47 +91,6 @@
             Next
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Form Modal -->
-    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-800">
-        <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-          {{ isEditMode ? 'Edit State' : 'Add State' }}
-        </h3>
-        
-        <form @submit.prevent="saveState" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
-            <select v-model="form.country_id" required class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-              <option value="" disabled>Select Country</option>
-              <option v-for="country in countries" :key="country.id" :value="country.id">
-                {{ country.name }}
-              </option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-            <input v-model="form.name" type="text" required class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Country Code (Optional)</label>
-            <input v-model="form.country_code" type="text" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-          </div>
-
-          <div class="flex items-center">
-            <input v-model="form.is_active" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
-            <label class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Active</label>
-          </div>
-
-          <div class="flex justify-end gap-3 mt-6">
-            <button type="button" @click="closeModal" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">Cancel</button>
-            <button type="submit" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Save</button>
-          </div>
-        </form>
       </div>
     </div>
   </admin-layout>
@@ -177,16 +122,6 @@ const states = ref<State[]>([])
 const countries = ref<Country[]>([])
 const searchQuery = ref('')
 const selectedCountryId = ref('')
-const showModal = ref(false)
-const isEditMode = ref(false)
-const editingId = ref<number | null>(null)
-
-const form = ref({
-  name: '',
-  country_id: '' as number | '',
-  country_code: '',
-  is_active: true
-})
 
 const pagination = ref({
   current_page: 1,
@@ -201,6 +136,12 @@ const fetchCountries = async () => {
   try {
     const response = await api.get('/countries', { params: { all: true } })
     countries.value = response.data
+    
+    // Set default to Pakistan
+    const pakistan = countries.value.find(c => c.name === 'Pakistan')
+    if (pakistan) {
+      selectedCountryId.value = String(pakistan.id)
+    }
   } catch (error) {
     console.error('Error fetching countries', error)
   }
@@ -245,58 +186,27 @@ const getCountryName = (countryId: number) => {
   return country ? country.name : 'Unknown'
 }
 
-const openModal = (state?: State) => {
-  if (state) {
-    isEditMode.value = true
-    editingId.value = state.id
-    form.value = { ...state }
-  } else {
-    isEditMode.value = false
-    editingId.value = null
-    form.value = {
-      name: '',
-      country_id: selectedCountryId.value ? Number(selectedCountryId.value) : '',
-      country_code: '',
-      is_active: true
-    }
-  }
-  showModal.value = true
-}
-
-const closeModal = () => {
-  showModal.value = false
-}
-
-const saveState = async () => {
-  try {
-    if (isEditMode.value && editingId.value) {
-      await api.put(`/states/${editingId.value}`, form.value)
-      toast.success('State updated successfully')
-    } else {
-      await api.post('/states', form.value)
-      toast.success('State created successfully')
-    }
-    closeModal()
-    fetchStates(pagination.value.current_page)
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Error saving state')
-  }
-}
-
-const deleteState = async (state: State) => {
-  if (!confirm('Are you sure you want to delete this state?')) return
+const toggleActive = async (state: State) => {
+  const newStatus = !state.is_active
+  const actionText = newStatus ? 'Activating' : 'Deactivating'
+  
+  toast.info(`${actionText} state...`)
   
   try {
-    await api.delete(`/states/${state.id}`)
-    toast.success('State deleted successfully')
+    await api.put(`/states/${state.id}`, {
+      ...state,
+      is_active: newStatus
+    })
+    toast.success(`State ${newStatus ? 'activated' : 'deactivated'} successfully`)
     fetchStates(pagination.value.current_page)
   } catch (error: any) {
-    toast.error('Error deleting state')
+    console.error('Toggle error:', error)
+    toast.error(error.response?.data?.message || 'Error updating state status')
   }
 }
 
-onMounted(() => {
-  fetchCountries()
+onMounted(async () => {
+  await fetchCountries()
   fetchStates()
 })
 </script>

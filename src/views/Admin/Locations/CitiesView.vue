@@ -39,14 +39,6 @@
             placeholder="Search cities..."
             class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
-          
-          <!-- Add Button -->
-          <button
-            @click="openModal()"
-            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
-          >
-            Add City
-          </button>
         </div>
       </div>
 
@@ -83,16 +75,10 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button 
-                  @click="openModal(city)" 
-                  class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3"
+                  @click="toggleActive(city)" 
+                  :class="city.is_active ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
                 >
-                  Edit
-                </button>
-                <button 
-                  @click="deleteCity(city)" 
-                  class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                >
-                  Delete
+                  {{ city.is_active ? 'Deactivate' : 'Activate' }}
                 </button>
               </td>
             </tr>
@@ -121,57 +107,6 @@
             Next
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Form Modal -->
-    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-800">
-        <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-          {{ isEditMode ? 'Edit City' : 'Add City' }}
-        </h3>
-        
-        <form @submit.prevent="saveCity" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
-            <select v-model="form.country_id" @change="handleFormCountryChange" required class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-              <option value="" disabled>Select Country</option>
-              <option v-for="country in countries" :key="country.id" :value="country.id">
-                {{ country.name }}
-              </option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State</label>
-            <select v-model="form.state_id" required class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-              <option value="" disabled>Select State</option>
-              <option v-for="state in formStates" :key="state.id" :value="state.id">
-                {{ state.name }}
-              </option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-            <input v-model="form.name" type="text" required class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Zip Code (Optional)</label>
-            <input v-model="form.zip_code" type="text" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-          </div>
-
-          <div class="flex items-center">
-            <input v-model="form.is_active" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
-            <label class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Active</label>
-          </div>
-
-          <div class="flex justify-end gap-3 mt-6">
-            <button type="button" @click="closeModal" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">Cancel</button>
-            <button type="submit" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Save</button>
-          </div>
-        </form>
       </div>
     </div>
   </admin-layout>
@@ -212,17 +147,6 @@ const allStates = ref<State[]>([])
 const searchQuery = ref('')
 const selectedCountryId = ref('')
 const selectedStateId = ref('')
-const showModal = ref(false)
-const isEditMode = ref(false)
-const editingId = ref<number | null>(null)
-
-const form = ref({
-  name: '',
-  country_id: '' as number | '',
-  state_id: '' as number | '',
-  zip_code: '',
-  is_active: true
-})
 
 const pagination = ref({
   current_page: 1,
@@ -238,15 +162,16 @@ const filteredStates = computed(() => {
   return allStates.value.filter(s => s.country_id === Number(selectedCountryId.value))
 })
 
-const formStates = computed(() => {
-  if (!form.value.country_id) return []
-  return allStates.value.filter(s => s.country_id === Number(form.value.country_id))
-})
-
 const fetchCountries = async () => {
   try {
     const response = await api.get('/countries', { params: { all: true } })
     countries.value = response.data
+    
+    // Set default to Pakistan
+    const pakistan = countries.value.find(c => c.name === 'Pakistan')
+    if (pakistan) {
+      selectedCountryId.value = String(pakistan.id)
+    }
   } catch (error) {
     console.error('Error fetching countries', error)
   }
@@ -256,6 +181,15 @@ const fetchStates = async () => {
   try {
     const response = await api.get('/states', { params: { all: true } })
     allStates.value = response.data
+    
+    // Set default to KPK after states are loaded
+    const kpk = allStates.value.find(s => 
+      s.name.toLowerCase().includes('khyber') || 
+      s.name.toLowerCase().includes('kpk')
+    )
+    if (kpk) {
+      selectedStateId.value = String(kpk.id)
+    }
   } catch (error) {
     console.error('Error fetching states', error)
   }
@@ -297,10 +231,6 @@ const handleStateChange = () => {
   fetchCities(1)
 }
 
-const handleFormCountryChange = () => {
-  form.value.state_id = ''
-}
-
 const changePage = (page: number) => {
   fetchCities(page)
 }
@@ -315,60 +245,28 @@ const getStateName = (stateId: number) => {
   return state ? state.name : 'Unknown'
 }
 
-const openModal = (city?: City) => {
-  if (city) {
-    isEditMode.value = true
-    editingId.value = city.id
-    form.value = { ...city, zip_code: city.zip_code || '' }
-  } else {
-    isEditMode.value = false
-    editingId.value = null
-    form.value = {
-      name: '',
-      country_id: selectedCountryId.value ? Number(selectedCountryId.value) : '',
-      state_id: selectedStateId.value ? Number(selectedStateId.value) : '',
-      zip_code: '',
-      is_active: true
-    }
-  }
-  showModal.value = true
-}
-
-const closeModal = () => {
-  showModal.value = false
-}
-
-const saveCity = async () => {
-  try {
-    if (isEditMode.value && editingId.value) {
-      await api.put(`/cities/${editingId.value}`, form.value)
-      toast.success('City updated successfully')
-    } else {
-      await api.post('/cities', form.value)
-      toast.success('City created successfully')
-    }
-    closeModal()
-    fetchCities(pagination.value.current_page)
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Error saving city')
-  }
-}
-
-const deleteCity = async (city: City) => {
-  if (!confirm('Are you sure you want to delete this city?')) return
+const toggleActive = async (city: City) => {
+  const newStatus = !city.is_active
+  const actionText = newStatus ? 'Activating' : 'Deactivating'
+  
+  toast.info(`${actionText} city...`)
   
   try {
-    await api.delete(`/cities/${city.id}`)
-    toast.success('City deleted successfully')
+    await api.put(`/cities/${city.id}`, {
+      ...city,
+      is_active: newStatus
+    })
+    toast.success(`City ${newStatus ? 'activated' : 'deactivated'} successfully`)
     fetchCities(pagination.value.current_page)
   } catch (error: any) {
-    toast.error('Error deleting city')
+    console.error('Toggle error:', error)
+    toast.error(error.response?.data?.message || 'Error updating city status')
   }
 }
 
-onMounted(() => {
-  fetchCountries()
-  fetchStates()
+onMounted(async () => {
+  await fetchCountries()
+  await fetchStates()
   fetchCities()
 })
 </script>
