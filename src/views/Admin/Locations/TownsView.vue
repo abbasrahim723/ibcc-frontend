@@ -1,17 +1,17 @@
 <template>
   <admin-layout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
-    
+
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Towns</h3>
-        
+
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- State Filter -->
           <select
             v-model="selectedStateId"
             @change="handleStateChange"
-            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
             <option value="">All States</option>
             <option v-for="state in states" :key="state.id" :value="state.id">
@@ -23,7 +23,7 @@
           <select
             v-model="selectedCityId"
             @change="handleCityChange"
-            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
             <option value="">All Cities</option>
             <option v-for="city in filteredCities" :key="city.id" :value="city.id">
@@ -37,9 +37,9 @@
             @input="handleSearch"
             type="text"
             placeholder="Search towns..."
-            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
-          
+
           <!-- Add Button -->
           <router-link
             to="/admin/locations/towns/create"
@@ -55,11 +55,12 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">City</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">State</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Zip Code</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+              <th class="sm:hidden px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+              <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">City</th>
+              <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">State</th>
+              <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Zip Code</th>
+              <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
@@ -86,21 +87,21 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button 
-                  @click="toggleActive(town)" 
+                <button
+                  @click="toggleActive(town)"
                   :class="town.is_active ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
                   class="mr-3"
                 >
                   {{ town.is_active ? 'Deactivate' : 'Activate' }}
                 </button>
-                <router-link 
+                <router-link
                   :to="`/admin/locations/towns/${town.id}/edit`"
                   class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3"
                 >
                   Edit
                 </router-link>
-                <button 
-                  @click="deleteTown(town)" 
+                <button
+                  @click="deleteTown(town)"
                   class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                 >
                   Delete
@@ -273,9 +274,9 @@ const getStateName = (cityId: number) => {
 const toggleActive = async (town: Town) => {
   const newStatus = !town.is_active
   const actionText = newStatus ? 'Activating' : 'Deactivating'
-  
+
   toast.info(`${actionText} town...`)
-  
+
   try {
     await api.put(`/towns/${town.id}`, {
       ...town,
@@ -296,10 +297,10 @@ const deleteTown = (town: Town) => {
 
 const confirmDelete = async () => {
   if (!townToDelete.value) return
-  
+
   isDeleting.value = true
   toast.info('Deleting town...')
-  
+
   try {
     await api.delete(`/towns/${townToDelete.value.id}`)
     toast.success('Town deleted successfully')

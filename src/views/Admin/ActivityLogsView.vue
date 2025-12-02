@@ -5,7 +5,7 @@
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">System Activity Logs</h3>
-        
+
         <div class="flex flex-wrap items-center gap-4">
           <!-- View Mode Toggle -->
           <div class="flex items-center rounded-lg border border-gray-300 bg-white p-1 dark:border-gray-700 dark:bg-gray-800">
@@ -37,7 +37,7 @@
           <select
             v-model="filters.user_id"
             @change="handleFilter"
-            class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
             <option value="">All Users</option>
             <option v-for="user in users" :key="user.id" :value="user.id">
@@ -51,7 +51,7 @@
               type="date"
               v-model="filters.start_date"
               @change="handleFilter"
-              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               :style="{ colorScheme: 'light' }"
             />
             <span class="text-gray-500 dark:text-gray-400">-</span>
@@ -59,7 +59,7 @@
               type="date"
               v-model="filters.end_date"
               @change="handleFilter"
-              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               :style="{ colorScheme: 'light' }"
             />
           </div>
@@ -68,7 +68,7 @@
           <select
             v-model="filters.action"
             @change="handleFilter"
-            class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
             <option value="">All Actions</option>
             <option value="created">Created</option>
@@ -104,9 +104,9 @@
             <tr v-for="log in logs" :key="log.id">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <img 
-                    v-if="log.user?.profile_photo_url" 
-                    :src="log.user.profile_photo_url" 
+                  <img
+                    v-if="log.user?.profile_photo_url"
+                    :src="log.user.profile_photo_url"
                     :alt="log.user?.name || 'System'"
                     class="h-8 w-8 rounded-full object-cover"
                   />
@@ -137,7 +137,7 @@
                 {{ formatDateTime(log.created_at) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button 
+                <button
                   @click="viewDetails(log)"
                   class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300"
                 >
@@ -179,22 +179,25 @@
 
       <!-- Timeline View -->
       <div v-else-if="!loading" class="relative">
-        <!-- Center Line -->
-        <div class="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-gray-300 dark:bg-gray-600"></div>
-        
-        <div class="space-y-12">
+        <!-- Center Line (hidden on mobile) -->
+        <div class="hidden md:block absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-gray-300 dark:bg-gray-600"></div>
+
+        <div class="space-y-8 md:space-y-12">
           <div v-for="(log, index) in logs" :key="log.id" :class="[
-            'relative grid grid-cols-2 gap-8'
+            'relative md:grid md:grid-cols-2 md:gap-8'
           ]">
-            <!-- Activity Card (alternates left/right) -->
-            <div :class="index % 2 === 0 ? 'col-start-1 pr-8' : 'col-start-2 pl-8'">
+            <!-- Activity Card (alternates left/right on desktop, full width on mobile) -->
+            <div :class="[
+              'md:col-start-auto',
+              index % 2 === 0 ? 'md:col-start-1 md:pr-8' : 'md:col-start-2 md:pl-8'
+            ]">
               <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
                 <!-- Header -->
                 <div class="mb-3 flex items-start justify-between gap-3">
                   <div class="flex items-center gap-2">
-                    <img 
-                      v-if="log.user?.profile_photo_url" 
-                      :src="log.user.profile_photo_url" 
+                    <img
+                      v-if="log.user?.profile_photo_url"
+                      :src="log.user.profile_photo_url"
                       :alt="log.user?.name || 'System'"
                       class="h-8 w-8 rounded-full object-cover"
                     />
@@ -229,7 +232,7 @@
                 <!-- Changes (if any) - Only show changed attributes -->
                 <div v-if="hasChanges(log)" class="mt-4 rounded-md bg-gray-50 p-3 dark:bg-gray-900/50">
                   <div class="mb-2 text-xs font-medium text-gray-700 dark:text-gray-300">Changes:</div>
-                  
+
                   <!-- Before/After Changes - Only show attributes that changed -->
                   <div v-if="log.changes?.before && log.changes?.after" class="space-y-2">
                     <div v-for="(newValue, key) in getChangedAttributes(log.changes)" :key="key" class="text-xs">
@@ -259,11 +262,14 @@
               </div>
             </div>
 
-            <!-- Timeline Dot -->
-            <div class="absolute left-1/2 top-6 h-4 w-4 -translate-x-1/2 rounded-full border-4 border-white bg-brand-500 dark:border-gray-900 z-10"></div>
+            <!-- Timeline Dot (hidden on mobile) -->
+            <div class="hidden md:block absolute left-1/2 top-6 h-4 w-4 -translate-x-1/2 rounded-full border-4 border-white bg-brand-500 dark:border-gray-900 z-10"></div>
 
-            <!-- Empty space on the other side -->
-            <div :class="index % 2 === 0 ? 'col-start-2' : 'col-start-1'"></div>
+            <!-- Empty space on the other side (hidden on mobile) -->
+            <div :class="[
+              'hidden md:block',
+              index % 2 === 0 ? 'md:col-start-2' : 'md:col-start-1'
+            ]"></div>
           </div>
         </div>
 
@@ -409,27 +415,27 @@ const fetchLogs = async (page = 1, append = false) => {
   } else {
     loading.value = true
   }
-  
+
   try {
     const params: any = {
       page,
       per_page: 15,
       ...filters.value
     }
-    
+
     // Remove empty filters
     Object.keys(params).forEach(key => {
       if (params[key] === '') delete params[key]
     })
 
     const response = await api.get('/activity-logs', { params })
-    
+
     if (append) {
       logs.value = [...logs.value, ...response.data.data]
     } else {
       logs.value = response.data.data
     }
-    
+
     pagination.value = {
       current_page: response.data.current_page,
       last_page: response.data.last_page,
@@ -498,19 +504,19 @@ const hasChanges = (log: any): boolean => {
 // Get only the attributes that actually changed
 const getChangedAttributes = (changes: any): Record<string, any> => {
   if (!changes.before || !changes.after) return {}
-  
+
   const changedAttrs: Record<string, any> = {}
-  
+
   for (const key in changes.after) {
     const oldValue = changes.before[key]
     const newValue = changes.after[key]
-    
+
     // Compare values (handle different types)
     if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
       changedAttrs[key] = newValue
     }
   }
-  
+
   return changedAttrs
 }
 
@@ -525,7 +531,7 @@ const formatAttributeName = (name: string): string => {
 // Setup infinite scroll observer
 const setupInfiniteScroll = () => {
   if (!scrollTrigger.value) return
-  
+
   observer = new IntersectionObserver(
     (entries) => {
       const entry = entries[0]
@@ -539,7 +545,7 @@ const setupInfiniteScroll = () => {
       threshold: 0
     }
   )
-  
+
   observer.observe(scrollTrigger.value)
 }
 
@@ -548,16 +554,16 @@ onMounted(async () => {
   if (!authStore.preferences) {
     await authStore.fetchPreferences()
   }
-  
+
   await fetchUsers()
-  
+
   // Check for my_activity param
   if (route.query.my_activity === 'true' && authStore.user) {
     filters.value.user_id = authStore.user.id.toString()
   }
-  
+
   await fetchLogs()
-  
+
   // Setup infinite scroll after initial load
   setTimeout(() => {
     setupInfiniteScroll()

@@ -23,6 +23,7 @@
 import { ref, computed, onMounted, onUnmounted, provide, inject, watch } from 'vue'
 import type { Ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRoute } from 'vue-router'
 
 interface SidebarContextType {
   isExpanded: Ref<boolean>
@@ -47,6 +48,7 @@ export function useSidebarProvider() {
   const activeItem = ref<string | null>(null)
   const openSubmenu = ref<string | null>(null)
   const authStore = useAuthStore()
+  const route = useRoute()
 
   const handleResize = () => {
     const mobile = window.innerWidth < 768
@@ -63,6 +65,11 @@ export function useSidebarProvider() {
 
   onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
+  })
+
+  // Close mobile sidebar when route changes
+  watch(() => route.path, () => {
+    isMobileOpen.value = false
   })
 
   const toggleSidebar = () => {

@@ -1,21 +1,21 @@
 <template>
   <admin-layout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
-    
+
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div class="mb-6 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">User Management</h3>
-        
-        <div class="flex items-center gap-4">
+      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">User Management</h3>
+
+        <div class="flex items-center gap-4 w-full sm:w-auto">
           <!-- Search -->
           <input
             v-model="searchQuery"
             @input="handleSearch"
             type="text"
             placeholder="Search users..."
-            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white flex-1 sm:flex-initial"
           />
-          
+
           <!-- Add User Button -->
           <button
             @click="router.push('/users/create')"
@@ -25,7 +25,7 @@
               <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
-              Add User
+              <span class="hidden md:inline">Add User</span>
             </span>
           </button>
         </div>
@@ -36,9 +36,10 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Roles</th>
+              <th class="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
+              <th class="sm:hidden px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
+              <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Roles</th>
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
@@ -79,8 +80,8 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button 
-                  @click="router.push(`/users/${user.id}/edit`)" 
+                <button
+                  @click="router.push(`/users/${user.id}/edit`)"
                   :disabled="isCurrentUser(user.id)"
                   :class="[
                     'text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3',
@@ -90,12 +91,12 @@
                 >
                   Edit
                 </button>
-                <button 
-                  @click="toggleUserStatus(user.id)" 
+                <button
+                  @click="toggleUserStatus(user.id)"
                   :disabled="isCurrentUser(user.id)"
                   :class="[
-                    user.is_active 
-                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300' 
+                    user.is_active
+                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300'
                       : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300',
                     isCurrentUser(user.id) ? 'opacity-50 cursor-not-allowed' : ''
                   ]"
@@ -180,10 +181,10 @@ const pendingAction = ref(null)
 // Check if user is the currently logged-in user
 const isCurrentUser = (userId: number) => {
   if (!currentUser.value) return false
-  
+
   const currentUserId = Number(currentUser.value.id)
   const compareUserId = Number(userId)
-  
+
   return currentUserId === compareUserId
 }
 

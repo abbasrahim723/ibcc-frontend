@@ -1,11 +1,11 @@
 <template>
   <admin-layout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
-    
+
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex items-center justify-between gap-4">
         <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Customer Management</h3>
-        
+
         <div class="flex flex-1 lg:flex-initial items-center gap-4">
           <!-- Search -->
           <input
@@ -13,9 +13,9 @@
             @input="handleSearch"
             type="text"
             placeholder="Search customers..."
-            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
-          
+
           <!-- Add Customer Button -->
           <button
             @click="router.push('/customers/create')"
@@ -25,7 +25,7 @@
               <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
-              Add Customer
+              <span class="hidden md:inline">Add Customer</span>
             </span>
           </button>
         </div>
@@ -54,7 +54,7 @@
                     </div>
                   </div>
                   <div class="ml-4">
-                    <router-link 
+                    <router-link
                       :to="`/customers/${customer.id}`"
                       class="text-sm font-medium text-gray-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400"
                     >
@@ -91,25 +91,25 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button 
-                  @click="router.push(`/customers/${customer.id}/edit`)" 
+                <button
+                  @click="router.push(`/customers/${customer.id}/edit`)"
                   class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3"
                 >
                   Edit
                 </button>
-                <button 
-                  @click="toggleCustomerStatus(customer)" 
+                <button
+                  @click="toggleCustomerStatus(customer)"
                   :class="[
-                    customer.is_active 
-                      ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' 
+                    customer.is_active
+                      ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300'
                       : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300',
                     'mr-3'
                   ]"
                 >
                   {{ customer.is_active ? 'Deactivate' : 'Activate' }}
                 </button>
-                <button 
-                  @click="deleteCustomer(customer)" 
+                <button
+                  @click="deleteCustomer(customer)"
                   class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                 >
                   Delete

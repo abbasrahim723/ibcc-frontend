@@ -1,17 +1,17 @@
 <template>
   <admin-layout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
-    
+
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Cities</h3>
-        
+
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- Country Filter -->
           <select
             v-model="selectedCountryId"
             @change="handleCountryChange"
-            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
             <option value="">All Countries</option>
             <option v-for="country in countries" :key="country.id" :value="country.id">
@@ -23,7 +23,7 @@
           <select
             v-model="selectedStateId"
             @change="handleStateChange"
-            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
             <option value="">All States</option>
             <option v-for="state in filteredStates" :key="state.id" :value="state.id">
@@ -37,7 +37,7 @@
             @input="handleSearch"
             type="text"
             placeholder="Search cities..."
-            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
       </div>
@@ -47,10 +47,11 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">State</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Country</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+              <th class="sm:hidden px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+              <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">State</th>
+              <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Country</th>
+              <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
@@ -74,8 +75,8 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button 
-                  @click="toggleActive(city)" 
+                <button
+                  @click="toggleActive(city)"
                   :class="city.is_active ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
                 >
                   {{ city.is_active ? 'Deactivate' : 'Activate' }}
@@ -166,7 +167,7 @@ const fetchCountries = async () => {
   try {
     const response = await api.get('/countries', { params: { all: true } })
     countries.value = response.data
-    
+
     // Set default to Pakistan
     const pakistan = countries.value.find(c => c.name === 'Pakistan')
     if (pakistan) {
@@ -181,10 +182,10 @@ const fetchStates = async () => {
   try {
     const response = await api.get('/states', { params: { all: true } })
     allStates.value = response.data
-    
+
     // Set default to KPK after states are loaded
-    const kpk = allStates.value.find(s => 
-      s.name.toLowerCase().includes('khyber') || 
+    const kpk = allStates.value.find(s =>
+      s.name.toLowerCase().includes('khyber') ||
       s.name.toLowerCase().includes('kpk')
     )
     if (kpk) {
@@ -248,9 +249,9 @@ const getStateName = (stateId: number) => {
 const toggleActive = async (city: City) => {
   const newStatus = !city.is_active
   const actionText = newStatus ? 'Activating' : 'Deactivating'
-  
+
   toast.info(`${actionText} city...`)
-  
+
   try {
     await api.put(`/cities/${city.id}`, {
       ...city,
