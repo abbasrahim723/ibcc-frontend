@@ -50,7 +50,7 @@
     >
       <nav class="mb-6">
         <div class="flex flex-col gap-4">
-          <div v-for="(menuGroup, groupIndex) in menuGroups" :key="groupIndex">
+          <div v-for="(menuGroup, groupIndex) in filteredMenuGroups" :key="groupIndex">
             <h2
               :class="[
                 'mb-4 text-xs uppercase flex leading-[20px] text-gray-400',
@@ -211,7 +211,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 
 import {
@@ -234,6 +234,7 @@ import {
 } from "../../icons";
 import BoxCubeIcon from "@/icons/BoxCubeIcon.vue";
 import { useSidebar } from "@/composables/useSidebar";
+import { usePermissions, loadPermissions } from '@/composables/usePermissions';
 
 const route = useRoute();
 
@@ -299,7 +300,7 @@ const menuGroups = [
     title: "Settings",
     items: [
       {
-        icon: GridIcon, 
+        icon: GridIcon,
         name: "Locations",
         subItems: [
           { name: "Countries", path: "/admin/locations/countries", pro: false },
@@ -319,6 +320,79 @@ const menuGroups = [
 ];
 
 const isActive = (path) => route.path === path;
+
+// Permission-aware filtering
+const { can, roles } = usePermissions();
+
+onMounted(() => {
+  // Load permissions once when sidebar mounts
+  loadPermissions();
+});
+
+const isSuperAdmin = computed(() => {
+  return roles.value && (roles.value.includes('super-admin') || roles.value.includes('Super Admin'));
+});
+
+const resourceMapByName = {
+  'Customers': 'customers',
+  'Documents': 'documents',
+  'Projects': 'projects',
+  'Payments': 'payments',
+  'Users': 'users',
+  'Roles & Permissions': 'roles',
+  'Activity Logs': 'logs',
+  'Locations': 'locations',
+  'Prefixes': 'locations',
+};
+
+function resourceForItem(item) {
+  if (item.path) {
+    const parts = item.path.split('/').filter(Boolean);
+    // try to find a known resource in path
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const part = parts[i];
+      if (['customers','documents','projects','payments','users','roles','activity-logs','activity-logs','locations','countries','states','cities','towns','phases','prefixes'].includes(part)) {
+        if (part === 'activity-logs') return 'logs';
+        if (['countries','states','cities','towns','phases','prefixes'].includes(part)) return 'locations';
+        return part;
+      }
+    }
+  }
+  return resourceMapByName[item.name] || null;
+}
+
+const filteredMenuGroups = computed(() => {
+  // If super admin, show all menu items without filtering
+  if (isSuperAdmin.value) {
+    return menuGroups;
+  }
+
+  return menuGroups.map(group => {
+    const items = group.items.filter(item => {
+      // If no path and no subItems, show by default
+      if (!item.path && !item.subItems) return true;
+
+      // If subItems, keep group item if any subItem allowed
+      if (item.subItems) {
+        const any = item.subItems.some(sub => {
+          const res = resourceForItem(sub) || resourceForItem(item);
+          if (!res) return true; // default allow if unknown
+          return can(res, 'view');
+        });
+        return any;
+      }
+
+      const res = resourceForItem(item);
+      if (!res) return true; // default allow
+      return can(res, 'view');
+    });
+
+    return {
+      ...group,
+      items,
+    };
+  }).filter(g => g.items.length > 0);
+});
 
 const toggleSubmenu = (groupIndex, itemIndex) => {
   const key = `${groupIndex}-${itemIndex}`;

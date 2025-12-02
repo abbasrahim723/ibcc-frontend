@@ -1,7 +1,7 @@
 <template>
   <admin-layout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
-    
+
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <!-- Tabs -->
       <div class="mb-6 flex border-b border-gray-200 dark:border-gray-700">
@@ -81,10 +81,10 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button @click="openRoleModal(role)" class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3">Edit</button>
-                  <button 
-                    @click="deleteRole(role.id)" 
-                    :class="role.is_active 
-                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300' 
+                  <button
+                    @click="deleteRole(role.id)"
+                    :class="role.is_active
+                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300'
                       : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
                   >
                     {{ role.is_active ? 'Delete' : 'Restore' }}
@@ -128,10 +128,10 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button @click="openPermissionModal(permission)" class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3">Edit</button>
-                  <button 
-                    @click="deletePermission(permission.id)" 
-                    :class="permission.is_active 
-                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300' 
+                  <button
+                    @click="deletePermission(permission.id)"
+                    :class="permission.is_active
+                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300'
                       : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
                   >
                     {{ permission.is_active ? 'Delete' : 'Restore' }}
@@ -146,108 +146,104 @@
 
     <!-- Role Modal -->
     <Modal v-if="isRoleModalOpen" @close="isRoleModalOpen = false">
-      <template #body>
-        <div class="relative w-full max-w-[600px] rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-10">
-          <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-            {{ editingRole ? 'Edit Role' : 'Create Role' }}
-          </h3>
-          
-          <form @submit.prevent="saveRole" class="space-y-4">
-            <div>
-              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Role Name</label>
-              <input
-                v-model="roleForm.name"
-                type="text"
-                required
-                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90"
-              />
-            </div>
+      <div class="relative w-full max-w-[600px] rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-10">
+        <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+          {{ editingRole ? 'Edit Role' : 'Create Role' }}
+        </h3>
 
-            <div class="flex items-center">
-              <input
-                v-model="roleForm.is_active"
-                type="checkbox"
-                id="is_active"
-                class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
-              />
-              <label for="is_active" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Active</label>
-            </div>
+        <form @submit.prevent="saveRole" class="space-y-4">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Role Name</label>
+            <input
+              v-model="roleForm.name"
+              type="text"
+              required
+              class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90"
+            />
+          </div>
 
-            <div>
-              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">Permissions</label>
-              <div class="max-h-60 overflow-y-auto rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-                <div class="grid grid-cols-2 gap-2">
-                  <div v-for="perm in permissions" :key="perm.id" class="flex items-center">
-                    <input
-                      type="checkbox"
-                      :value="perm.name"
-                      v-model="roleForm.permissions"
-                      :id="'perm-' + perm.id"
-                      class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
-                    />
-                    <label :for="'perm-' + perm.id" class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ perm.name }}</label>
-                  </div>
+          <div class="flex items-center">
+            <input
+              v-model="roleForm.is_active"
+              type="checkbox"
+              id="is_active"
+              class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
+            />
+            <label for="is_active" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Active</label>
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">Permissions</label>
+            <div class="max-h-60 overflow-y-auto rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <div class="grid grid-cols-2 gap-2">
+                <div v-for="perm in permissions" :key="perm.id" class="flex items-center">
+                  <input
+                    type="checkbox"
+                    :value="perm.name"
+                    v-model="roleForm.permissions"
+                    :id="'perm-' + perm.id"
+                    class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
+                  />
+                  <label :for="'perm-' + perm.id" class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ perm.name }}</label>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="flex justify-end gap-3 mt-6">
-              <button
-                type="button"
-                @click="isRoleModalOpen = false"
-                class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
-              >
-                Save
-              </button>
-            </div>
-          </form>
-        </div>
-      </template>
+          <div class="flex justify-end gap-3 mt-6">
+            <button
+              type="button"
+              @click="isRoleModalOpen = false"
+              class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
     </Modal>
 
     <!-- Permission Modal -->
     <Modal v-if="isPermissionModalOpen" @close="isPermissionModalOpen = false">
-      <template #body>
-        <div class="relative w-full max-w-[500px] rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-10">
-          <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-            {{ editingPermission ? 'Edit Permission' : 'Create Permission' }}
-          </h3>
-          
-          <form @submit.prevent="savePermission" class="space-y-4">
-            <div>
-              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Permission Name</label>
-              <input
-                v-model="permissionForm.name"
-                type="text"
-                required
-                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90"
-              />
-            </div>
+      <div class="relative w-full max-w-[500px] rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-10">
+        <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+          {{ editingPermission ? 'Edit Permission' : 'Create Permission' }}
+        </h3>
 
-            <div class="flex justify-end gap-3 mt-6">
-              <button
-                type="button"
-                @click="isPermissionModalOpen = false"
-                class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
-              >
-                Save
-              </button>
-            </div>
-          </form>
-        </div>
-      </template>
+        <form @submit.prevent="savePermission" class="space-y-4">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Permission Name</label>
+            <input
+              v-model="permissionForm.name"
+              type="text"
+              required
+              class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90"
+            />
+          </div>
+
+          <div class="flex justify-end gap-3 mt-6">
+            <button
+              type="button"
+              @click="isPermissionModalOpen = false"
+              class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
     </Modal>
     <!-- Confirmation Modal -->
     <ConfirmationModal
@@ -357,7 +353,7 @@ const saveRole = async () => {
 const deleteRole = (id: number) => {
   const role = roles.value.find(r => r.id === id)
   if (!role) return
-  
+
   itemToDelete.value = { type: 'role', id }
   if (role.is_active) {
     deleteModalTitle.value = 'Deactivate Role'
@@ -402,7 +398,7 @@ const savePermission = async () => {
 const deletePermission = (id: number) => {
   const permission = permissions.value.find(p => p.id === id)
   if (!permission) return
-  
+
   itemToDelete.value = { type: 'permission', id }
   if (permission.is_active) {
     deleteModalTitle.value = 'Deactivate Permission'
@@ -419,7 +415,7 @@ const deletePermission = (id: number) => {
 // Confirm Delete Handler
 const confirmDelete = async () => {
   if (!itemToDelete.value) return
-  
+
   try {
     if (itemToDelete.value.type === 'role') {
       const response = await api.delete(`/roles/${itemToDelete.value.id}`)

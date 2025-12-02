@@ -7,6 +7,18 @@ const router = createRouter({
   },
   routes: [
     {
+      path: '/signin',
+      name: 'Signin',
+      component: () => import('../views/Auth/Signin.vue'),
+      meta: { title: 'Sign In' },
+    },
+    {
+      path: '/signup',
+      name: 'Signup',
+      component: () => import('../views/Auth/Signup.vue'),
+      meta: { title: 'Sign Up' },
+    },
+    {
       path: '/',
       name: 'Dashboard',
       component: () => import('../views/Dashboard/DashboardView.vue'),
@@ -175,6 +187,12 @@ const router = createRouter({
       meta: {
         title: 'Calendar',
       },
+    },
+    {
+      path: '/reset-password',
+      name: 'ResetPassword',
+      component: () => import('../views/Pages/ComingSoon.vue'),
+      meta: { title: 'Reset Password' },
     },
     {
       path: '/projects',
