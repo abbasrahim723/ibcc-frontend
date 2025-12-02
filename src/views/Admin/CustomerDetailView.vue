@@ -1,6 +1,13 @@
 <template>
   <admin-layout>
-    <PageBreadcrumb :pageTitle="customer?.name || 'Customer Details'" />
+    <PageBreadcrumb 
+      :pageTitle="getFullName(customer) || 'Customer Details'" 
+      :breadcrumbs="[
+        { label: 'Home', to: '/' },
+        { label: 'Customers', to: '/customers' },
+        { label: getFullName(customer) || 'Customer Details' }
+      ]"
+    />
 
     <div v-if="loading" class="flex justify-center py-10">
       <div class="h-10 w-10 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
@@ -14,22 +21,54 @@
             <!-- Profile Photo -->
             <div class="relative mb-4 h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-lg dark:border-gray-700">
               <img
-                v-if="customer.profile_photo_path"
-                :src="getProfilePhotoUrl(customer.profile_photo_path)"
+                v-if="customer.profile_photo_url"
+                :src="customer.profile_photo_url"
                 alt="Profile Photo"
                 class="h-full w-full object-cover"
               />
               <div v-else class="flex h-full w-full items-center justify-center bg-gray-100 text-4xl font-bold text-gray-400 dark:bg-gray-800">
                 {{ customer.name.charAt(0).toUpperCase() }}
               </div>
+              <!-- Upload Icon -->
+              <button
+                @click="triggerPhotoUpload"
+                class="absolute bottom-0 right-0 rounded-full bg-brand-600 p-2.5 text-white shadow-lg hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 z-10"
+                title="Upload Photo"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              <input
+                ref="photoInput"
+                type="file"
+                accept="image/*"
+                class="hidden"
+                @change="handlePhotoUpload"
+              />
             </div>
 
-            <h3 class="mb-1 text-xl font-bold text-gray-900 dark:text-white">{{ customer.name }}</h3>
-            <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">{{ customer.email || 'No email provided' }}</p>
+            <h3 class="mb-1 text-xl font-bold text-gray-900 dark:text-white">{{ getFullName(customer) }}</h3>
+            <a 
+              v-if="customer.email"
+              :href="`mailto:${customer.email}`"
+              class="mb-6 flex items-center justify-center gap-1 text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+            >
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              {{ customer.email }}
+            </a>
+            <p v-else class="mb-6 text-sm text-gray-500 dark:text-gray-400">No email provided</p>
 
             <!-- Contact Info -->
             <div class="w-full space-y-4">
-              <div class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+              <a 
+                v-if="customer.phone_primary"
+                :href="`tel:${customer.phone_primary}`"
+                class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+              >
                 <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                   <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -37,19 +76,46 @@
                 </div>
                 <div>
                   <p class="text-xs text-gray-500 dark:text-gray-400">Primary Phone</p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.phone_primary || 'N/A' }}</p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.phone_primary }}</p>
+                </div>
+              </a>
+              <div v-else class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Primary Phone</p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">N/A</p>
                 </div>
               </div>
 
-              <div class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+              <a 
+                v-if="customer.whatsapp_number"
+                :href="`https://wa.me/${customer.whatsapp_number.replace(/[^0-9]/g, '')}`"
+                target="_blank"
+                class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+              >
                 <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                   </svg>
                 </div>
                 <div>
                   <p class="text-xs text-gray-500 dark:text-gray-400">WhatsApp</p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.whatsapp_number || 'N/A' }}</p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.whatsapp_number }}</p>
+                </div>
+              </a>
+              <div v-else class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">WhatsApp</p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">N/A</p>
                 </div>
               </div>
 
@@ -91,7 +157,7 @@
               <button
                 v-for="tab in tabs"
                 :key="tab.name"
-                @click="currentTab = tab.name"
+                @click="handleTabClick(tab.name)"
                 :class="[
                   currentTab === tab.name
                     ? 'border-brand-500 text-brand-600 dark:text-brand-400'
@@ -122,11 +188,19 @@
                   <!-- Preview/Icon -->
                   <div class="flex h-32 items-center justify-center bg-gray-50 dark:bg-gray-900">
                     <img
-                      v-if="getFileIcon(doc) === 'image'"
-                      :src="`/storage/${doc.file_path}`"
+                      v-if="isImageFile(doc)"
+                      :src="getDocumentUrl(doc)"
                       class="h-full w-full object-cover"
                       alt="Document Preview"
                     />
+                    <div v-else-if="isPdfFile(doc)" class="flex flex-col items-center justify-center">
+                      <svg class="h-16 w-16 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                        <path d="M14 2v6h6"/>
+                        <path d="M9 13h6M9 17h6M9 9h1" fill="none" stroke="white" stroke-width="1"/>
+                      </svg>
+                      <p class="mt-2 text-xs text-gray-500">PDF</p>
+                    </div>
                     <svg v-else-if="getFileIcon(doc) === 'pdf'" class="h-12 w-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
@@ -148,16 +222,69 @@
                     <div class="mt-auto flex gap-2">
                       <button
                         @click="previewDocument(doc)"
-                        class="flex-1 rounded-md bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 dark:hover:bg-brand-900/50"
+                        class="flex-1 flex items-center justify-center rounded-md bg-brand-50 p-2.5 text-brand-700 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 dark:hover:bg-brand-900/50"
+                        title="Preview"
                       >
-                        Preview
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
                       </button>
                       <button
                         @click="downloadDocument(doc)"
-                        class="flex-1 rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                        class="flex-1 flex items-center justify-center rounded-md bg-gray-100 p-2.5 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                        title="Download"
                       >
-                        Download
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
                       </button>
+                      <div class="relative">
+                        <button
+                          @click="toggleShareDropdown(doc.id)"
+                          class="flex items-center justify-center rounded-md bg-green-50 p-2.5 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50"
+                          title="Share"
+                        >
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                          </svg>
+                        </button>
+                        <!-- Share Dropdown -->
+                        <div 
+                          v-if="activeShareDropdown === doc.id"
+                          class="absolute right-0 bottom-full mb-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10"
+                        >
+                          <div class="py-1">
+                            <button
+                              @click="shareViaWhatsApp(doc)"
+                              class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                              <svg class="h-5 w-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                              </svg>
+                              WhatsApp
+                            </button>
+                            <button
+                              @click="shareViaEmail(doc)"
+                              class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                              <svg class="h-5 w-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              Email
+                            </button>
+                            <button
+                              @click="copyLink(doc)"
+                              class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                              <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                              Copy Link
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -246,7 +373,7 @@
       @click.self="closePreviewModal"
     >
       <div class="flex min-h-screen items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" @click="closePreviewModal"></div>
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="closePreviewModal"></div>
         
         <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden z-50">
           <div class="flex items-center justify-between p-4 border-b dark:border-gray-700">
@@ -304,6 +431,106 @@ const tabs = [
 const showPreviewModal = ref(false)
 const previewDoc = ref<any>(null)
 const previewUrl = ref('')
+const photoInput = ref<HTMLInputElement | null>(null)
+const activeShareDropdown = ref<number | null>(null)
+
+const getFullName = (customer: any) => {
+  if (!customer) return ''
+  const prefix = customer.name_prefix ? `${customer.name_prefix} ` : ''
+  return `${prefix}${customer.name}`
+}
+
+const triggerPhotoUpload = () => {
+  photoInput.value?.click()
+}
+
+const handlePhotoUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (!target.files || !target.files[0]) return
+  
+  const file = target.files[0]
+  
+  // Validate file size (2MB)
+  if (file.size > 2 * 1024 * 1024) {
+    toast.error('Image size should be less than 2MB')
+    return
+  }
+  
+  try {
+    const formData = new FormData()
+    formData.append('profile_photo', file)
+    formData.append('name', customer.value.name) // Include name to pass validation
+    formData.append('_method', 'PUT')
+    
+    const response = await api.post(`/customers/${route.params.id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    
+    toast.success('Profile photo updated successfully')
+    await fetchCustomer()
+  } catch (error: any) {
+    toast.error('Error uploading photo')
+  }
+}
+
+const toggleShareDropdown = (docId: number) => {
+  activeShareDropdown.value = activeShareDropdown.value === docId ? null : docId
+}
+
+const shareViaWhatsApp = async (document: any) => {
+  try {
+    const response = await api.get(`/documents/${document.id}/url`)
+    const url = response.data.url
+    const text = `Check out this document: ${document.name}`
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank')
+    activeShareDropdown.value = null
+    toast.success('Opening WhatsApp...')
+  } catch (error: any) {
+    toast.error('Error getting document URL')
+  }
+}
+
+const shareViaEmail = async (document: any) => {
+  try {
+    const response = await api.get(`/documents/${document.id}/url`)
+    const url = response.data.url
+    const subject = `Document: ${document.name}`
+    const body = `I'm sharing this document with you:\\n\\n${document.name}\\n\\n${url}`
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    activeShareDropdown.value = null
+    toast.success('Opening email client...')
+  } catch (error: any) {
+    toast.error('Error getting document URL')
+  }
+}
+
+const copyLink = async (document: any) => {
+  try {
+    const response = await api.get(`/documents/${document.id}/url`)
+    const url = response.data.url
+    await navigator.clipboard.writeText(url)
+    activeShareDropdown.value = null
+  } catch (error: any) {
+    toast.error('Error copying link')
+  }
+}
+
+const handleTabClick = async (tabName: string) => {
+  currentTab.value = tabName
+  // Refresh data when switching tabs
+  if (tabName === 'documents') {
+    await fetchCustomer()
+  } else if (tabName === 'activity') {
+    await fetchActivities()
+  }
+}
+
+const getDocumentUrl = (doc: any): string => {
+  if (!doc.file_path) return ''
+  return doc.file_path.startsWith('http') ? doc.file_path : `/storage/${doc.file_path}`
+}
 
 const fetchCustomer = async () => {
   try {
@@ -313,6 +540,7 @@ const fetchCustomer = async () => {
     toast.error('Error fetching customer details')
   }
 }
+
 
 const fetchActivities = async () => {
   try {
@@ -333,6 +561,15 @@ const getFileIcon = (document: any): string => {
   if (document.mime_type === 'application/pdf') return 'pdf'
   return 'file'
 }
+
+const isImageFile = (document: any): boolean => {
+  return document.mime_type?.startsWith('image/') || false
+}
+
+const isPdfFile = (document: any): boolean => {
+  return document.mime_type === 'application/pdf'
+}
+
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes'

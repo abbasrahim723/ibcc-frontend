@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between">
       <h5 class="text-sm font-medium text-gray-900 dark:text-white">{{ title }}</h5>
       <span v-if="maxFiles" class="text-xs text-gray-500">
-        {{ documents.length }} / {{ maxFiles }} files
+        {{ totalFiles }} / {{ maxFiles }} files
       </span>
     </div>
 
@@ -17,7 +17,7 @@
         isDragging
           ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
           : 'border-gray-300 dark:border-gray-700',
-        documents.length >= (maxFiles || Infinity)
+        totalFiles >= (maxFiles || Infinity)
           ? 'opacity-50 cursor-not-allowed'
           : 'cursor-pointer hover:border-brand-400'
       ]"
@@ -31,7 +31,7 @@
         :capture="allowCamera ? 'environment' : undefined"
         class="hidden"
         @change="handleFileSelect"
-        :disabled="documents.length >= (maxFiles || Infinity)"
+        :disabled="totalFiles >= (maxFiles || Infinity)"
       />
 
       <div class="space-y-2">
@@ -58,6 +58,7 @@
 
     <!-- Document List -->
     <div v-if="documents.length > 0" class="space-y-2">
+      <h6 v-if="existingDocuments.length > 0" class="text-xs font-medium text-gray-500 uppercase tracking-wider">New Uploads</h6>
       <div
         v-for="(doc, index) in documents"
         :key="index"
@@ -146,6 +147,14 @@ interface DocumentFile {
   preview?: string
 }
 
+interface ExistingDocument {
+  id: number
+  name: string
+  size: number
+  type: string
+  url?: string
+}
+
 const props = withDefaults(
   defineProps<{
     title?: string
@@ -155,6 +164,7 @@ const props = withDefaults(
     maxFiles?: number
     allowCamera?: boolean
     modelValue?: DocumentFile[]
+    existingDocuments?: ExistingDocument[]
   }>(),
   {
     title: 'Upload Documents',
@@ -162,12 +172,14 @@ const props = withDefaults(
     acceptText: 'PNG, JPG, PDF, DOC up to 10MB',
     multiple: true,
     allowCamera: true,
-    modelValue: () => []
+    modelValue: () => [],
+    existingDocuments: () => []
   }
 )
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: DocumentFile[]): void
+  (e: 'unlink', id: number): void
 }>()
 
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -177,8 +189,10 @@ const documents = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+const totalFiles = computed(() => documents.value.length + (props.existingDocuments?.length || 0))
+
 const triggerFileInput = () => {
-  if (documents.value.length >= (props.maxFiles || Infinity)) return
+  if (totalFiles.value >= (props.maxFiles || Infinity)) return
   fileInput.value?.click()
 }
 
@@ -236,7 +250,7 @@ const removeDocument = (index: number) => {
   documents.value = documents.value.filter((_, i) => i !== index)
 }
 
-const isImage = (doc: DocumentFile) => {
+const isImage = (doc: DocumentFile | ExistingDocument) => {
   return doc.type.startsWith('image/')
 }
 

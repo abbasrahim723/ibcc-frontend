@@ -20,8 +20,9 @@
 //   }
 // }
 
-import { ref, computed, onMounted, onUnmounted, provide, inject } from 'vue'
-import type { Ref } from 'vue' //
+import { ref, computed, onMounted, onUnmounted, provide, inject, watch } from 'vue'
+import type { Ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 interface SidebarContextType {
   isExpanded: Ref<boolean>
@@ -45,6 +46,7 @@ export function useSidebarProvider() {
   const isHovered = ref(false)
   const activeItem = ref<string | null>(null)
   const openSubmenu = ref<string | null>(null)
+  const authStore = useAuthStore()
 
   const handleResize = () => {
     const mobile = window.innerWidth < 768
@@ -68,6 +70,12 @@ export function useSidebarProvider() {
       isMobileOpen.value = !isMobileOpen.value
     } else {
       isExpanded.value = !isExpanded.value
+      // Persist state
+      if (authStore.isAuthenticated) {
+        authStore.updatePreferences({
+          sidebar_collapsed: !isExpanded.value
+        }).catch(err => console.error('Failed to save sidebar state', err))
+      }
     }
   }
 
@@ -86,6 +94,18 @@ export function useSidebarProvider() {
   const toggleSubmenu = (item: string) => {
     openSubmenu.value = openSubmenu.value === item ? null : item
   }
+
+  // Initialize from preferences
+  if (authStore.preferences?.sidebar_collapsed !== undefined) {
+    isExpanded.value = !authStore.preferences.sidebar_collapsed
+  }
+
+  // Watch for preference changes (e.g. initial load)
+  watch(() => authStore.preferences, (newPrefs) => {
+    if (newPrefs?.sidebar_collapsed !== undefined && !isMobile.value) {
+      isExpanded.value = !newPrefs.sidebar_collapsed
+    }
+  }, { immediate: true })
 
   const context: SidebarContextType = {
     isExpanded: computed(() => (isMobile.value ? false : isExpanded.value)),

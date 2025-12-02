@@ -3,10 +3,10 @@
     <PageBreadcrumb :pageTitle="currentPageTitle" />
     
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div class="mb-6 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Customer Management</h3>
+      <div class="mb-6 flex items-center justify-between gap-4">
+        <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Customer Management</h3>
         
-        <div class="flex items-center gap-4">
+        <div class="flex flex-1 lg:flex-initial items-center gap-4">
           <!-- Search -->
           <input
             v-model="searchQuery"
@@ -58,7 +58,7 @@
                       :to="`/customers/${customer.id}`"
                       class="text-sm font-medium text-gray-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400"
                     >
-                      {{ customer.name }}
+                      {{ getFullName(customer) }}
                       <span v-if="!customer.is_active" class="ml-2 text-xs text-gray-500">(Inactive)</span>
                     </router-link>
                     <div class="text-sm text-gray-500 dark:text-gray-400">{{ customer.email || 'No email' }}</div>
@@ -234,9 +234,17 @@ const changePage = (page: number) => {
   fetchCustomers(page)
 }
 
-const openWhatsApp = (phone: string) => {
-  window.open(`https://wa.me/${phone}`, '_blank')
+const openWhatsApp = (number: string) => {
+  const cleanNumber = number.replace(/[^0-9]/g, '')
+  window.open(`https://wa.me/${cleanNumber}`, '_blank')
 }
+
+const getFullName = (customer: any) => {
+  if (!customer) return ''
+  const prefix = customer.name_prefix ? `${customer.name_prefix} ` : ''
+  return `${prefix}${customer.name}`
+}
+
 
 const toggleCustomerStatus = (customer: any) => {
   pendingAction.value = { type: 'toggle', id: customer.id, status: !customer.is_active }

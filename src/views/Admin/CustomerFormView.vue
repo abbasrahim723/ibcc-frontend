@@ -289,6 +289,8 @@
                 :multiple="false"
                 :max-files="1"
                 :allow-camera="true"
+                :existing-documents="customerForm.existing_cnic_front"
+                @unlink="handleUnlinkDocument"
               />
               <DocumentUploader
                 v-model="customerForm.cnic_back"
@@ -298,6 +300,8 @@
                 :multiple="false"
                 :max-files="1"
                 :allow-camera="true"
+                :existing-documents="customerForm.existing_cnic_back"
+                @unlink="handleUnlinkDocument"
               />
             </div>
           </div>
@@ -312,6 +316,8 @@
               :multiple="true"
               :max-files="10"
               :allow-camera="true"
+              :existing-documents="customerForm.existing_other_documents"
+              @unlink="handleUnlinkDocument"
             />
           </div>
         </div>
@@ -450,7 +456,10 @@ const customerForm = ref({
   profile_photo_url: '',
   cnic_front: [] as any[],
   cnic_back: [] as any[],
-  other_documents: [] as any[]
+  other_documents: [] as any[],
+  existing_cnic_front: [] as any[],
+  existing_cnic_back: [] as any[],
+  existing_other_documents: [] as any[]
 })
 
 const triggerFileInput = () => {
@@ -620,13 +629,32 @@ const checkEmailUniqueness = async () => {
   }
 }
 
+const mapDocument = (doc: any) => ({
+  id: doc.id,
+  name: doc.name,
+  size: doc.file_size,
+  type: doc.mime_type,
+  url: `/storage/${doc.file_path}`
+})
+
+const handleUnlinkDocument = async (documentId: number) => {
+  if (!confirm('Are you sure you want to unlink this document?')) return
+  try {
+    await api.delete(`/customers/${customerId.value}/documents/${documentId}`)
+    toast.success('Document unlinked successfully')
+    await fetchCustomer()
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Error unlinking document')
+  }
+}
+
 const fetchCustomer = async () => {
   if (!isEditMode.value) return
   
   try {
     loading.value = true
-    const response = await api.get(`/customers/${customerId.value}`)
-    const customer = response.data
+    const response = await api.get(`/customers/${customerId.value}/details`)
+    const customer = response.data.customer
     
     originalEmail.value = customer.email
     
@@ -653,7 +681,10 @@ const fetchCustomer = async () => {
       profile_photo_url: customer.profile_photo_url || '',
       cnic_front: [],
       cnic_back: [],
-      other_documents: []
+      other_documents: [],
+      existing_cnic_front: customer.documents?.filter((d: any) => d.document_category === 'CNIC Front').map(mapDocument) || [],
+      existing_cnic_back: customer.documents?.filter((d: any) => d.document_category === 'CNIC Back').map(mapDocument) || [],
+      existing_other_documents: customer.documents?.filter((d: any) => d.document_category === 'Other').map(mapDocument) || []
     }
 
     // Load cascading data

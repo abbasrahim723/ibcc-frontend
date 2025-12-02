@@ -3,10 +3,10 @@
     <PageBreadcrumb :pageTitle="currentPageTitle" />
     
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div class="mb-6 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Document Management</h3>
+      <div class="mb-6 flex items-center justify-between gap-4">
+        <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Document Management</h3>
         
-        <div class="flex items-center gap-4">
+        <div class="flex flex-1 lg:flex-initial items-center gap-4">
           <!-- Search -->
           <input
             v-model="searchQuery"
@@ -212,7 +212,7 @@
       @click.self="closePreviewModal"
     >
       <div class="flex min-h-screen items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" @click="closePreviewModal"></div>
+        <div class="fixed inset-0 bg-transparent transition-opacity" @click="closePreviewModal"></div>
         
         <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden z-50">
           <!-- Modal Header -->

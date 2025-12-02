@@ -232,12 +232,6 @@ const fetchStates = async () => {
   try {
     const response = await api.get('/states', { params: { all: true } })
     states.value = response.data
-    
-    // Set default to Pakistan's first state (KPK)
-    const kpk = states.value.find(s => s.name.toLowerCase().includes('khyber'))
-    if (kpk) {
-      selectedStateId.value = String(kpk.id)
-    }
   } catch (error) {
     console.error('Error fetching states', error)
   }
@@ -247,11 +241,6 @@ const fetchCities = async () => {
   try {
     const response = await api.get('/cities', { params: { all: true } })
     allCities.value = response.data
-    
-    // Set default city if state is selected
-    if (selectedStateId.value && filteredCities.value.length > 0) {
-      selectedCityId.value = String(filteredCities.value[0].id)
-    }
   } catch (error) {
     console.error('Error fetching cities', error)
   }
@@ -261,11 +250,6 @@ const fetchTowns = async () => {
   try {
     const response = await api.get('/towns', { params: { all: true } })
     allTowns.value = response.data
-    
-    // Set default town if city is selected
-    if (selectedCityId.value && filteredTowns.value.length > 0) {
-      selectedTownId.value = String(filteredTowns.value[0].id)
-    }
   } catch (error) {
     console.error('Error fetching towns', error)
   }
@@ -277,6 +261,8 @@ const fetchPhases = async (page = 1) => {
       page,
       search: searchQuery.value || undefined,
       town_id: selectedTownId.value || undefined,
+      city_id: selectedCityId.value || undefined,
+      state_id: selectedStateId.value || undefined,
     }
     const response = await api.get('/phases', { params })
     phases.value = response.data.data
