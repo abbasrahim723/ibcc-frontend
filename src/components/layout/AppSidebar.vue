@@ -315,6 +315,11 @@ const menuGroups = [
         name: "Prefixes",
         path: "/admin/locations/prefixes",
       },
+      {
+        icon: DocsIcon,
+        name: "Contract Types",
+        path: "/contract-types",
+      },
     ],
   },
 ];
@@ -343,6 +348,7 @@ const resourceMapByName = {
   'Activity Logs': 'logs',
   'Locations': 'locations',
   'Prefixes': 'locations',
+  'Contract Types': 'projects',
 };
 
 function resourceForItem(item) {

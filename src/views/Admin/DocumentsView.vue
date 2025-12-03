@@ -18,25 +18,25 @@
         </div>
       </div>
 
-      <!-- Documents Table - Fixed Width Container -->
-      <div class="overflow-x-auto -mx-5 px-5">
-        <div class="inline-block min-w-full align-middle">
+      <!-- Documents Table -->
+      <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-64">File Name</th>
-                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-48">Belongs To</th>
-                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-32">Category</th>
-                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-24">Size</th>
-                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-32">Uploaded By</th>
-                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-32">Date</th>
-                <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-40">Actions</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[250px]">File Name</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[150px]">Belongs To</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[100px]">Category</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[80px]">Size</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[120px]">Uploaded By</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[100px]">Date</th>
+                <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[120px]">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
               <tr v-for="document in documents" :key="document.id">
                 <td class="px-4 py-4">
-                  <div class="flex items-center">
+                  <div class="flex items-center max-w-[250px]">
                     <!-- File Icon -->
                     <div class="flex-shrink-0 mr-3">
                       <svg v-if="getFileIcon(document) === 'image'" class="h-8 w-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,23 +49,25 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <div class="min-w-0 flex-1">
+                    <div class="min-w-0 flex-1 overflow-hidden">
                       <div class="text-sm font-medium text-gray-900 dark:text-white truncate" :title="document.name">{{ document.name }}</div>
-                      <div class="text-xs text-gray-500">{{ document.file_type?.toUpperCase() }}</div>
+                      <div class="text-xs text-gray-500 truncate">{{ document.file_type?.toUpperCase() }}</div>
                     </div>
                   </div>
                 </td>
                 <td class="px-4 py-4">
-                  <router-link 
-                    v-if="document.documentable && document.documentable_type.includes('Customer')"
-                    :to="`/customers/${document.documentable_id}`"
-                    class="text-sm text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 truncate block"
-                    :title="getDocumentOwner(document)"
-                  >
-                    {{ getDocumentOwner(document) }}
-                  </router-link>
-                  <div v-else class="text-sm text-gray-900 dark:text-white truncate" :title="getDocumentOwner(document)">
-                    {{ getDocumentOwner(document) }}
+                  <div class="max-w-[150px]">
+                    <router-link 
+                      v-if="document.documentable && document.documentable_type.includes('Customer')"
+                      :to="`/customers/${document.documentable_id}`"
+                      class="text-sm text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 truncate block"
+                      :title="getDocumentOwner(document)"
+                    >
+                      {{ getDocumentOwner(document) }}
+                    </router-link>
+                    <div v-else class="text-sm text-gray-900 dark:text-white truncate" :title="getDocumentOwner(document)">
+                      {{ getDocumentOwner(document) }}
+                    </div>
                   </div>
                 </td>
                 <td class="px-4 py-4 whitespace-nowrap">
@@ -77,8 +79,10 @@
                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ formatFileSize(document.file_size) }}
                 </td>
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate" :title="document.uploader?.name || 'Unknown'">
-                  {{ document.uploader?.name || 'Unknown' }}
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div class="max-w-[120px] truncate" :title="document.uploader?.name || 'Unknown'">
+                    {{ document.uploader?.name || 'Unknown' }}
+                  </div>
                 </td>
                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ formatDate(document.created_at) }}

@@ -1,7 +1,7 @@
 <template>
   <admin-layout>
-    <PageBreadcrumb 
-      :pageTitle="getFullName(customer) || 'Customer Details'" 
+    <PageBreadcrumb
+      :pageTitle="getFullName(customer) || 'Customer Details'"
       :breadcrumbs="[
         { label: 'Home', to: '/' },
         { label: 'Customers', to: '/customers' },
@@ -22,7 +22,7 @@
             <div class="relative mb-4 h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-lg dark:border-gray-700">
               <img
                 v-if="customer.profile_photo_url"
-                :src="customer.profile_photo_url"
+                :src="getProfilePhotoUrl(customer.profile_photo_url)"
                 alt="Profile Photo"
                 class="h-full w-full object-cover"
               />
@@ -50,7 +50,7 @@
             </div>
 
             <h3 class="mb-1 text-xl font-bold text-gray-900 dark:text-white">{{ getFullName(customer) }}</h3>
-            <a 
+            <a
               v-if="customer.email"
               :href="`mailto:${customer.email}`"
               class="mb-6 flex items-center justify-center gap-1 text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
@@ -64,7 +64,7 @@
 
             <!-- Contact Info -->
             <div class="w-full space-y-4">
-              <a 
+              <a
                 v-if="customer.phone_primary"
                 :href="`tel:${customer.phone_primary}`"
                 class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
@@ -91,7 +91,7 @@
                 </div>
               </div>
 
-              <a 
+              <a
                 v-if="customer.whatsapp_number"
                 :href="`https://wa.me/${customer.whatsapp_number.replace(/[^0-9]/g, '')}`"
                 target="_blank"
@@ -175,18 +175,18 @@
             <!-- Documents Tab -->
             <div v-if="currentTab === 'documents'" class="space-y-6">
               <div class="flex items-center justify-between">
-                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Documents</h4>
-                <!-- Could add upload button here later -->
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">All Documents</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ allDocuments.length }} total</p>
               </div>
 
-              <div v-if="customer.documents && customer.documents.length > 0" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div v-if="allDocuments.length > 0" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div
-                  v-for="doc in customer.documents"
+                  v-for="doc in allDocuments"
                   :key="doc.id"
-                  class="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                  class="group relative flex flex-col rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
                 >
                   <!-- Preview/Icon -->
-                  <div class="flex h-32 items-center justify-center bg-gray-50 dark:bg-gray-900">
+                  <div class="flex h-32 items-center justify-center overflow-hidden rounded-t-lg bg-gray-50 dark:bg-gray-900">
                     <img
                       v-if="isImageFile(doc)"
                       :src="getDocumentUrl(doc)"
@@ -201,9 +201,6 @@
                       </svg>
                       <p class="mt-2 text-xs text-gray-500">PDF</p>
                     </div>
-                    <svg v-else-if="getFileIcon(doc) === 'pdf'" class="h-12 w-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
                     <svg v-else class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -211,14 +208,17 @@
 
                   <!-- Info -->
                   <div class="flex flex-1 flex-col p-4">
-                    <h5 class="mb-1 truncate text-sm font-medium text-gray-900 dark:text-white" :title="doc.name">{{ doc.name }}</h5>
-                    <div class="mb-4 flex items-center justify-between">
+                    <h5 class="mb-1 text-sm font-medium text-gray-900 dark:text-white" :title="doc.name">{{ truncate(doc.name, 80) }}</h5>
+                    <div class="mb-2 flex items-center justify-between">
                       <span class="inline-flex rounded-full bg-blue-100 px-2 text-xs font-semibold leading-5 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                         {{ doc.document_category || 'Other' }}
                       </span>
                       <span class="text-xs text-gray-500">{{ formatFileSize(doc.file_size) }}</span>
                     </div>
-                    
+                    <div v-if="doc.source" class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span class="font-medium">Source:</span> {{ doc.source }}
+                    </div>
+
                     <div class="mt-auto flex gap-2">
                       <button
                         @click="previewDocument(doc)"
@@ -250,7 +250,7 @@
                           </svg>
                         </button>
                         <!-- Share Dropdown -->
-                        <div 
+                        <div
                           v-if="activeShareDropdown === doc.id"
                           class="absolute right-0 bottom-full mb-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10"
                         >
@@ -296,14 +296,14 @@
                   </svg>
                 </div>
                 <h3 class="text-sm font-medium text-gray-900 dark:text-white">No documents</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">This customer hasn't uploaded any documents yet.</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No documents found for this customer or their projects.</p>
               </div>
             </div>
 
             <!-- Activity Log Tab -->
             <div v-else-if="currentTab === 'activity'" class="space-y-6">
               <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Activity History</h4>
-              
+
               <div v-if="activities.length > 0" class="flow-root">
                 <ul role="list" class="-mb-8">
                   <li v-for="(activity, activityIdx) in activities" :key="activity.id">
@@ -340,26 +340,196 @@
               </div>
             </div>
 
-            <!-- Transactions Tab (Placeholder) -->
-            <div v-else-if="currentTab === 'transactions'" class="flex flex-col items-center justify-center py-12 text-center">
-              <div class="mb-3 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
-                <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <!-- Transactions Tab -->
+            <div v-else-if="currentTab === 'transactions'" class="space-y-4">
+              <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Payment Transactions</h4>
+              <div v-if="customerPayments.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+                <div class="mb-3 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
+                  <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">No transactions</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No payment transactions found for this customer.</p>
               </div>
-              <h3 class="text-sm font-medium text-gray-900 dark:text-white">No transactions</h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Transaction history will appear here.</p>
+              <div v-else class="space-y-3">
+                <div 
+                  v-for="payment in customerPayments" 
+                  :key="payment.id" 
+                  class="rounded-lg border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-2">
+                        <h5 class="text-sm font-semibold text-gray-900 dark:text-white">
+                          Payment #{{ payment.id }}
+                        </h5>
+                        <span 
+                          :class="[
+                            'inline-flex rounded-full px-2 py-0.5 text-xs font-semibold',
+                            payment.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                            payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                            'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                          ]"
+                        >
+                          {{ payment.status || 'N/A' }}
+                        </span>
+                      </div>
+                      
+                      <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                        <div v-if="payment.project" class="flex items-center gap-1">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                          <span class="font-medium">Project:</span>
+                          <router-link :to="`/projects/${payment.project.id}`" class="text-brand-600 hover:underline dark:text-brand-400">
+                            {{ payment.project.name }}
+                          </router-link>
+                        </div>
+                        
+                        <div class="flex items-center gap-1">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          </svg>
+                          <span class="font-medium">Method:</span> {{ payment.method || 'N/A' }}
+                        </div>
+                        
+                        <div v-if="payment.reference" class="flex items-center gap-1">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                          </svg>
+                          <span class="font-medium">Reference:</span> {{ payment.reference }}
+                        </div>
+                        
+                        <div class="flex items-center gap-1">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span class="font-medium">Date:</span> {{ formatDate(payment.payment_date || payment.created_at) }}
+                        </div>
+                        
+                        <div v-if="payment.notes" class="mt-2 text-xs italic text-gray-500 dark:text-gray-400">
+                          {{ payment.notes }}
+                        </div>
+
+                        <div class="mt-3 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-2">
+                          <div v-if="payment.received_by" class="flex items-center gap-1">
+                            <span class="font-medium">Received by:</span>
+                            <span class="flex items-center gap-1">
+                               {{ payment.received_by.name }}
+                            </span>
+                          </div>
+                          <div v-if="payment.approved_by" class="flex items-center gap-1">
+                            <span class="font-medium">Approved by:</span>
+                            <span class="flex items-center gap-1">
+                               {{ payment.approved_by.name }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="text-right">
+                      <div class="text-lg font-bold text-gray-900 dark:text-white">
+                        {{ formatCurrency(payment.amount) }}
+                      </div>
+                      <div v-if="payment.currency" class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ payment.currency }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Projects Tab (Placeholder) -->
-            <div v-else-if="currentTab === 'projects'" class="flex flex-col items-center justify-center py-12 text-center">
-              <div class="mb-3 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
-                <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
+            <!-- Projects Tab -->
+            <div v-else-if="currentTab === 'projects'" class="space-y-4">
+              <div class="flex items-center justify-between">
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Projects</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ customerProjects.length }} total</p>
               </div>
-              <h3 class="text-sm font-medium text-gray-900 dark:text-white">No projects</h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Project history will appear here.</p>
+              
+              <div v-if="customerProjects.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+                <div class="mb-3 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
+                  <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">No projects</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">This customer doesn't have any projects yet.</p>
+              </div>
+              
+              <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <router-link 
+                  v-for="proj in customerProjects" 
+                  :key="proj.id" 
+                  :to="`/projects/${proj.id}`"
+                  class="group relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-all hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                >
+                  <!-- Project Thumbnail/Header -->
+                  <div class="relative h-32 bg-gradient-to-br from-brand-500 to-brand-700 overflow-hidden">
+                    <img 
+                      v-if="getProjectThumbnail(proj)" 
+                      :src="getProjectThumbnail(proj)" 
+                      :alt="proj.name"
+                      class="h-full w-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                    />
+                    <div v-else class="flex h-full w-full items-center justify-center">
+                      <svg class="h-16 w-16 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                    
+                    <!-- Status Badge -->
+                    <div class="absolute top-3 right-3">
+                      <span :class="[
+                        'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
+                        proj.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      ]">
+                        {{ proj.status || 'Active' }}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Project Info -->
+                  <div class="p-4">
+                    <h5 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                      {{ proj.name }}
+                    </h5>
+                    
+                    <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div v-if="proj.plot_number" class="flex items-center gap-2">
+                        <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                        </svg>
+                        <span class="truncate">Plot: {{ proj.plot_number }}</span>
+                      </div>
+                      
+                      <div v-if="proj.address" class="flex items-center gap-2">
+                        <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span class="truncate">{{ truncate(proj.address, 40) }}</span>
+                      </div>
+                      
+                      <div class="flex items-center gap-2">
+                        <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>{{ formatDate(proj.created_at) }}</span>
+                      </div>
+                      
+                      <div v-if="proj.contract_value" class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                          <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Contract Value</span>
+                          <span class="text-sm font-bold text-gray-900 dark:text-white">{{ formatCurrency(proj.contract_value) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </router-link>
+              </div>
             </div>
           </div>
         </div>
@@ -367,14 +537,14 @@
     </div>
 
     <!-- Preview Modal -->
-    <div 
-      v-if="showPreviewModal" 
+    <div
+      v-if="showPreviewModal"
       class="fixed inset-0 z-50 overflow-y-auto"
       @click.self="closePreviewModal"
     >
-      <div class="flex min-h-screen items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="closePreviewModal"></div>
-        
+      <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" @click="closePreviewModal"></div>
+
         <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden z-50">
           <div class="flex items-center justify-between p-4 border-b dark:border-gray-700">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ previewDoc?.name }}</h3>
@@ -384,15 +554,15 @@
               </svg>
             </button>
           </div>
-          
+
           <div class="p-4 overflow-auto max-h-[calc(90vh-8rem)]">
-            <img 
-              v-if="previewDoc && getFileIcon(previewDoc) === 'image'" 
-              :src="previewUrl" 
+            <img
+              v-if="previewDoc && getFileIcon(previewDoc) === 'image'"
+              :src="previewUrl"
               :alt="previewDoc.name"
               class="max-w-full h-auto mx-auto"
             />
-            <iframe 
+            <iframe
               v-else-if="previewDoc && getFileIcon(previewDoc) === 'pdf'"
               :src="previewUrl"
               class="w-full h-[70vh]"
@@ -406,7 +576,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
@@ -427,12 +597,65 @@ const tabs = [
   { name: 'projects', label: 'Projects' },
 ]
 
+const customerProjects = ref<any[]>([])
+const customerPayments = ref<any[]>([])
+
 // Preview Modal State
 const showPreviewModal = ref(false)
 const previewDoc = ref<any>(null)
 const previewUrl = ref('')
 const photoInput = ref<HTMLInputElement | null>(null)
 const activeShareDropdown = ref<number | null>(null)
+
+// Computed property to aggregate all documents from customer, projects, and payments
+const allDocuments = computed(() => {
+  const docs: any[] = []
+  
+  // Customer documents
+  if (customer.value?.documents) {
+    customer.value.documents.forEach((doc: any) => {
+      docs.push({ ...doc, source: 'Customer' })
+    })
+  }
+  
+  // Project documents
+  if (customer.value?.projects) {
+    customer.value.projects.forEach((project: any) => {
+      if (project.documents) {
+        project.documents.forEach((doc: any) => {
+          docs.push({ ...doc, source: `Project: ${project.name}` })
+        })
+      }
+      
+      // Payment documents from projects
+      if (project.payments) {
+        project.payments.forEach((payment: any) => {
+          if (payment.documents) {
+            payment.documents.forEach((doc: any) => {
+              docs.push({ ...doc, source: `Payment #${payment.id} (${project.name})` })
+            })
+          }
+        })
+      }
+    })
+  }
+  
+  return docs
+})
+
+const getProjectThumbnail = (project: any) => {
+  if (!project) return ''
+  // Look for thumbnail in project documents
+  const thumbnail = project.documents?.find((d: any) => 
+    (d.document_category || '').toLowerCase().includes('thumbnail') || 
+    (d.document_category || '').toLowerCase().includes('thumb')
+  )
+  if (thumbnail) {
+    return getDocumentUrl(thumbnail)
+  }
+  return ''
+}
+
 
 const getFullName = (customer: any) => {
   if (!customer) return ''
@@ -447,27 +670,27 @@ const triggerPhotoUpload = () => {
 const handlePhotoUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   if (!target.files || !target.files[0]) return
-  
+
   const file = target.files[0]
-  
+
   // Validate file size (2MB)
   if (file.size > 2 * 1024 * 1024) {
     toast.error('Image size should be less than 2MB')
     return
   }
-  
+
   try {
     const formData = new FormData()
     formData.append('profile_photo', file)
     formData.append('name', customer.value.name) // Include name to pass validation
     formData.append('_method', 'PUT')
-    
+
     const response = await api.post(`/customers/${route.params.id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     })
-    
+
     toast.success('Profile photo updated successfully')
     await fetchCustomer()
   } catch (error: any) {
@@ -524,12 +747,26 @@ const handleTabClick = async (tabName: string) => {
     await fetchCustomer()
   } else if (tabName === 'activity') {
     await fetchActivities()
+  } else if (tabName === 'transactions') {
+    await fetchCustomerPayments()
+  } else if (tabName === 'projects') {
+    await fetchCustomerProjects()
   }
 }
 
 const getDocumentUrl = (doc: any): string => {
-  if (!doc.file_path) return ''
-  return doc.file_path.startsWith('http') ? doc.file_path : `/storage/${doc.file_path}`
+  if (!doc?.file_path && !doc?.url && !doc?.file_path) return ''
+  const candidate = doc.url || doc.file_path || doc.file_path
+  if (!candidate) return ''
+  if (candidate.startsWith('http')) return candidate
+  
+  // Get base URL and remove /api suffix if present
+  let fileBase = (import.meta.env.VITE_FILE_BASE_URL as string) || (import.meta.env.VITE_API_BASE_URL as string) || window?.location?.origin || ''
+  fileBase = fileBase.replace(/\/api\/?$/, '')
+  const base = fileBase.replace(/\/$/, '')
+  
+  const relative = candidate.startsWith('/') ? candidate : `/storage/${candidate}`
+  return `${base}${relative}`
 }
 
 const fetchCustomer = async () => {
@@ -553,7 +790,15 @@ const fetchActivities = async () => {
 
 const getProfilePhotoUrl = (path: string) => {
   if (!path) return ''
-  return path.startsWith('http') ? path : `/storage/${path}`
+  if (path.startsWith('http')) return path
+  
+  // Get base URL and remove /api suffix if present
+  let fileBase = (import.meta.env.VITE_FILE_BASE_URL as string) || (import.meta.env.VITE_API_BASE_URL as string) || window?.location?.origin || ''
+  fileBase = fileBase.replace(/\/api\/?$/, '')
+  const base = fileBase.replace(/\/$/, '')
+  
+  const relative = path.startsWith('/') ? path : `/storage/${path}`
+  return `${base}${relative}`
 }
 
 const getFileIcon = (document: any): string => {
@@ -581,13 +826,43 @@ const formatFileSize = (bytes: number): string => {
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+const truncate = (s: string | undefined, n = 80) => {
+  if (!s) return ''
+  return s.length > n ? s.substring(0, n - 1) + '…' : s
+}
+
+const formatCurrency = (value: number | string | null | undefined) => {
+  if (value === null || value === undefined) return '—'
+  const num = Number(value) || 0
+  const formatted = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(num)
+  return `₨ ${formatted}`
+}
+
+const fetchCustomerProjects = async () => {
+  try {
+    const res = await api.get('/projects', { params: { customer_id: route.params.id } })
+    customerProjects.value = res.data.data || res.data
+  } catch (e: any) {
+    console.error('Error fetching customer projects', e)
+  }
+}
+
+const fetchCustomerPayments = async () => {
+  try {
+    const res = await api.get('/payments', { params: { customer_id: route.params.id } })
+    customerPayments.value = res.data.data || res.data
+  } catch (e: any) {
+    console.error('Error fetching customer payments', e)
+  }
 }
 
 const getActivityColor = (action: string): string => {
@@ -630,7 +905,7 @@ const downloadDocument = async (document: any) => {
     const response = await api.get(`/documents/${document.id}/download`, {
       responseType: 'blob'
     })
-    
+
     const url = window.URL.createObjectURL(new Blob([response.data]))
     const link = window.document.createElement('a')
     link.href = url
@@ -639,7 +914,7 @@ const downloadDocument = async (document: any) => {
     link.click()
     link.remove()
     window.URL.revokeObjectURL(url)
-    
+
     toast.success('Document downloaded successfully')
   } catch (error: any) {
     toast.error('Error downloading document')

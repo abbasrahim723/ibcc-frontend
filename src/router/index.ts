@@ -197,17 +197,82 @@ const router = createRouter({
     {
       path: '/projects',
       name: 'Projects',
-      component: () => import('../views/Pages/ComingSoon.vue'),
+      component: () => import('../views/Admin/ProjectsView.vue'),
       meta: {
         title: 'Projects',
       },
     },
     {
+      path: '/contract-types',
+      name: 'ContractTypes',
+      component: () => import('../views/Admin/ContractTypesView.vue'),
+      meta: {
+        title: 'Contract Types',
+      },
+    },
+    {
+      path: '/contract-types/create',
+      name: 'CreateContractType',
+      component: () => import('../views/Admin/ContractTypeFormView.vue'),
+      meta: {
+        title: 'Create Contract Type',
+      },
+    },
+    {
+      path: '/contract-types/:id/edit',
+      name: 'EditContractType',
+      component: () => import('../views/Admin/ContractTypeFormView.vue'),
+      meta: {
+        title: 'Edit Contract Type',
+      },
+    },
+    {
+      path: '/projects/create',
+      name: 'CreateProject',
+      component: () => import('../views/Admin/ProjectFormView.vue'),
+      meta: {
+        title: 'Create Project',
+      },
+    },
+    {
+      path: '/projects/:id/edit',
+      name: 'EditProject',
+      component: () => import('../views/Admin/ProjectFormView.vue'),
+      meta: {
+        title: 'Edit Project',
+      },
+    },
+    {
+      path: '/projects/:id',
+      name: 'ProjectDetail',
+      component: () => import('../views/Admin/ProjectDetailView.vue'),
+      meta: {
+        title: 'Project Details',
+        requiresAuth: true
+      },
+    },
+    {
       path: '/payments',
       name: 'Payments',
-      component: () => import('../views/Pages/ComingSoon.vue'),
+      component: () => import('../views/Admin/PaymentsView.vue'),
       meta: {
         title: 'Payments',
+      },
+    },
+    {
+      path: '/payments/create',
+      name: 'CreatePayment',
+      component: () => import('../views/Admin/PaymentFormView.vue'),
+      meta: {
+        title: 'Create Payment',
+      },
+    },
+    {
+      path: '/payments/:id/edit',
+      name: 'EditPayment',
+      component: () => import('../views/Admin/PaymentFormView.vue'),
+      meta: {
+        title: 'Edit Payment',
       },
     },
     {
