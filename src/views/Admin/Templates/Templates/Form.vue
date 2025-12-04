@@ -4,7 +4,6 @@
 
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <form @submit.prevent="saveTemplate" class="space-y-6">
-        
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
           <!-- Title -->
           <div>
@@ -46,47 +45,13 @@
           <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
             Content <span class="text-red-500">*</span>
           </label>
-          
-          <div class="border rounded-lg border-gray-300 dark:border-gray-600 overflow-hidden">
-            <!-- Toolbar -->
-            <div class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap gap-2 items-center">
-              <button type="button" @click="editor?.chain().focus().toggleBold().run()" :class="{ 'bg-gray-200 dark:bg-gray-700': editor?.isActive('bold') }" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-                Bold
-              </button>
-              <button type="button" @click="editor?.chain().focus().toggleItalic().run()" :class="{ 'bg-gray-200 dark:bg-gray-700': editor?.isActive('italic') }" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-                Italic
-              </button>
-              <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-700': editor?.isActive('heading', { level: 1 }) }" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-                H1
-              </button>
-              <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-700': editor?.isActive('heading', { level: 2 }) }" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-                H2
-              </button>
-              <button type="button" @click="editor?.chain().focus().toggleBulletList().run()" :class="{ 'bg-gray-200 dark:bg-gray-700': editor?.isActive('bulletList') }" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-                Bullet List
-              </button>
-              <button type="button" @click="editor?.chain().focus().toggleOrderedList().run()" :class="{ 'bg-gray-200 dark:bg-gray-700': editor?.isActive('orderedList') }" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-                Ordered List
-              </button>
-              
-              <div class="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
 
-              <!-- Placeholders Dropdown -->
-              <div class="relative">
-                <select 
-                  @change="insertPlaceholder($event)" 
-                  class="text-sm border-gray-300 rounded-md shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white py-1 pl-2 pr-8"
-                >
-                  <option value="">Insert Placeholder...</option>
-                  <option v-for="p in placeholders" :key="p.id" :value="p.key">
-                    {{ p.key }} ({{ p.model }})
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Editor Content -->
-            <editor-content :editor="editor" class="prose dark:prose-invert max-w-none p-4 min-h-[300px] focus:outline-none" />
+          <div class="overflow-hidden rounded-lg border border-gray-300 dark:border-gray-600">
+            <Editor
+              :tinymce="tinymce"
+              v-model="form.content"
+              :init="editorInit"
+            />
           </div>
         </div>
 
@@ -131,16 +96,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import Image from '@tiptap/extension-image'
-import Table from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
+import Editor from '@tinymce/tinymce-vue'
+import tinymce from 'tinymce/tinymce'
+import 'tinymce/icons/default'
+import 'tinymce/themes/silver'
+import 'tinymce/models/dom/model'
+import 'tinymce/plugins/anchor'
+import 'tinymce/plugins/advlist'
+import 'tinymce/plugins/autolink'
+import 'tinymce/plugins/autosave'
+import 'tinymce/plugins/charmap'
+import 'tinymce/plugins/code'
+import 'tinymce/plugins/codesample'
+import 'tinymce/plugins/emoticons'
+import 'tinymce/plugins/fullscreen'
+import 'tinymce/plugins/image'
+import 'tinymce/plugins/insertdatetime'
+import 'tinymce/plugins/link'
+import 'tinymce/plugins/lists'
+import 'tinymce/plugins/media'
+import 'tinymce/plugins/searchreplace'
+import 'tinymce/plugins/table'
+import 'tinymce/plugins/visualblocks'
+import 'tinymce/plugins/wordcount'
+import 'tinymce/skins/ui/oxide/skin.css'
+import 'tinymce/skins/ui/oxide/content.css'
+import 'tinymce/skins/content/default/content.css'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
@@ -162,23 +145,47 @@ const form = ref({
   status: true
 })
 
-const editor = useEditor({
-  content: '',
-  extensions: [
-    StarterKit,
-    Underline,
-    Image,
-    Table.configure({
-      resizable: true,
-    }),
-    TableRow,
-    TableHeader,
-    TableCell,
-  ],
-  onUpdate: ({ editor }) => {
-    form.value.content = editor.getHTML()
+const editorInit = computed(() => ({
+  height: 480,
+  menubar: 'file edit view insert format tools table help',
+  plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount advlist code fullscreen insertdatetime',
+  toolbar:
+    'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | superscript subscript | codesample code fullscreen | removeformat | placeholders',
+  toolbar_mode: 'sliding',
+  statusbar: true,
+  branding: false,
+  promotion: false,
+  placeholder: 'Start writing your template...',
+  content_style: 'body { font-family: Inter, sans-serif; font-size: 14px; }',
+  setup: (editor) => {
+    editor.ui.registry.addMenuButton('placeholders', {
+      text: 'Placeholders',
+      fetch: (callback) => {
+        const items = placeholders.value.map((p) => ({
+          type: 'menuitem',
+          text: `${p.key} (${p.model})`,
+          onAction: () => editor.insertContent(` ${p.key} `),
+        }))
+
+        callback(
+          items.length
+            ? items
+            : [
+                {
+                  type: 'menuitem',
+                  text: 'No placeholders available',
+                  enabled: false,
+                },
+              ],
+        )
+      },
+    })
+
+    editor.on('change keyup setcontent', () => {
+      form.value.content = editor.getContent()
+    })
   },
-})
+}))
 
 const fetchPlaceholders = async () => {
   try {
@@ -199,22 +206,16 @@ const fetchTemplate = async (id: string) => {
       content: data.content,
       status: data.status
     }
-    if (editor.value) {
-      editor.value.commands.setContent(data.content)
-    }
   } catch (error) {
     toast.error('Error fetching template details')
     router.push('/admin/templates/templates')
   }
 }
 
-const insertPlaceholder = (event: Event) => {
-  const select = event.target as HTMLSelectElement
-  const value = select.value
-  if (value && editor.value) {
-    editor.value.chain().focus().insertContent(` ${value} `).run()
-    select.value = "" // Reset dropdown
-  }
+const isContentEmpty = (content: string) => {
+  if (!content) return true
+  const textOnly = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim()
+  return textOnly.length === 0
 }
 
 const previewTemplate = async () => {
@@ -233,7 +234,7 @@ const previewTemplate = async () => {
 }
 
 const saveTemplate = async () => {
-  if (!form.value.content || form.value.content === '<p></p>') {
+  if (isContentEmpty(form.value.content)) {
     toast.error('Content cannot be empty')
     return
   }
@@ -261,23 +262,4 @@ onMounted(async () => {
     await fetchTemplate(route.params.id as string)
   }
 })
-
-onBeforeUnmount(() => {
-  editor.value?.destroy()
-})
 </script>
-
-<style>
-/* Basic Tiptap Editor Styles */
-.ProseMirror {
-  outline: none;
-  min-height: 300px;
-}
-.ProseMirror p.is-editor-empty:first-child::before {
-  content: attr(data-placeholder);
-  float: left;
-  color: #adb5bd;
-  pointer-events: none;
-  height: 0;
-}
-</style>

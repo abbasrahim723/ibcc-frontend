@@ -31,14 +31,32 @@
 
       <!-- Roles Tab -->
       <div v-if="activeTab === 'roles'">
-        <div class="mb-4 flex justify-between items-center">
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Manage Roles</h3>
-          <button
-            @click="openRoleModal()"
-            class="flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
-          >
-            Add Role
-          </button>
+        <div class="mb-4 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Manage Roles</h3>
+            <div class="flex flex-wrap items-center gap-3">
+              <input
+                v-model="roleSearch"
+                type="text"
+                placeholder="Search roles..."
+                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+              <select
+                v-model="roleStatusFilter"
+                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <router-link
+                to="/admin/roles/create"
+                class="flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+              >
+                Add Role
+              </router-link>
+            </div>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -52,7 +70,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
-              <tr v-for="role in roles" :key="role.id" :class="{ 'opacity-60': !role.is_active }">
+              <tr v-for="role in paginatedRoles" :key="role.id" :class="{ 'opacity-60': !role.is_active }">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {{ role.name }}
                   <span v-if="!role.is_active" class="ml-2 text-xs text-gray-500">(Inactive)</span>
@@ -80,32 +98,85 @@
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button @click="openRoleModal(role)" class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3">Edit</button>
-                  <button
-                    @click="deleteRole(role.id)"
-                    :class="role.is_active
-                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300'
-                      : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
-                  >
-                    {{ role.is_active ? 'Delete' : 'Restore' }}
-                  </button>
+                  <template v-if="!isProtectedRole(role)">
+                    <router-link
+                      :to="`/admin/roles/${role.id}/edit`"
+                      class="inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200 mr-2"
+                      title="Edit"
+                    >
+                      <SquarePen class="h-4 w-4" />
+                      <span class="sr-only">Edit</span>
+                    </router-link>
+                    <button
+                      @click="deleteRole(role.id)"
+                      :class="[
+                        'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
+                        role.is_active
+                          ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300'
+                          : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                      ]"
+                      :title="role.is_active ? 'Delete' : 'Restore'"
+                    >
+                      <component :is="role.is_active ? Trash2 : RotateCcw" class="h-4 w-4" />
+                      <span class="sr-only">{{ role.is_active ? 'Delete' : 'Restore' }}</span>
+                    </button>
+                  </template>
+                  <span v-else class="text-xs text-gray-400">Protected</span>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <div v-if="roleTotalPages > 1" class="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
+          <span>Page {{ rolePage }} of {{ roleTotalPages }}</span>
+          <div class="flex gap-2">
+            <button
+              @click="rolePage--"
+              :disabled="rolePage === 1"
+              class="rounded-lg border border-gray-300 px-3 py-1 disabled:opacity-50 dark:border-gray-700"
+            >
+              Previous
+            </button>
+            <button
+              @click="rolePage++"
+              :disabled="rolePage === roleTotalPages"
+              class="rounded-lg border border-gray-300 px-3 py-1 disabled:opacity-50 dark:border-gray-700"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Permissions Tab -->
       <div v-if="activeTab === 'permissions'">
-        <div class="mb-4 flex justify-between items-center">
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Manage Permissions</h3>
-          <button
-            @click="openPermissionModal()"
-            class="flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
-          >
-            Add Permission
-          </button>
+        <div class="mb-4 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Manage Permissions</h3>
+            <div class="flex flex-wrap items-center gap-3">
+              <input
+                v-model="permissionSearch"
+                type="text"
+                placeholder="Search permissions..."
+                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+              <select
+                v-model="permissionStatusFilter"
+                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button
+                @click="openPermissionModal()"
+                class="flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+              >
+                Add Permission
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -118,7 +189,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
-              <tr v-for="permission in permissions" :key="permission.id" :class="{ 'opacity-60': !permission.is_active }">
+              <tr v-for="permission in paginatedPermissions" :key="permission.id" :class="{ 'opacity-60': !permission.is_active }">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {{ permission.name }}
                   <span v-if="!permission.is_active" class="ml-2 text-xs text-gray-500">(Inactive)</span>
@@ -127,87 +198,54 @@
                   {{ permission.roles ? permission.roles.length : 0 }} roles
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button @click="openPermissionModal(permission)" class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3">Edit</button>
+                  <button
+                    @click="openPermissionModal(permission)"
+                    class="inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200 mr-2"
+                    title="Edit"
+                  >
+                    <SquarePen class="h-4 w-4" />
+                    <span class="sr-only">Edit</span>
+                  </button>
                   <button
                     @click="deletePermission(permission.id)"
-                    :class="permission.is_active
-                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300'
-                      : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
+                    :class="[
+                      'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
+                      permission.is_active
+                        ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300'
+                        : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                    ]"
+                    :title="permission.is_active ? 'Delete' : 'Restore'"
                   >
-                    {{ permission.is_active ? 'Delete' : 'Restore' }}
+                    <component :is="permission.is_active ? Trash2 : RotateCcw" class="h-4 w-4" />
+                    <span class="sr-only">{{ permission.is_active ? 'Delete' : 'Restore' }}</span>
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <div v-if="permissionTotalPages > 1" class="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
+          <span>Page {{ permissionPage }} of {{ permissionTotalPages }}</span>
+          <div class="flex gap-2">
+            <button
+              @click="permissionPage--"
+              :disabled="permissionPage === 1"
+              class="rounded-lg border border-gray-300 px-3 py-1 disabled:opacity-50 dark:border-gray-700"
+            >
+              Previous
+            </button>
+            <button
+              @click="permissionPage++"
+              :disabled="permissionPage === permissionTotalPages"
+              class="rounded-lg border border-gray-300 px-3 py-1 disabled:opacity-50 dark:border-gray-700"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- Role Modal -->
-    <Modal v-if="isRoleModalOpen" @close="isRoleModalOpen = false">
-      <div class="relative w-full max-w-[600px] rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-10">
-        <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-          {{ editingRole ? 'Edit Role' : 'Create Role' }}
-        </h3>
-
-        <form @submit.prevent="saveRole" class="space-y-4">
-          <div>
-            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Role Name</label>
-            <input
-              v-model="roleForm.name"
-              type="text"
-              required
-              class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90"
-            />
-          </div>
-
-          <div class="flex items-center">
-            <input
-              v-model="roleForm.is_active"
-              type="checkbox"
-              id="is_active"
-              class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
-            />
-            <label for="is_active" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Active</label>
-          </div>
-
-          <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">Permissions</label>
-            <div class="max-h-60 overflow-y-auto rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <div class="grid grid-cols-2 gap-2">
-                <div v-for="perm in permissions" :key="perm.id" class="flex items-center">
-                  <input
-                    type="checkbox"
-                    :value="perm.name"
-                    v-model="roleForm.permissions"
-                    :id="'perm-' + perm.id"
-                    class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
-                  />
-                  <label :for="'perm-' + perm.id" class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ perm.name }}</label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-3 mt-6">
-            <button
-              type="button"
-              @click="isRoleModalOpen = false"
-              class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
-            >
-              Save
-            </button>
-          </div>
-        </form>
-      </div>
-    </Modal>
 
     <!-- Permission Modal -->
     <Modal v-if="isPermissionModalOpen" @close="isPermissionModalOpen = false">
@@ -258,7 +296,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { SquarePen, Trash2, RotateCcw } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import Modal from '@/components/profile/Modal.vue'
@@ -272,15 +311,13 @@ const activeTab = ref('roles')
 
 const roles = ref([])
 const permissions = ref([])
-
-// Role State
-const isRoleModalOpen = ref(false)
-const editingRole = ref(null)
-const roleForm = ref({
-  name: '',
-  is_active: true,
-  permissions: []
-})
+const roleSearch = ref('')
+const roleStatusFilter = ref('')
+const permissionSearch = ref('')
+const permissionStatusFilter = ref('')
+const rolePage = ref(1)
+const permissionPage = ref(1)
+const perPage = 10
 
 // Permission State
 const isPermissionModalOpen = ref(false)
@@ -296,11 +333,52 @@ const deleteModalMessage = ref('')
 const deleteModalButtonText = ref('Delete')
 const itemToDelete = ref<{ type: 'role' | 'permission', id: number } | null>(null)
 
+const isProtectedRole = (role: any) => role?.name?.toLowerCase() === 'super-admin'
+
+const filteredRoles = computed(() => {
+  return roles.value.filter((role: any) => {
+    const matchesSearch = role.name.toLowerCase().includes(roleSearch.value.toLowerCase())
+    const matchesStatus =
+      roleStatusFilter.value === ''
+        ? true
+        : roleStatusFilter.value === 'active'
+          ? role.is_active
+          : !role.is_active
+    return matchesSearch && matchesStatus
+  })
+})
+
+const roleTotalPages = computed(() => Math.max(1, Math.ceil(filteredRoles.value.length / perPage)))
+const paginatedRoles = computed(() => {
+  const start = (rolePage.value - 1) * perPage
+  return filteredRoles.value.slice(start, start + perPage)
+})
+
+const filteredPermissions = computed(() => {
+  return permissions.value.filter((permission: any) => {
+    const matchesSearch = permission.name.toLowerCase().includes(permissionSearch.value.toLowerCase())
+    const matchesStatus =
+      permissionStatusFilter.value === ''
+        ? true
+        : permissionStatusFilter.value === 'active'
+          ? permission.is_active
+          : !permission.is_active
+    return matchesSearch && matchesStatus
+  })
+})
+
+const permissionTotalPages = computed(() => Math.max(1, Math.ceil(filteredPermissions.value.length / perPage)))
+const paginatedPermissions = computed(() => {
+  const start = (permissionPage.value - 1) * perPage
+  return filteredPermissions.value.slice(start, start + perPage)
+})
+
 // Fetch Data
 const fetchRoles = async () => {
   try {
     const response = await api.get('/roles')
     roles.value = response.data
+    rolePage.value = 1
   } catch (error) {
     console.error('Error fetching roles', error)
   }
@@ -310,46 +388,13 @@ const fetchPermissions = async () => {
   try {
     const response = await api.get('/permissions')
     permissions.value = response.data
+    permissionPage.value = 1
   } catch (error) {
     console.error('Error fetching permissions', error)
   }
 }
 
 // Role Actions
-const openRoleModal = (role = null) => {
-  editingRole.value = role
-  if (role) {
-    roleForm.value = {
-      name: role.name,
-      is_active: role.is_active !== undefined ? Boolean(role.is_active) : true,
-      permissions: role.permissions.map(p => p.name)
-    }
-  } else {
-    roleForm.value = {
-      name: '',
-      is_active: true,
-      permissions: []
-    }
-  }
-  isRoleModalOpen.value = true
-}
-
-const saveRole = async () => {
-  try {
-    if (editingRole.value) {
-      await api.put(`/roles/${editingRole.value.id}`, roleForm.value)
-      toast.success('Role updated successfully')
-    } else {
-      await api.post('/roles', roleForm.value)
-      toast.success('Role created successfully')
-    }
-    isRoleModalOpen.value = false
-    fetchRoles()
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Error saving role')
-  }
-}
-
 const deleteRole = (id: number) => {
   const role = roles.value.find(r => r.id === id)
   if (!role) return

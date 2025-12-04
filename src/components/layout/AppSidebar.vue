@@ -300,7 +300,7 @@ const menuGroups = [
     title: "Settings",
     items: [
       {
-        icon: GridIcon,
+        icon: BoxCubeIcon,
         name: "Locations",
         subItems: [
           { name: "Countries", path: "/admin/locations/countries", pro: false },

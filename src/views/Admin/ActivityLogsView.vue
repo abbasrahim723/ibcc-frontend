@@ -47,20 +47,20 @@
 
           <!-- Date Range -->
           <div class="flex items-center gap-2">
-            <input
-              type="date"
+            <flat-pickr
               v-model="filters.start_date"
-              @change="handleFilter"
+              :config="dateConfig"
+              @on-change="handleFilter"
               class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              :style="{ colorScheme: 'light' }"
+              placeholder="Start date"
             />
             <span class="text-gray-500 dark:text-gray-400">-</span>
-            <input
-              type="date"
+            <flat-pickr
               v-model="filters.end_date"
-              @change="handleFilter"
+              :config="dateConfig"
+              @on-change="handleFilter"
               class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              :style="{ colorScheme: 'light' }"
+              placeholder="End date"
             />
           </div>
 
@@ -71,11 +71,9 @@
             class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
             <option value="">All Actions</option>
-            <option value="created">Created</option>
-            <option value="updated">Updated</option>
-            <option value="deleted">Deleted</option>
-            <option value="login">Login</option>
-            <option value="logout">Logout</option>
+            <option v-for="action in actionOptions" :key="action" :value="action">
+              {{ action.charAt(0).toUpperCase() + action.slice(1) }}
+            </option>
           </select>
         </div>
       </div>
@@ -179,19 +177,9 @@
 
       <!-- Timeline View -->
       <div v-else-if="!loading" class="relative">
-        <!-- Center Line (hidden on mobile) -->
-        <div class="hidden md:block absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-gray-300 dark:bg-gray-600"></div>
-
-        <div class="space-y-8 md:space-y-12">
-          <div v-for="(log, index) in logs" :key="log.id" :class="[
-            'relative md:grid md:grid-cols-2 md:gap-8'
-          ]">
-            <!-- Activity Card (alternates left/right on desktop, full width on mobile) -->
-            <div :class="[
-              'md:col-start-auto',
-              index % 2 === 0 ? 'md:col-start-1 md:pr-8' : 'md:col-start-2 md:pl-8'
-            ]">
-              <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          <div v-for="log in logs" :key="log.id">
+            <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
                 <!-- Header -->
                 <div class="mb-3 flex items-start justify-between gap-3">
                   <div class="flex items-center gap-2">
@@ -225,7 +213,7 @@
                 <!-- Metadata -->
                 <div class="mb-3 flex items-center gap-3 text-xs text-gray-500">
                   <span>{{ formatDateTime(log.created_at) }}</span>
-                  <span v-if="log.model_type">•</span>
+                  <span v-if="log.model_type">� {{ log.model_type.split('\\').pop() }} #{{ log.model_id }}</span>
                   <span v-if="log.model_type">{{ log.model_type.split('\\').pop() }} #{{ log.model_id }}</span>
                 </div>
 
@@ -241,7 +229,7 @@
                         <div class="flex-1">
                           <span class="text-red-600 dark:text-red-400 line-through">{{ formatValue(log.changes.before[key]) }}</span>
                         </div>
-                        <span class="text-gray-400">→</span>
+                        <span class="text-gray-400">?</span>
                         <div class="flex-1">
                           <span class="text-green-600 dark:text-green-400 font-medium">{{ formatValue(newValue) }}</span>
                         </div>
@@ -260,16 +248,8 @@
                   {{ log.user_agent }}
                 </div>
               </div>
-            </div>
 
-            <!-- Timeline Dot (hidden on mobile) -->
-            <div class="hidden md:block absolute left-1/2 top-6 h-4 w-4 -translate-x-1/2 rounded-full border-4 border-white bg-brand-500 dark:border-gray-900 z-10"></div>
 
-            <!-- Empty space on the other side (hidden on mobile) -->
-            <div :class="[
-              'hidden md:block',
-              index % 2 === 0 ? 'md:col-start-2' : 'md:col-start-1'
-            ]"></div>
           </div>
         </div>
 
@@ -358,7 +338,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
@@ -366,6 +346,8 @@ import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useDateTimeFormat } from '@/composables/useDateTimeFormat'
+import flatPickr from 'vue-flatpickr-component'
+import 'flatpickr/dist/flatpickr.css'
 
 const route = useRoute()
 const toast = useToast()
@@ -382,6 +364,7 @@ const loading = ref(false)
 const loadingMore = ref(false)
 const scrollTrigger = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
+const availableActions = ref<string[]>(['created', 'updated', 'deleted', 'login', 'logout'])
 
 const filters = ref({
   action: '',
@@ -390,6 +373,16 @@ const filters = ref({
   start_date: '',
   end_date: ''
 })
+
+const dateConfig = {
+  dateFormat: 'Y-m-d',
+  altInput: true,
+  altFormat: 'd/m/Y',
+}
+
+const actionOptions = computed(() =>
+  Array.from(new Set(availableActions.value)).filter(Boolean).sort()
+)
 
 const pagination = ref({
   current_page: 1,
@@ -435,6 +428,9 @@ const fetchLogs = async (page = 1, append = false) => {
     } else {
       logs.value = response.data.data
     }
+
+    const newActions = response.data.data.map((l: any) => l.action).filter(Boolean)
+    availableActions.value = Array.from(new Set([...availableActions.value, ...newActions]))
 
     pagination.value = {
       current_page: response.data.current_page,
@@ -576,4 +572,3 @@ onUnmounted(() => {
   }
 })
 </script>
-

@@ -56,22 +56,33 @@
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
                   @click="toggleActive(template)"
-                  :class="template.status ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
-                  class="mr-3"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
+                    template.status
+                      ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
+                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                  ]"
+                  :title="template.status ? 'Deactivate' : 'Activate'"
+                  class="mr-2"
                 >
-                  {{ template.status ? 'Deactivate' : 'Activate' }}
+                  <component :is="template.status ? ShieldAlert : RotateCcw" class="h-4 w-4" />
+                  <span class="sr-only">{{ template.status ? 'Deactivate' : 'Activate' }}</span>
                 </button>
                 <router-link
                   :to="`/admin/templates/templates/${template.id}/edit`"
-                  class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3"
+                  class="inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200 mr-2"
+                  title="Edit"
                 >
-                  Edit
+                  <SquarePen class="h-4 w-4" />
+                  <span class="sr-only">Edit</span>
                 </router-link>
                 <button
                   @click="deleteTemplate(template)"
-                  class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                  class="inline-flex items-center justify-center rounded-md p-2 text-red-600 hover:bg-red-50 hover:text-red-800 dark:text-red-400 dark:hover:bg-white/5 dark:hover:text-red-200"
+                  title="Delete"
                 >
-                  Delete
+                  <Trash2 class="h-4 w-4" />
+                  <span class="sr-only">Delete</span>
                 </button>
               </td>
             </tr>
@@ -94,6 +105,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { SquarePen, RotateCcw, Trash2, ShieldAlert } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'

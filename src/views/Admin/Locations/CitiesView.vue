@@ -77,9 +77,16 @@
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
                   @click="toggleActive(city)"
-                  :class="city.is_active ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
+                    city.is_active
+                      ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
+                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                  ]"
+                  :title="city.is_active ? 'Deactivate' : 'Activate'"
                 >
-                  {{ city.is_active ? 'Deactivate' : 'Activate' }}
+                  <component :is="city.is_active ? ShieldAlert : RotateCcw" class="h-4 w-4" />
+                  <span class="sr-only">{{ city.is_active ? 'Deactivate' : 'Activate' }}</span>
                 </button>
               </td>
             </tr>
@@ -115,6 +122,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { RotateCcw, ShieldAlert } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'

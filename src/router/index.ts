@@ -43,6 +43,22 @@ const router = createRouter({
       },
     },
     {
+      path: '/admin/roles/create',
+      name: 'CreateRole',
+      component: () => import('../views/Admin/RoleFormView.vue'),
+      meta: {
+        title: 'Create Role',
+      },
+    },
+    {
+      path: '/admin/roles/:id/edit',
+      name: 'EditRole',
+      component: () => import('../views/Admin/RoleFormView.vue'),
+      meta: {
+        title: 'Edit Role',
+      },
+    },
+    {
       path: '/admin/activity-logs',
       name: 'ActivityLogs',
       component: () => import('../views/Admin/ActivityLogsView.vue'),

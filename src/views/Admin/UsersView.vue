@@ -84,25 +84,28 @@
                   @click="router.push(`/users/${user.id}/edit`)"
                   :disabled="isCurrentUser(user.id)"
                   :class="[
-                    'text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3',
+                    'inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200 mr-2',
                     isCurrentUser(user.id) ? 'opacity-50 cursor-not-allowed' : ''
                   ]"
-                  :title="isCurrentUser(user.id) ? 'Use your profile page to edit your own account' : ''"
+                  :title="isCurrentUser(user.id) ? 'Use your profile page to edit your own account' : 'Edit'"
                 >
-                  Edit
+                  <SquarePen class="h-4 w-4" />
+                  <span class="sr-only">Edit</span>
                 </button>
                 <button
                   @click="toggleUserStatus(user.id)"
                   :disabled="isCurrentUser(user.id)"
                   :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
                     user.is_active
-                      ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300'
-                      : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300',
+                      ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300'
+                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300',
                     isCurrentUser(user.id) ? 'opacity-50 cursor-not-allowed' : ''
                   ]"
-                  :title="isCurrentUser(user.id) ? 'You cannot deactivate your own account' : ''"
+                  :title="isCurrentUser(user.id) ? 'You cannot deactivate your own account' : (user.is_active ? 'Deactivate' : 'Activate')"
                 >
-                  {{ user.is_active ? 'Deactivate' : 'Activate' }}
+                  <component :is="user.is_active ? ShieldAlert : RotateCcw" class="h-4 w-4" />
+                  <span class="sr-only">{{ user.is_active ? 'Deactivate' : 'Activate' }}</span>
                 </button>
               </td>
             </tr>
@@ -148,6 +151,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { SquarePen, ShieldAlert, RotateCcw } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
