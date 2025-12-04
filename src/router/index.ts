@@ -323,6 +323,88 @@ const router = createRouter({
         title: 'Edit Phase',
       },
     },
+    // Template Management
+    {
+      path: '/admin/templates/placeholders',
+      name: 'Placeholders',
+      component: () => import('../views/Admin/Templates/Placeholders/Index.vue'),
+      meta: {
+        title: 'Placeholders',
+        requiresAuth: true
+      },
+    },
+    {
+      path: '/admin/templates/placeholders/create',
+      name: 'CreatePlaceholder',
+      component: () => import('../views/Admin/Templates/Placeholders/Form.vue'),
+      meta: {
+        title: 'Create Placeholder',
+        requiresAuth: true
+      },
+    },
+    {
+      path: '/admin/templates/placeholders/:id/edit',
+      name: 'EditPlaceholder',
+      component: () => import('../views/Admin/Templates/Placeholders/Form.vue'),
+      meta: {
+        title: 'Edit Placeholder',
+        requiresAuth: true
+      },
+    },
+    {
+      path: '/admin/templates/signatures',
+      name: 'Signatures',
+      component: () => import('../views/Admin/Templates/Signatures/Index.vue'),
+      meta: {
+        title: 'Signatures',
+        requiresAuth: true
+      },
+    },
+    {
+      path: '/admin/templates/signatures/create',
+      name: 'CreateSignature',
+      component: () => import('../views/Admin/Templates/Signatures/Form.vue'),
+      meta: {
+        title: 'Create Signature',
+        requiresAuth: true
+      },
+    },
+    {
+      path: '/admin/templates/signatures/:id/edit',
+      name: 'EditSignature',
+      component: () => import('../views/Admin/Templates/Signatures/Form.vue'),
+      meta: {
+        title: 'Edit Signature',
+        requiresAuth: true
+      },
+    },
+    {
+      path: '/admin/templates/templates',
+      name: 'Templates',
+      component: () => import('../views/Admin/Templates/Templates/Index.vue'),
+      meta: {
+        title: 'Templates',
+        requiresAuth: true
+      },
+    },
+    {
+      path: '/admin/templates/templates/create',
+      name: 'CreateTemplate',
+      component: () => import('../views/Admin/Templates/Templates/Form.vue'),
+      meta: {
+        title: 'Create Template',
+        requiresAuth: true
+      },
+    },
+    {
+      path: '/admin/templates/templates/:id/edit',
+      name: 'EditTemplate',
+      component: () => import('../views/Admin/Templates/Templates/Form.vue'),
+      meta: {
+        title: 'Edit Template',
+        requiresAuth: true
+      },
+    },
   ],
 })
 

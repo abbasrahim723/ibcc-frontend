@@ -317,6 +317,15 @@ const menuGroups = [
       },
       {
         icon: DocsIcon,
+        name: "Templates",
+        subItems: [
+          { name: "Placeholders", path: "/admin/templates/placeholders", pro: false },
+          { name: "Signatures", path: "/admin/templates/signatures", pro: false },
+          { name: "Templates", path: "/admin/templates/templates", pro: false },
+        ],
+      },
+      {
+        icon: DocsIcon,
         name: "Contract Types",
         path: "/contract-types",
       },
@@ -349,6 +358,7 @@ const resourceMapByName = {
   'Locations': 'locations',
   'Prefixes': 'locations',
   'Contract Types': 'projects',
+  'Templates': 'documents', // Using documents permission for now
 };
 
 function resourceForItem(item) {
