@@ -31,73 +31,11 @@
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Customer/Owner</label>
-            <div class="relative">
-              <button
-                type="button"
-                @click="isCustomerDropdownOpen = !isCustomerDropdownOpen"
-                class="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-3 text-left text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-              >
-                <span v-if="selectedCustomer" class="flex items-center gap-2">
-                  <img
-                    v-if="selectedCustomer.profile_photo_url"
-                    :src="selectedCustomer.profile_photo_url"
-                    alt=""
-                    class="h-6 w-6 rounded-full object-cover"
-                  />
-                  <span v-else class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">
-                    {{ selectedCustomer.name.charAt(0) }}
-                  </span>
-                  <div>
-                    <div class="font-medium">{{ selectedCustomer.name }}</div>
-                    <div class="text-xs text-gray-500">{{ selectedCustomer.address || 'No address' }}</div>
-                  </div>
-                </span>
-                <span v-else class="text-gray-500">Select customer</span>
-                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              <div
-                v-if="isCustomerDropdownOpen"
-                class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-              >
-                <div class="px-3 py-2 sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                  <input
-                    v-model="customerSearch"
-                    type="text"
-                    class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    placeholder="Search customers..."
-                    @click.stop
-                  />
-                </div>
-                <div
-                  v-for="customer in filteredCustomers"
-                  :key="customer.id"
-                  @click="selectCustomer(customer)"
-                  class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <img
-                    v-if="customer.profile_photo_url"
-                    :src="customer.profile_photo_url"
-                    alt=""
-                    class="h-8 w-8 rounded-full object-cover"
-                  />
-                  <span v-else class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">
-                    {{ customer.name.charAt(0) }}
-                  </span>
-                  <div>
-                    <div class="font-medium text-gray-900 dark:text-white">{{ customer.name }}</div>
-                    <div class="text-xs text-gray-500">{{ customer.address || 'No address' }}</div>
-                  </div>
-                </div>
-                <div v-if="filteredCustomers.length === 0" class="px-3 py-2 text-sm text-gray-500 text-center">
-                  No customers found
-                </div>
-              </div>
-            </div>
-            <!-- Overlay to close dropdown -->
-            <div v-if="isCustomerDropdownOpen" @click="isCustomerDropdownOpen = false" class="fixed inset-0 z-0"></div>
+            <CustomerSelect
+              v-model="form.customer_id"
+              :customers="customers"
+              placeholder="Select customer"
+            />
           </div>
 
           <div>
@@ -435,7 +373,7 @@
                 />
                 <button
                   type="button"
-                  @click="() => $refs.thumbnailInput?.click()"
+                  @click="() => thumbnailInput?.click()"
                   class="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
                 >
                   Upload Thumbnail
@@ -467,7 +405,7 @@
             />
             <button
               type="button"
-              @click="() => $refs.imagesInput?.click()"
+              @click="() => imagesInput?.click()"
               class="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
             >
               Select Images
@@ -509,7 +447,7 @@
             />
             <button
               type="button"
-              @click="() => $refs.documentsInput?.click()"
+              @click="() => documentsInput?.click()"
               class="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
             >
               Select Files
@@ -600,6 +538,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import CustomerSelect from '@/components/forms/CustomerSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
@@ -618,26 +557,7 @@ const towns = ref<any[]>([])
 
 const isProjectModalOpen = ref(false)
 
-// Custom Customer Dropdown State
-const isCustomerDropdownOpen = ref(false)
-const customerSearch = ref('')
-const selectedCustomer = computed(() => {
-  return customers.value.find(c => c.id === form.value.customer_id)
-})
-
-const filteredCustomers = computed(() => {
-  if (!customerSearch.value) return customers.value
-  const search = customerSearch.value.toLowerCase()
-  return customers.value.filter(c =>
-    c.name.toLowerCase().includes(search) ||
-    (c.email && c.email.toLowerCase().includes(search))
-  )
-})
-
-const selectCustomer = (customer: any) => {
-  form.value.customer_id = customer.id
-  isCustomerDropdownOpen.value = false
-}
+// Custom Customer Dropdown State - REMOVED (Replaced by CustomerSelect component)
 
 const form = ref({
   name: '',

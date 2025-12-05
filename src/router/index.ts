@@ -27,6 +27,14 @@ const router = createRouter({
       },
     },
     {
+      path: '/crm',
+      name: 'CRM',
+      component: () => import('../views/Dashboard/CRMView.vue'),
+      meta: {
+        title: 'CRM Dashboard',
+      },
+    },
+    {
       path: '/admin/users',
       name: 'Users',
       component: () => import('../views/Admin/UsersView.vue'),
@@ -199,7 +207,7 @@ const router = createRouter({
     {
       path: '/calendar',
       name: 'Calendar',
-      component: () => import('../views/Pages/ComingSoon.vue'),
+      component: () => import('../views/Pages/Calendar.vue'),
       meta: {
         title: 'Calendar',
       },

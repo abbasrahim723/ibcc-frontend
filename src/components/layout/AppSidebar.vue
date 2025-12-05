@@ -247,7 +247,11 @@ const menuGroups = [
       {
         icon: GridIcon,
         name: "Dashboard",
-        subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+        subItems: [
+          { name: "Ecommerce", path: "/", pro: false },
+          { name: "CRM", path: "/crm", pro: false },
+          { name: "Calendar", path: "/calendar", pro: false }
+        ],
       },
       {
         icon: UserGroupIcon,
@@ -258,11 +262,6 @@ const menuGroups = [
         icon: DocsIcon,
         name: "Documents",
         path: "/documents",
-      },
-      {
-        icon: CalenderIcon,
-        name: "Calendar",
-        path: "/calendar",
       },
       {
         icon: HomeIcon,

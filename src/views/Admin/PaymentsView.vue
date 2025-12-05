@@ -9,15 +9,38 @@
 
           <div class="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center lg:flex-initial">
             <!-- Filters -->
-            <select v-model="filters.project_id" @change="handleSearch" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white max-w-[200px]">
-              <option value="">All Projects</option>
-              <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.name }}</option>
-            </select>
+            <!-- Filters -->
+            <ProjectSelect
+              v-model="filters.project_id"
+              :projects="projects"
+              placeholder="All Projects"
+              :show-details="false"
+              @change="handleSearch"
+              class="w-[200px]"
+            />
 
-            <select v-model="filters.customer_id" @change="handleSearch" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white max-w-[200px]">
-              <option value="">All Payers</option>
-              <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
+            <CustomerSelect
+              v-model="filters.customer_id"
+              :customers="customers"
+              placeholder="All Payers"
+              :show-address="false"
+              @change="handleSearch"
+              class="w-[200px]"
+            />
+
+            <StatusSelect
+              v-model="filters.status"
+              :statuses="['pending', 'completed', 'failed', 'cancelled']"
+              placeholder="All Status"
+              @change="handleSearch"
+              class="w-[160px]"
+            />
+
+            <DateRangePicker
+              v-model="filters.date_range"
+              @change="handleSearch"
+              class="w-[240px]"
+            />
 
             <input
               v-model="searchQuery"
@@ -42,19 +65,19 @@
         </div>
 
         <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead class="bg-gray-50 dark:bg-gray-800">
+          <div class="overflow-x-auto max-h-[calc(100vh-250px)] overflow-y-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 relative">
+              <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10 shadow-sm">
                 <tr>
                   <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-16">#</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[180px]">Project</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[150px]">Payer</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[220px]">Project</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[200px]">Payer</th>
                   <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[120px]">Amount</th>
                   <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[120px]">Date</th>
                   <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[150px]">Received By</th>
                   <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[150px]">Approved By</th>
                   <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[100px]">Status</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[100px]">Actions</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[120px]">Actions</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
@@ -63,19 +86,53 @@
                     {{ payment.id }}
                   </td>
                   <td class="px-4 py-4">
-                    <router-link 
-                      v-if="payment.project" 
-                      :to="`/projects/${payment.project.id}`" 
-                      class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 hover:underline truncate block max-w-[180px]"
-                    >
-                      {{ payment.project.name }}
-                    </router-link>
+                    <div v-if="payment.project" class="flex items-center gap-3">
+                      <div class="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                        <img 
+                          v-if="getProjectThumbnail(payment.project)" 
+                          :src="getProjectThumbnail(payment.project)" 
+                          :alt="payment.project.name"
+                          class="h-full w-full object-cover" 
+                        />
+                        <div v-else class="h-full w-full flex items-center justify-center text-sm font-bold text-gray-400 dark:text-gray-600">
+                          {{ payment.project.name?.charAt(0)?.toUpperCase() }}
+                        </div>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          <router-link :to="`/projects/${payment.project.id}`" class="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 hover:underline">
+                            {{ payment.project.name }}
+                          </router-link>
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ payment.project.plot_number || '—' }}</div>
+                      </div>
+                    </div>
                     <span v-else class="text-sm text-gray-400">—</span>
                   </td>
                   <td class="px-4 py-4">
-                    <div class="text-sm text-gray-900 dark:text-white truncate max-w-[150px]">
-                      {{ payment.payer?.name || payment.payer_id || '—' }}
-                    </div>
+                    <router-link 
+                      v-if="payment.payer"
+                      :to="`/customers/${payment.payer.id}`"
+                      class="flex items-center gap-2 group"
+                    >
+                      <div class="h-8 w-8 flex-shrink-0 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 group-hover:border-brand-400 transition-colors">
+                        <img 
+                          v-if="getCustomerPhoto(payment.payer)" 
+                          :src="getCustomerPhoto(payment.payer)" 
+                          :alt="payment.payer?.name"
+                          class="h-full w-full object-cover" 
+                        />
+                        <div v-else class="h-full w-full flex items-center justify-center text-xs font-bold text-gray-400 dark:text-gray-600">
+                          {{ payment.payer?.name?.charAt(0)?.toUpperCase() || '?' }}
+                        </div>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="text-sm font-medium text-brand-600 dark:text-brand-400 truncate max-w-[150px] group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors">
+                          {{ payment.payer?.name || payment.payer_id || '—' }}
+                        </div>
+                      </div>
+                    </router-link>
+                    <div v-else class="text-sm text-gray-400">—</div>
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap">
                     <span class="text-sm font-medium text-gray-900 dark:text-white">
@@ -102,17 +159,58 @@
                      </div>
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap">
-                    <span :class="[
-                      'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
-                      payment.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 
-                      payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                      'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-                    ]">
-                      {{ payment.status }}
-                    </span>
+                    <div class="relative group">
+                      <button class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize transition-all duration-200"
+                        :class="{
+                          'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400': payment.status === 'completed',
+                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400': payment.status === 'pending',
+                          'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400': payment.status === 'failed' || payment.status === 'cancelled',
+                          'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400': !['completed', 'pending', 'failed', 'cancelled'].includes(payment.status)
+                        }"
+                      >
+                        <component :is="getStatusIcon(payment.status)" class="w-3.5 h-3.5" />
+                        {{ payment.status }}
+                        <svg class="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                      </button>
+                      
+                      <!-- Inline Status Dropdown -->
+                      <div class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50 hidden group-hover:block hover:block">
+                        <div class="py-1">
+                          <button v-for="status in ['pending', 'completed', 'failed', 'cancelled']" 
+                            :key="status"
+                            @click="updatePaymentStatus(payment, status)"
+                            class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 capitalize transition-colors"
+                            :class="{'bg-brand-50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400 font-medium': payment.status === status}"
+                          >
+                            <component :is="getStatusIcon(status)" class="w-4 h-4" :class="getStatusColor(status)" />
+                            {{ status }}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <router-link :to="`/payments/${payment.id}/edit`" class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3 transition-colors">Edit</router-link>
+                    <div class="flex items-center justify-end gap-2">
+                      <button 
+                        v-if="payment.status === 'pending'"
+                        @click="approvePayment(payment)"
+                        class="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition-colors dark:text-green-400 dark:hover:bg-green-900/30"
+                        title="Approve Payment"
+                      >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                      <router-link 
+                        :to="`/payments/${payment.id}/edit`" 
+                        class="p-1.5 text-brand-600 hover:bg-brand-50 rounded-md transition-colors dark:text-brand-400 dark:hover:bg-brand-900/30"
+                        title="Edit Payment"
+                      >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </router-link>
+                    </div>
                   </td>
                 </tr>
                 <tr v-if="payments.length === 0">
@@ -141,11 +239,26 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import ProjectSelect from '@/components/forms/ProjectSelect.vue'
+import StatusSelect from '@/components/forms/StatusSelect.vue'
+import DateRangePicker from '@/components/forms/DateRangePicker.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { useAuthStore } from '@/stores/auth'
+import { 
+  ClockIcon, 
+  CheckCircleIcon, 
+  XCircleIcon, 
+  AlertCircleIcon, 
+  PauseCircleIcon, 
+  PlayCircleIcon,
+  CalendarIcon
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
 const currentPageTitle = ref('Payments')
 const payments = ref<any[]>([])
 const projects = ref<any[]>([])
@@ -153,28 +266,55 @@ const customers = ref<any[]>([])
 const searchQuery = ref('')
 const filters = ref({
   project_id: '',
-  customer_id: ''
+  customer_id: '',
+  status: '',
+  date_range: [] as string[]
 })
 
 const pagination = ref({ current_page: 1, last_page: 1, per_page: 10, total: 0, from: 0, to: 0 })
 
 const fetchPayments = async (page = 1) => {
   try {
-    const params = { 
+    const params: any = { 
       page, 
       search: searchQuery.value || undefined,
       project_id: filters.value.project_id || undefined,
-      customer_id: filters.value.customer_id || undefined // Note: this maps to payer_id in backend if payer_type is customer, or project owner
+      customer_id: filters.value.customer_id || undefined,
+      status: filters.value.status || undefined
     }
-    const res = await api.get('/payments', { params })
-    payments.value = res.data.data
+    
+    if (filters.value.date_range && filters.value.date_range.length === 2) {
+      // Assuming backend expects start_date and end_date or a date_range param
+      // Let's send start_date and end_date
+      // Note: flatpickr range might be a string "YYYY-MM-DD to YYYY-MM-DD" or array depending on config/v-model
+      // Our DateRangePicker emits the raw value. If it's a string with " to ", split it.
+      // If it's an array, use indices.
+      // Let's handle both just in case.
+      let start, end
+      if (Array.isArray(filters.value.date_range)) {
+        start = filters.value.date_range[0]
+        end = filters.value.date_range[1]
+      } else if (typeof filters.value.date_range === 'string' && (filters.value.date_range as string).includes(' to ')) {
+         const parts = (filters.value.date_range as string).split(' to ')
+         start = parts[0]
+         end = parts[1]
+      }
+      
+      if (start && end) {
+        params.start_date = start
+        params.end_date = end
+      }
+    }
+
+    const response = await api.get('/payments', { params })
+    payments.value = response.data.data
     pagination.value = {
-      current_page: res.data.current_page,
-      last_page: res.data.last_page,
-      per_page: res.data.per_page,
-      total: res.data.total,
-      from: res.data.from,
-      to: res.data.to,
+      current_page: response.data.current_page,
+      last_page: response.data.last_page,
+      per_page: response.data.per_page,
+      total: response.data.total,
+      from: response.data.from,
+      to: response.data.to
     }
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error fetching payments')
@@ -213,6 +353,86 @@ const formatDate = (dateString: string) => {
   if (!dateString) return '—'
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+const approvePayment = async (payment: any) => {
+  if (!confirm('Are you sure you want to approve this payment?')) return
+  try {
+    await api.put(`/payments/${payment.id}`, {
+      status: 'completed',
+      approved_by: authStore.user?.id
+    })
+    toast.success('Payment approved')
+    fetchPayments(pagination.value.current_page)
+  } catch (e: any) {
+    toast.error(e.response?.data?.message || 'Error approving payment')
+  }
+}
+
+const updatePaymentStatus = async (payment: any, status: string) => {
+  if (payment.status === status) return
+  try {
+    await api.put(`/payments/${payment.id}`, {
+      status: status,
+      // If completing, set approved_by if not already set
+      approved_by: status === 'completed' && !payment.approved_by ? authStore.user?.id : payment.approved_by
+    })
+    toast.success(`Status updated to ${status}`)
+    fetchPayments(pagination.value.current_page)
+  } catch (e: any) {
+    toast.error(e.response?.data?.message || 'Error updating status')
+  }
+}
+
+const getProjectThumbnail = (p: any) => {
+  if (!p) return ''
+  const direct = p.thumbnail_url || p.thumbnail?.file_path || p.thumbnail?.thumb_url
+  if (direct) return makeAbsoluteUrl(direct)
+  const docThumb = (p.documents || []).find((d: any) => (d.document_category || d.category || '').toLowerCase() === 'thumbnail' || (d.document_category || d.category || '').toLowerCase() === 'thumb')
+  if (docThumb) return makeAbsoluteUrl(docThumb.file_path || docThumb.url || docThumb.thumb_url)
+  return ''
+}
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'planning': return CalendarIcon
+    case 'in_progress': return PlayCircleIcon
+    case 'completed': return CheckCircleIcon
+    case 'on_hold': return PauseCircleIcon
+    case 'cancelled': return XCircleIcon
+    case 'pending': return ClockIcon
+    case 'failed': return AlertCircleIcon
+    default: return ClockIcon
+  }
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'planning': return 'text-blue-500'
+    case 'in_progress': return 'text-yellow-500'
+    case 'completed': return 'text-green-500'
+    case 'on_hold': return 'text-orange-500'
+    case 'cancelled': return 'text-red-500'
+    case 'pending': return 'text-yellow-500'
+    case 'failed': return 'text-red-500'
+    default: return 'text-gray-500'
+  }
+}
+
+const getCustomerPhoto = (c: any) => {
+  if (!c) return ''
+  const path = c.profile_photo_url || c.photo || c.avatar || c.profile_photo
+  return path ? makeAbsoluteUrl(path) : ''
+}
+
+const makeAbsoluteUrl = (path: string | undefined) => {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  let fileBase = (import.meta.env.VITE_FILE_BASE_URL as string) || (import.meta.env.VITE_API_BASE_URL as string) || window?.location?.origin || ''
+  fileBase = fileBase.replace(/\/api\/?$/, '')
+  const base = fileBase.replace(/\/$/, '')
+  const relative = path.startsWith('/') ? path : `/storage/${path}`
+  return `${base}${relative}`
 }
 
 onMounted(() => {

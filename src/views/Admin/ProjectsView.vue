@@ -47,19 +47,21 @@
             <option v-for="town in towns" :key="town.id" :value="town.id">{{ town.name }}</option>
           </select>
 
-          <select v-model="filters.customer_id" @change="handleSearch" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white max-w-[150px]">
-            <option value="">All Customers</option>
-            <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
+          <CustomerSelect
+            v-model="filters.customer_id"
+            :customers="customers"
+            placeholder="All Customers"
+            :show-address="false"
+            @change="handleSearch"
+            class="w-[200px]"
+          />
 
-          <select v-model="filters.status" @change="handleSearch" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-            <option value="">All Status</option>
-            <option value="planning">Planning</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="on_hold">On Hold</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+          <StatusSelect
+            v-model="filters.status"
+            placeholder="All Status"
+            @change="handleSearch"
+            class="w-[160px]"
+          />
 
           <input
             v-model="searchQuery"
@@ -84,9 +86,10 @@
       </div>
 
       <!-- List View -->
-      <div v-if="viewMode === 'list'" class="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-800">
+      <div v-if="viewMode === 'list'" class="w-full overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto max-h-[calc(100vh-250px)] overflow-y-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 relative">
+            <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10 shadow-sm">
             <tr>
               <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[200px]">Project</th>
               <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[180px]">Owner</th>
@@ -166,21 +169,76 @@
               </td>
 
               <td class="px-4 py-4 whitespace-nowrap">
-                <span :class="project.is_active ? 'inline-flex rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-1 text-xs font-semibold text-green-800 dark:text-green-400' : 'inline-flex rounded-full bg-red-100 dark:bg-red-900/30 px-2.5 py-1 text-xs font-semibold text-red-800 dark:text-red-400'">
-                  {{ project.status }}
-                </span>
+                <div class="relative group">
+                  <button class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize transition-all duration-200"
+                    :class="{
+                      'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': project.status === 'planning',
+                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400': project.status === 'in_progress',
+                      'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400': project.status === 'on_hold',
+                      'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400': project.status === 'completed',
+                      'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400': project.status === 'cancelled'
+                    }"
+                  >
+                    <component :is="getStatusIcon(project.status)" class="w-3.5 h-3.5" />
+                    {{ project.status?.replace('_', ' ') }}
+                    <svg class="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </button>
+                  
+                  <!-- Inline Status Dropdown -->
+                  <div class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50 hidden group-hover:block hover:block">
+                    <div class="py-1">
+                      <button v-for="status in ['planning', 'in_progress', 'completed', 'on_hold', 'cancelled']" 
+                        :key="status"
+                        @click="updateStatus(project, status)"
+                        class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 capitalize transition-colors"
+                        :class="{'bg-brand-50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400 font-medium': project.status === status}"
+                      >
+                        <component :is="getStatusIcon(status)" class="w-4 h-4" :class="getStatusColor(status)" />
+                        {{ status.replace('_', ' ') }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </td>
               
               <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button @click="router.push(`/projects/${project.id}/edit`)" class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3 transition-colors">Edit</button>
-                <button @click="deleteProject(project.id)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors">Delete</button>
+                <div class="flex items-center justify-end gap-2">
+                  <button 
+                    @click="openStatusModal(project)"
+                    class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors dark:text-blue-400 dark:hover:bg-blue-900/30"
+                    title="Change Status"
+                  >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                  <button 
+                    @click="router.push(`/projects/${project.id}/edit`)" 
+                    class="p-1.5 text-brand-600 hover:bg-brand-50 rounded-md transition-colors dark:text-brand-400 dark:hover:bg-brand-900/30"
+                    title="Edit Project"
+                  >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button 
+                    @click="deleteProject(project.id)" 
+                    class="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-900/30"
+                    title="Delete Project"
+                  >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="projects.length === 0">
               <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No projects found</td>
             </tr>
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       <!-- Grid View -->
@@ -199,15 +257,35 @@
             </div>
             
             <!-- Status Badge -->
-            <div class="absolute top-3 right-3">
-              <span :class="[
-                'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm backdrop-blur-md',
-                project.is_active 
-                  ? 'bg-green-100/90 text-green-800 dark:bg-green-900/80 dark:text-green-200' 
-                  : 'bg-red-100/90 text-red-800 dark:bg-red-900/80 dark:text-red-200'
-              ]">
-                {{ project.status }}
-              </span>
+            <div class="absolute top-3 right-3 group/status">
+              <button class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize transition-all duration-200 shadow-sm backdrop-blur-md"
+                :class="{
+                  'bg-blue-100/90 text-blue-800 dark:bg-blue-900/80 dark:text-blue-200': project.status === 'planning',
+                  'bg-yellow-100/90 text-yellow-800 dark:bg-yellow-900/80 dark:text-yellow-200': project.status === 'in_progress',
+                  'bg-orange-100/90 text-orange-800 dark:bg-orange-900/80 dark:text-orange-200': project.status === 'on_hold',
+                  'bg-green-100/90 text-green-800 dark:bg-green-900/80 dark:text-green-200': project.status === 'completed',
+                  'bg-red-100/90 text-red-800 dark:bg-red-900/80 dark:text-red-200': project.status === 'cancelled'
+                }"
+              >
+                <component :is="getStatusIcon(project.status)" class="w-3.5 h-3.5" />
+                {{ project.status?.replace('_', ' ') }}
+                <svg class="w-3 h-3 ml-1 opacity-0 group-hover/status:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              
+              <!-- Inline Status Dropdown -->
+              <div class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50 hidden group-hover/status:block hover:block">
+                <div class="py-1">
+                  <button v-for="status in ['planning', 'in_progress', 'completed', 'on_hold', 'cancelled']" 
+                    :key="status"
+                    @click.stop="updateStatus(project, status)"
+                    class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 capitalize transition-colors"
+                    :class="{'bg-brand-50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400 font-medium': project.status === status}"
+                  >
+                    <component :is="getStatusIcon(status)" class="w-4 h-4" :class="getStatusColor(status)" />
+                    {{ status.replace('_', ' ') }}
+                  </button>
+                </div>
+              </div>
             </div>
           </router-link>
 
@@ -227,7 +305,11 @@
             </div>
 
             <!-- Owner -->
-            <div class="mb-4 flex items-center gap-3 rounded-lg bg-gray-50 p-2 dark:bg-gray-700/50">
+            <component
+              :is="project.customer ? 'router-link' : 'div'"
+              :to="project.customer ? `/customers/${project.customer.id}` : undefined"
+              class="mb-4 flex items-center gap-3 rounded-lg bg-gray-50 p-2 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+            >
               <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
                 <img 
                   v-if="getCustomerPhoto(project.customer)" 
@@ -244,7 +326,7 @@
                 </div>
                 <div class="truncate text-xs text-gray-500 dark:text-gray-400">Owner</div>
               </div>
-            </div>
+            </component>
 
             <div class="mt-auto flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-700">
               <div class="flex flex-col">
@@ -344,6 +426,30 @@
         </form>
       </div>
     </Modal>
+
+    <!-- Status Modal -->
+    <Modal v-if="isStatusModalOpen" @close="isStatusModalOpen = false">
+      <div class="relative w-full max-w-[400px] rounded-3xl bg-white p-6 dark:bg-gray-900">
+        <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Change Status</h3>
+        <form @submit.prevent="updateStatus(statusForm.id, statusForm.status)" class="space-y-4">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Status</label>
+            <select v-model="statusForm.status" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+              <option value="planning">Planning</option>
+              <option value="in_progress">In Progress</option>
+              <option value="on_hold">On Hold</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          <div class="flex justify-end gap-3 mt-6">
+            <button type="button" @click="isStatusModalOpen = false" class="rounded-lg border border-gray-300 px-4 py-2 text-sm">Cancel</button>
+            <button type="submit" class="rounded-lg bg-brand-500 px-4 py-2 text-sm text-white">Update</button>
+          </div>
+        </form>
+      </div>
+    </Modal>
   </admin-layout>
 </template>
 
@@ -353,8 +459,19 @@ import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import Modal from '@/components/profile/Modal.vue'
+import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import StatusSelect from '@/components/forms/StatusSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { 
+  ClockIcon, 
+  CheckCircleIcon, 
+  XCircleIcon, 
+  AlertCircleIcon, 
+  PauseCircleIcon, 
+  PlayCircleIcon,
+  CalendarIcon
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const toast = useToast()
@@ -383,6 +500,12 @@ const projectForm = ref({
   contract_type: '',
   contract_value: '',
   is_active: true,
+})
+
+const isStatusModalOpen = ref(false)
+const statusForm = ref({
+  id: null as number | null,
+  status: ''
 })
 
 const filesToUpload = ref<File[]>([])
@@ -482,6 +605,56 @@ const deleteProject = async (id: number) => {
     fetchProjects(pagination.value.current_page)
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error deleting project')
+  }
+}
+
+const openStatusModal = (project: any) => {
+  statusForm.value = {
+    id: project.id,
+    status: project.status
+  }
+  isStatusModalOpen.value = true
+}
+
+const updateStatus = async (project: any, status: string = '') => {
+  const newStatus = status || statusForm.value.status
+  if (!newStatus) return
+
+  try {
+    await api.put(`/projects/${project.id || statusForm.value.id}`, {
+      status: newStatus
+    })
+    toast.success('Project status updated successfully')
+    isStatusModalOpen.value = false
+    fetchProjects(pagination.value.current_page)
+  } catch (e: any) {
+    toast.error(e.response?.data?.message || 'Error updating project status')
+  }
+}
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'planning': return CalendarIcon
+    case 'in_progress': return PlayCircleIcon
+    case 'completed': return CheckCircleIcon
+    case 'on_hold': return PauseCircleIcon
+    case 'cancelled': return XCircleIcon
+    case 'pending': return ClockIcon
+    case 'failed': return AlertCircleIcon
+    default: return ClockIcon
+  }
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'planning': return 'text-blue-500'
+    case 'in_progress': return 'text-yellow-500'
+    case 'completed': return 'text-green-500'
+    case 'on_hold': return 'text-orange-500'
+    case 'cancelled': return 'text-red-500'
+    case 'pending': return 'text-yellow-500'
+    case 'failed': return 'text-red-500'
+    default: return 'text-gray-500'
   }
 }
 
