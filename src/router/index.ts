@@ -213,10 +213,28 @@ const router = createRouter({
       },
     },
     {
+      path: '/forgot-password',
+      name: 'ForgotPassword',
+      component: () => import('../views/Auth/ForgotPassword.vue'),
+      meta: { title: 'Forgot Password' },
+    },
+    {
+      path: '/verify-password-reset-otp',
+      name: 'VerifyPasswordResetOTP',
+      component: () => import('../views/Auth/VerifyPasswordResetOTP.vue'),
+      meta: { title: 'Verify Reset Code' },
+    },
+    {
       path: '/reset-password',
       name: 'ResetPassword',
-      component: () => import('../views/Pages/ComingSoon.vue'),
+      component: () => import('../views/Auth/ResetPassword.vue'),
       meta: { title: 'Reset Password' },
+    },
+    {
+      path: '/verify-2fa',
+      name: 'Verify2FA',
+      component: () => import('../views/Auth/Verify2FA.vue'),
+      meta: { title: '2FA Verification' },
     },
     {
       path: '/projects',
@@ -438,7 +456,7 @@ router.beforeEach((to, from, next) => {
   document.title = `Vue.js ${to.meta.title} | TailAdmin - Vue.js Tailwind CSS Dashboard Template`
 
   const token = localStorage.getItem('token')
-  const publicPages = ['/signin', '/signup']
+  const publicPages = ['/signin', '/signup', '/forgot-password', '/verify-password-reset-otp', '/reset-password', '/verify-2fa']
   const authRequired = !publicPages.includes(to.path)
 
   if (authRequired && !token) {

@@ -94,5 +94,41 @@ export const useAuthStore = defineStore('auth', {
             this.preferences = response.data;
             return response;
         },
+        async initiateForgotPassword(email: string) {
+            const response = await api.post('/password/forgot', { email });
+            return response;
+        },
+        async verifyPasswordResetOTP(email: string, otpCode: string) {
+            const response = await api.post('/password/verify-otp', {
+                email,
+                otp_code: otpCode
+            });
+            return response;
+        },
+        async resetPassword(email: string, otpCode: string, password: string, passwordConfirmation: string) {
+            const response = await api.post('/password/reset', {
+                email,
+                otp_code: otpCode,
+                password,
+                password_confirmation: passwordConfirmation
+            });
+            return response;
+        },
+        async verify2FA(email: string, otpCode: string) {
+            const response = await api.post('/auth/verify-2fa', {
+                email,
+                otp_code: otpCode
+            });
+            // Store token after 2FA verification
+            if (response.data.access_token || response.data.token) {
+                this.token = response.data.access_token || response.data.token;
+                this.user = response.data.user;
+                this.isAuthenticated = true;
+                if (this.token) {
+                    localStorage.setItem('token', this.token);
+                }
+            }
+            return response;
+        }
     }
 });

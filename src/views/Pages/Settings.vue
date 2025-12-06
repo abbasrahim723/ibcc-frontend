@@ -198,16 +198,197 @@
         </div>
       </form>
     </div>
+
+    <!-- Loading Modal (while sending OTP) -->
+    <div v-if="isSendingOTP && !showOTPModal" class="modal-backdrop">
+      <div class="modal-content text-center">
+        <div class="mb-4">
+          <svg
+            class="animate-spin h-12 w-12 text-brand-500 mx-auto"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-2">
+          Sending OTP
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Please wait while we send the verification code to your email...
+        </p>
+      </div>
+    </div>
+
+    <!-- OTP Verification Modal -->
+    <div v-if="showOTPModal" class="modal-backdrop" @click.self="closeOTPModal">
+      <div class="modal-content">
+        <div class="mb-5">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-2">
+            Verify 2FA Enable
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Enter the 6-digit code sent to your email
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <!-- OTP Input -->
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Verification Code<span class="text-error-500">*</span>
+            </label>
+            <input
+              v-model="otpCode"
+              type="text"
+              maxlength="6"
+              placeholder="000000"
+              :class="[
+                'h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 text-center text-2xl tracking-widest',
+                otpError
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10'
+                  : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/10 dark:border-gray-700 dark:focus:border-brand-800'
+              ]"
+              @keyup.enter="verify2FAEnable"
+            />
+            <p v-if="otpError" class="mt-1 text-xs text-red-600 dark:text-red-400">
+              {{ otpError }}
+            </p>
+            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+              Code expires in {{ formatTime(timeRemaining) }}
+            </p>
+          </div>
+
+          <!-- Verify Button -->
+          <button
+            @click="verify2FAEnable"
+            :disabled="isVerifying || !otpCode || otpCode.length !== 6"
+            class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg
+              v-if="isVerifying"
+              class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            {{ isVerifying ? 'Verifying...' : 'Verify & Enable 2FA' }}
+          </button>
+
+          <!-- Resend OTP -->
+          <div class="text-center">
+            <button
+              type="button"
+              @click="resendOTP"
+              :disabled="!canResend || isSendingOTP"
+              class="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ isSendingOTP ? 'Sending...' : canResend ? 'Resend Code' : `Resend in ${formatTime(resendTimeRemaining)}` }}
+            </button>
+          </div>
+
+          <!-- Cancel Button -->
+          <button
+            @click="closeOTPModal"
+            type="button"
+            class="w-full px-4 py-2.5 text-sm font-medium text-gray-700 transition rounded-lg border border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/5"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal for 2FA Enable -->
+    <div v-if="showConfirmModal" class="modal-backdrop" @click.self="closeConfirmModal">
+      <div class="modal-content">
+        <div class="mb-5">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-2">
+            Enable Two-Factor Authentication
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            An OTP will be sent to your email address. You will need to enter this code to enable 2FA.
+          </p>
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            @click="closeConfirmModal"
+            type="button"
+            class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 transition rounded-lg border border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/5"
+          >
+            Cancel
+          </button>
+          <button
+            @click="confirmSendOTP"
+            :disabled="isSendingOTP"
+            class="flex-1 flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white transition rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg
+              v-if="isSendingOTP"
+              class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            {{ isSendingOTP ? 'Sending...' : 'Send OTP' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </admin-layout>
 </template>
 
+
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { useTheme } from '@/components/layout/ThemeProvider.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import api from '@/utils/axios'
 
 const authStore = useAuthStore()
 const toast = useToast()
@@ -225,7 +406,23 @@ const form = ref({
   two_factor_enabled: false,
 })
 
+// OTP Modal state
+const showOTPModal = ref(false)
+const showConfirmModal = ref(false)
+const otpCode = ref('')
+const isVerifying = ref(false)
+const isSendingOTP = ref(false)
+const otpError = ref('')
+const timeRemaining = ref(300) // 5 minutes
+const resendTimeRemaining = ref(60) // 1 minute
+const canResend = ref(false)
+const isTogglingProgrammatically = ref(false) // Flag to prevent infinite loop
+const isLoadingPreferences = ref(true) // Flag to prevent watch trigger on initial load
+let timer = null
+let resendTimer = null
+
 onMounted(async () => {
+  isLoadingPreferences.value = true
   await authStore.fetchPreferences()
   if (authStore.preferences) {
     form.value = { ...form.value, ...authStore.preferences }
@@ -234,6 +431,9 @@ onMounted(async () => {
       theme.value = authStore.preferences.theme_mode
     }
   }
+  // Set flag to false after preferences are loaded
+  await nextTick()
+  isLoadingPreferences.value = false
 })
 
 // Watch for theme changes in the form and apply them immediately
@@ -249,9 +449,200 @@ watch(() => form.value.theme_mode, async (newTheme) => {
   }
 })
 
+// Watch for 2FA toggle changes
+watch(() => form.value.two_factor_enabled, async (newValue, oldValue) => {
+  // Skip if we're loading preferences initially
+  if (isLoadingPreferences.value) {
+    return
+  }
+  
+  // Skip if we're toggling programmatically to prevent infinite loop
+  if (isTogglingProgrammatically.value) {
+    return
+  }
+  
+  // Only trigger if value actually changed and not initial load
+  if (oldValue !== undefined && newValue !== oldValue) {
+    if (newValue) {
+      // Enabling 2FA - show confirmation first
+      showConfirmModal.value = true
+    } else {
+      // Disabling 2FA - no OTP required
+      await disable2FA()
+    }
+  }
+})
+
+const formatTime = (seconds) => {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+const startTimer = () => {
+  timeRemaining.value = 300
+  if (timer) clearInterval(timer)
+  timer = setInterval(() => {
+    if (timeRemaining.value > 0) {
+      timeRemaining.value--
+    } else {
+      clearInterval(timer)
+      toast.error('OTP expired. Please request a new one.')
+      closeOTPModal()
+    }
+  }, 1000)
+}
+
+const startResendTimer = () => {
+  canResend.value = false
+  resendTimeRemaining.value = 60
+  if (resendTimer) clearInterval(resendTimer)
+  resendTimer = setInterval(() => {
+    if (resendTimeRemaining.value > 0) {
+      resendTimeRemaining.value--
+    } else {
+      clearInterval(resendTimer)
+      canResend.value = true
+    }
+  }, 1000)
+}
+
+const confirmSendOTP = async () => {
+  showConfirmModal.value = false
+  await initiate2FAEnable()
+}
+
+const closeConfirmModal = () => {
+  showConfirmModal.value = false
+  // Revert toggle if user cancels
+  isTogglingProgrammatically.value = true
+  form.value.two_factor_enabled = false
+  nextTick(() => {
+    isTogglingProgrammatically.value = false
+  })
+}
+
+const initiate2FAEnable = async () => {
+  isSendingOTP.value = true
+  try {
+    await api.post('/auth/2fa/enable')
+    toast.success('OTP sent to your email')
+    showOTPModal.value = true
+    otpCode.value = ''
+    otpError.value = ''
+    startTimer()
+    startResendTimer()
+  } catch (error) {
+    console.error('Failed to send OTP', error)
+    toast.error(error.response?.data?.message || 'Failed to send OTP. Please try again.')
+    // Revert toggle
+    isTogglingProgrammatically.value = true
+    form.value.two_factor_enabled = false
+    nextTick(() => {
+      isTogglingProgrammatically.value = false
+    })
+  } finally {
+    isSendingOTP.value = false
+  }
+}
+
+const verify2FAEnable = async () => {
+  if (!otpCode.value || otpCode.value.length !== 6) {
+    otpError.value = 'Please enter a valid 6-digit code'
+    return
+  }
+
+  isVerifying.value = true
+  otpError.value = ''
+
+  try {
+    await api.post('/auth/2fa/verify-enable', {
+      otp_code: otpCode.value
+    })
+    
+    toast.success('2FA enabled successfully!')
+    closeOTPModal()
+    
+    // Update preferences
+    await authStore.fetchPreferences()
+    if (authStore.preferences) {
+      isTogglingProgrammatically.value = true
+      form.value.two_factor_enabled = authStore.preferences.two_factor_enabled
+      nextTick(() => {
+        isTogglingProgrammatically.value = false
+      })
+    }
+  } catch (error) {
+    console.error('OTP verification failed', error)
+    otpError.value = error.response?.data?.message || 'Invalid OTP code'
+    toast.error(otpError.value)
+  } finally {
+    isVerifying.value = false
+  }
+}
+
+const disable2FA = async () => {
+  try {
+    await api.post('/auth/2fa/disable')
+    toast.success('2FA disabled successfully')
+    
+    // Update preferences
+    await authStore.fetchPreferences()
+    if (authStore.preferences) {
+      isTogglingProgrammatically.value = true
+      form.value.two_factor_enabled = authStore.preferences.two_factor_enabled
+      nextTick(() => {
+        isTogglingProgrammatically.value = false
+      })
+    }
+  } catch (error) {
+    console.error('Failed to disable 2FA', error)
+    toast.error(error.response?.data?.message || 'Failed to disable 2FA')
+    // Revert toggle
+    isTogglingProgrammatically.value = true
+    form.value.two_factor_enabled = true
+    nextTick(() => {
+      isTogglingProgrammatically.value = false
+    })
+  }
+}
+
+const resendOTP = async () => {
+  isSendingOTP.value = true
+  try {
+    await api.post('/auth/2fa/enable')
+    toast.success('New OTP sent to your email')
+    otpCode.value = ''
+    otpError.value = ''
+    startTimer()
+    startResendTimer()
+  } catch (error) {
+    console.error('Failed to resend OTP', error)
+    toast.error(error.response?.data?.message || 'Failed to resend OTP')
+  } finally {
+    isSendingOTP.value = false
+  }
+}
+
+const closeOTPModal = () => {
+  showOTPModal.value = false
+  otpCode.value = ''
+  otpError.value = ''
+  if (timer) clearInterval(timer)
+  if (resendTimer) clearInterval(resendTimer)
+  // Revert toggle if modal closed without verification
+  isTogglingProgrammatically.value = true
+  form.value.two_factor_enabled = false
+  nextTick(() => {
+    isTogglingProgrammatically.value = false
+  })
+}
+
 const savePreferences = async () => {
   try {
-    await authStore.updatePreferences(form.value)
+    // Don't include two_factor_enabled in regular save as it's handled separately
+    const { two_factor_enabled, ...prefsToSave } = form.value
+    await authStore.updatePreferences(prefsToSave)
     toast.success('Preferences saved successfully!')
   } catch (error) {
     console.error('Error saving preferences', error)
@@ -259,3 +650,33 @@ const savePreferences = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* Modal backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+/* Modal content */
+.modal-content {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 28rem;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.dark .modal-content {
+  background: rgb(17 24 39);
+}
+</style>

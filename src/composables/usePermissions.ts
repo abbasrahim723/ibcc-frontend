@@ -5,7 +5,7 @@ const permissions = ref<string[]>([]);
 const roles = ref<string[]>([]);
 const allowedResources = ref<Record<string, any>>({});
 const resourceActions = ref<Record<string, string[]>>({});
-let loaded = false;
+const loaded = ref(false); // Make loaded reactive!
 
 export async function loadPermissions() {
     try {
@@ -14,14 +14,14 @@ export async function loadPermissions() {
         roles.value = res.data.roles || [];
         allowedResources.value = res.data.allowed_resources || {};
         resourceActions.value = res.data.resource_actions || {};
-        loaded = true;
+        loaded.value = true; // Use .value for ref
         return res.data;
     } catch (e) {
         permissions.value = [];
         roles.value = [];
         allowedResources.value = {};
         resourceActions.value = {};
-        loaded = true;
+        loaded.value = true; // Use .value for ref
         return null;
     }
 }
@@ -49,6 +49,16 @@ export function usePermissions() {
         return false;
     };
 
+    const hasAnyPermission = (perms: string[]) => {
+        if (!loaded) return false;
+        return perms.some(perm => hasPermission(perm));
+    };
+
+    const hasAllPermissions = (perms: string[]) => {
+        if (!loaded) return false;
+        return perms.every(perm => hasPermission(perm));
+    };
+
     const refresh = async () => {
         return await loadPermissions();
     };
@@ -59,6 +69,8 @@ export function usePermissions() {
         allowedResources,
         resourceActions,
         hasPermission,
+        hasAnyPermission,
+        hasAllPermissions,
         can,
         loadPermissions: loadPermissions,
         refresh,

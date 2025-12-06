@@ -18,8 +18,13 @@
 
           <!-- Add Customer Button -->
           <button
-            @click="router.push('/customers/create')"
-            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
+            @click="handleAddCustomer"
+            :class="[
+              'rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800',
+              can('customers', 'create')
+                ? 'bg-brand-600 hover:bg-brand-700 cursor-pointer'
+                : 'bg-gray-400 cursor-not-allowed opacity-60'
+            ]"
           >
             <span class="flex items-center gap-2">
               <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,28 +96,57 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <!-- Edit Button -->
                 <button
-                  @click="router.push(`/customers/${customer.id}/edit`)"
-                  class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 mr-3"
-                >
-                  Edit
-                </button>
-                <button
-                  @click="toggleCustomerStatus(customer)"
+                  @click="handleEditCustomer(customer)"
                   :class="[
-                    customer.is_active
-                      ? 'text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300'
-                      : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300',
-                    'mr-3'
+                    'mr-3 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800',
+                    can('customers', 'edit')
+                      ? 'text-brand-600 dark:text-brand-400 cursor-pointer'
+                      : 'text-gray-400 cursor-not-allowed opacity-60'
                   ]"
+                  title="Edit"
                 >
-                  {{ customer.is_active ? 'Deactivate' : 'Activate' }}
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
                 </button>
+                
+                <!-- Deactivate/Activate Button -->
                 <button
-                  @click="deleteCustomer(customer)"
-                  class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                  @click="handleToggleStatus(customer)"
+                  :class="[
+                    'mr-3 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800',
+                    can('customers', 'edit')
+                      ? (customer.is_active
+                          ? 'text-orange-600 dark:text-orange-400'
+                          : 'text-green-600 dark:text-green-400')
+                      : 'text-gray-400 cursor-not-allowed opacity-60'
+                  ]"
+                  :title="customer.is_active ? 'Deactivate' : 'Activate'"
                 >
-                  Delete
+                  <svg v-if="customer.is_active" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                  <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+                
+                <!-- Delete Button -->
+                <button
+                  @click="handleDeleteCustomer(customer)"
+                  :class="[
+                    'p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800',
+                    can('customers', 'delete')
+                      ? 'text-red-600 dark:text-red-400 cursor-pointer'
+                      : 'text-gray-400 cursor-not-allowed opacity-60'
+                  ]"
+                  title="Delete"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
               </td>
             </tr>
@@ -169,6 +203,9 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
+
+const { can } = usePermissions()
 
 interface Customer {
   id: number
@@ -245,6 +282,38 @@ const getFullName = (customer: any) => {
   return `${prefix}${customer.name}`
 }
 
+// Permission-aware action handlers
+const handleAddCustomer = () => {
+  if (!can('customers', 'create')) {
+    toast.error('You are not authorized to perform this action')
+    return
+  }
+  router.push('/customers/create')
+}
+
+const handleEditCustomer = (customer: any) => {
+  if (!can('customers', 'edit')) {
+    toast.error('You are not authorized to perform this action')
+    return
+  }
+  router.push(`/customers/${customer.id}/edit`)
+}
+
+const handleToggleStatus = (customer: any) => {
+  if (!can('customers', 'edit')) {
+    toast.error('You are not authorized to perform this action')
+    return
+  }
+  toggleCustomerStatus(customer)
+}
+
+const handleDeleteCustomer = (customer: any) => {
+  if (!can('customers', 'delete')) {
+    toast.error('You are not authorized to perform this action')
+    return
+  }
+  deleteCustomer(customer)
+}
 
 const toggleCustomerStatus = (customer: any) => {
   pendingAction.value = { type: 'toggle', id: customer.id, status: !customer.is_active }

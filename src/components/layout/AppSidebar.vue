@@ -347,17 +347,23 @@ const isSuperAdmin = computed(() => {
 });
 
 const resourceMapByName = {
+  'Dashboard': 'dashboard',
+  'Ecommerce': 'dashboard',
+  'CRM': 'dashboard',
+  'Calendar': 'calendar',
   'Customers': 'customers',
   'Documents': 'documents',
   'Projects': 'projects',
   'Payments': 'payments',
   'Users': 'users',
   'Roles & Permissions': 'roles',
-  'Activity Logs': 'logs',
+  'Activity Logs': 'activity_logs',
   'Locations': 'locations',
   'Prefixes': 'locations',
   'Contract Types': 'projects',
   'Templates': 'documents', // Using documents permission for now
+  'Placeholders': 'documents',
+  'Signatures': 'documents',
 };
 
 function resourceForItem(item) {
@@ -366,9 +372,11 @@ function resourceForItem(item) {
     // try to find a known resource in path
     for (let i = parts.length - 1; i >= 0; i--) {
       const part = parts[i];
-      if (['customers','documents','projects','payments','users','roles','activity-logs','activity-logs','locations','countries','states','cities','towns','phases','prefixes'].includes(part)) {
-        if (part === 'activity-logs') return 'logs';
-        if (['countries','states','cities','towns','phases','prefixes'].includes(part)) return 'locations';
+      if (['dashboard','crm','calendar','customers','documents','projects','payments','users','roles','activity-logs','locations','countries','states','cities','towns','phases','prefixes','placeholders','signatures','templates'].includes(part)) {
+        if (part === 'activity-logs') return 'activity_logs';
+        if (part === 'crm') return 'dashboard';
+        if (['prefixes'].includes(part)) return 'locations';
+        if (['placeholders','signatures','templates'].includes(part)) return 'documents';
         return part;
       }
     }

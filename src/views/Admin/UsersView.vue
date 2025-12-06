@@ -39,6 +39,7 @@
               <th class="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
               <th class="sm:hidden px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
               <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Approval</th>
               <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Roles</th>
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
@@ -72,6 +73,17 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
+                <span v-if="user.approval_status === 'pending'" class="inline-flex rounded-full bg-yellow-100 px-2 text-xs font-semibold leading-5 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                  Pending
+                </span>
+                <span v-else-if="user.approval_status === 'approved'" class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  Approved
+                </span>
+                <span v-else-if="user.approval_status === 'rejected'" class="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800 dark:bg-red-900 dark:text-red-200">
+                  Rejected
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex flex-wrap gap-1">
                   <span v-for="role in user.roles" :key="role.id" class="inline-flex rounded-full bg-brand-100 px-2 text-xs font-semibold leading-5 text-brand-800 dark:bg-brand-900 dark:text-brand-200">
                     {{ role.name }}
@@ -80,6 +92,19 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <!-- Approve Button (only for pending users) -->
+                <button
+                  v-if="user.approval_status === 'pending'"
+                  @click="approveUser(user.id)"
+                  class="inline-flex items-center justify-center rounded-md p-2 text-green-600 hover:bg-green-50 hover:text-green-800 dark:text-green-400 dark:hover:bg-white/5 dark:hover:text-green-200 mr-2"
+                  title="Approve User"
+                >
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span class="sr-only">Approve</span>
+                </button>
+                
                 <button
                   @click="router.push(`/users/${user.id}/edit`)"
                   :disabled="isCurrentUser(user.id)"
@@ -254,12 +279,27 @@ const toggleUserStatus = (id: number) => {
   showConfirmModal.value = true
 }
 
+const approveUser = (id: number) => {
+  const user = users.value.find((u: any) => u.id === id)
+  if (!user) return
+
+  pendingAction.value = { type: 'approve', id }
+  confirmModalTitle.value = 'Approve User'
+  confirmModalMessage.value = `Are you sure you want to approve ${user.name}? Once approved, they will be able to log in and access the system. This action cannot be undone.`
+  confirmModalButtonText.value = 'Approve'
+  showConfirmModal.value = true
+}
+
 const confirmAction = async () => {
   if (!pendingAction.value) return
 
   try {
     if (pendingAction.value.type === 'toggle') {
       const response = await api.delete(`/users/${pendingAction.value.id}`)
+      toast.success(response.data.message)
+      fetchUsers(pagination.value.current_page)
+    } else if (pendingAction.value.type === 'approve') {
+      const response = await api.post(`/users/${pendingAction.value.id}/approve`)
       toast.success(response.data.message)
       fetchUsers(pagination.value.current_page)
     }

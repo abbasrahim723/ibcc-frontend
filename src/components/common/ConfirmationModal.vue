@@ -7,13 +7,13 @@
         <div 
           :class="[
             'mb-4 flex h-16 w-16 items-center justify-center rounded-full',
-            isRestore 
+            isSuccess 
               ? 'bg-green-100 text-green-500 dark:bg-green-900/30' 
               : 'bg-red-100 text-red-500 dark:bg-red-900/30'
           ]"
         >
           <svg
-            v-if="!isRestore"
+            v-if="!isSuccess"
             class="h-8 w-8"
             fill="none"
             stroke="currentColor"
@@ -27,7 +27,7 @@
             />
           </svg>
           <svg
-            v-else
+            v-else-if="isRestore"
             class="h-8 w-8"
             fill="none"
             stroke="currentColor"
@@ -38,6 +38,20 @@
               stroke-linejoin="round"
               stroke-width="2"
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          <svg
+            v-else-if="isApprove"
+            class="h-8 w-8"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
         </div>
@@ -61,7 +75,7 @@
             @click="$emit('confirm')"
             :class="[
               'flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring-4',
-              isRestore
+              isSuccess
                 ? 'bg-green-600 hover:bg-green-700 focus:ring-green-300 dark:focus:ring-green-800'
                 : 'bg-red-600 hover:bg-red-700 focus:ring-red-300 dark:focus:ring-red-800'
             ]"
@@ -102,9 +116,18 @@ const handleBackdropClick = () => {
   emit('close')
 }
 
-// Determine if this is a restore action based on the title or button text
+// Determine the action type based on the title or button text
 const isRestore = computed(() => {
   return props.title.toLowerCase().includes('restore') || 
          props.confirmButtonText.toLowerCase().includes('restore')
+})
+
+const isApprove = computed(() => {
+  return props.title.toLowerCase().includes('approve') || 
+         props.confirmButtonText.toLowerCase().includes('approve')
+})
+
+const isSuccess = computed(() => {
+  return isRestore.value || isApprove.value
 })
 </script>
