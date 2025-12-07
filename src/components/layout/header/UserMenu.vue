@@ -1,16 +1,19 @@
 <template>
   <div class="relative" ref="dropdownRef">
     <button
-      class="flex items-center text-gray-700 dark:text-gray-400"
+      class="flex items-center gap-3 text-gray-700 dark:text-gray-400 group"
       @click.prevent="toggleDropdown"
     >
-      <span class="mr-3 overflow-hidden rounded-full h-11 w-11">
-        <img :src="userPhoto" alt="User" />
+      <span class="overflow-hidden rounded-full h-11 w-11 border border-gray-200 dark:border-gray-700">
+        <img :src="userPhoto" alt="User" class="h-full w-full object-cover" />
       </span>
 
-      <span class="block mr-1 font-medium text-theme-sm">{{ userName }} </span>
+      <div class="hidden flex-col items-start lg:flex text-left mr-1">
+        <span class="block font-medium text-theme-sm text-gray-700 dark:text-gray-200 leading-tight group-hover:text-brand-600 transition-colors">{{ userName }}</span>
+        <span v-if="userRole" class="block text-xs text-gray-500 dark:text-gray-400 font-normal capitalize mt-0.5">{{ userRole }}</span>
+      </div>
 
-      <ChevronDownIcon :class="{ 'rotate-180': dropdownOpen }" />
+      <ChevronDownIcon :class="{ 'rotate-180': dropdownOpen }" class="text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200" />
     </button>
 
     <!-- Dropdown Start -->
@@ -60,7 +63,11 @@ import { UserCircleIcon, ChevronDownIcon, LogoutIcon, SettingsIcon, PlugInIcon, 
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
+
+import { usePermissions } from '@/composables/usePermissions'
+
 const authStore = useAuthStore()
+const { roles } = usePermissions()
 const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
 
@@ -74,6 +81,13 @@ const userName = computed(() => {
 
 const userPhoto = computed(() => {
   return authStore.user?.profile_photo_url || '/images/user/owner.jpg'
+})
+
+const userRole = computed(() => {
+  if (roles.value && roles.value.length > 0) {
+    return roles.value[0].replace(/-/g, ' ')
+  }
+  return ''
 })
 
 const menuItems = [

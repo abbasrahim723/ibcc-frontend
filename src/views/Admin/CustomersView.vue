@@ -27,10 +27,7 @@
             ]"
           >
             <span class="flex items-center gap-2">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-              <span class="hidden md:inline">Add Customer</span>
+              <span>Add Customer</span>
             </span>
           </button>
         </div>
@@ -43,6 +40,7 @@
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Customer</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Contact</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Projects</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">WhatsApp</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
@@ -71,8 +69,14 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900 dark:text-white">{{ customer.phone_primary || 'No phone' }}</div>
+                <a v-if="customer.phone_primary" :href="`tel:${customer.phone_primary}`" class="text-sm text-gray-900 dark:text-white hover:text-brand-600 hover:underline block">{{ customer.phone_primary }}</a>
+                <span v-else class="text-sm text-gray-500 block">No phone</span>
                 <div class="text-xs text-gray-500 max-w-[12rem] truncate" :title="customer.address || 'No address'">{{ customer.address || 'No address' }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                 <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-400/10 dark:text-blue-400 dark:ring-blue-400/30">
+                    {{ customer.projects_count || 0 }} Projects
+                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <button

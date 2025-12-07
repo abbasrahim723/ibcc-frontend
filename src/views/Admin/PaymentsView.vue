@@ -2,12 +2,12 @@
   <admin-layout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
 
-    <div class="overflow-x-hidden">
+    <div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
         <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Payments</h3>
 
-          <div class="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center lg:flex-initial">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 items-center">
             <!-- Filters -->
             <!-- Filters -->
             <ProjectSelect
@@ -16,7 +16,7 @@
               placeholder="All Projects"
               :show-details="false"
               @change="handleSearch"
-              class="w-[200px]"
+              class="w-full"
             />
 
             <CustomerSelect
@@ -25,7 +25,7 @@
               placeholder="All Payers"
               :show-address="false"
               @change="handleSearch"
-              class="w-[200px]"
+              class="w-full"
             />
 
             <StatusSelect
@@ -33,34 +33,38 @@
               :statuses="['pending', 'completed', 'failed', 'cancelled']"
               placeholder="All Status"
               @change="handleSearch"
-              class="w-[160px]"
+              class="w-full"
             />
 
             <DateRangePicker
               v-model="filters.date_range"
               @change="handleSearch"
-              class="w-[240px]"
+              class="w-full"
             />
 
-            <input
-              v-model="searchQuery"
-              @input="handleSearch"
-              type="text"
-              placeholder="Search payments..."
-              class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            />
-
-            <button
-              @click="router.push('/payments/create')"
-              class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
-            >
-              <span class="flex items-center gap-2">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span class="hidden md:inline">New Payment</span>
-              </span>
-            </button>
+            <div class="flex gap-2 w-full">
+               <input
+                v-model="searchQuery"
+                @input="handleSearch"
+                type="text"
+                placeholder="Search payments..."
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+          </div>
+          
+          <div class="mt-4 flex justify-end" v-if="can('payments', 'create')">
+              <button
+                @click="router.push('/payments/create')"
+                class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
+              >
+                <span class="flex items-center gap-2">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span class="hidden md:inline">New Payment</span>
+                </span>
+              </button>
           </div>
         </div>
 
@@ -160,21 +164,26 @@
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap">
                     <div class="relative group">
-                      <button class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize transition-all duration-200"
-                        :class="{
-                          'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400': payment.status === 'completed',
-                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400': payment.status === 'pending',
-                          'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400': payment.status === 'failed' || payment.status === 'cancelled',
-                          'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400': !['completed', 'pending', 'failed', 'cancelled'].includes(payment.status)
-                        }"
+                      <button 
+                        @click.stop="can('payments', 'change_status') ? toggleStatusDropdown(payment.id) : null"
+                        class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize transition-all duration-200"
+                        :class="[
+                          {
+                            'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400': payment.status === 'completed',
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400': payment.status === 'pending',
+                            'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400': payment.status === 'failed' || payment.status === 'cancelled',
+                            'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400': !['completed', 'pending', 'failed', 'cancelled'].includes(payment.status)
+                          },
+                          can('payments', 'change_status') ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+                        ]"
                       >
                         <component :is="getStatusIcon(payment.status)" class="w-3.5 h-3.5" />
                         {{ payment.status }}
-                        <svg class="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <svg v-if="can('payments', 'change_status')" class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                       </button>
                       
                       <!-- Inline Status Dropdown -->
-                      <div class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50 hidden group-hover:block hover:block">
+                      <div v-if="activeStatusDropdown === payment.id" class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50">
                         <div class="py-1">
                           <button v-for="status in ['pending', 'completed', 'failed', 'cancelled']" 
                             :key="status"
@@ -193,15 +202,22 @@
                     <div class="flex items-center justify-end gap-2">
                       <button 
                         v-if="payment.status === 'pending'"
-                        @click="approvePayment(payment)"
-                        class="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition-colors dark:text-green-400 dark:hover:bg-green-900/30"
+                        @click="can('payments', 'edit') ? approvePayment(payment) : toast.error('You do not have permission to approve payments')"
+                        class="p-1.5 rounded-md transition-colors"
+                        :class="[
+                          can('payments', 'edit') 
+                            ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30' 
+                            : 'text-green-600/50 cursor-not-allowed dark:text-green-400/50'
+                        ]"
                         title="Approve Payment"
                       >
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                       </button>
+                      
                       <router-link 
+                        v-if="can('payments', 'edit')"
                         :to="`/payments/${payment.id}/edit`" 
                         class="p-1.5 text-brand-600 hover:bg-brand-50 rounded-md transition-colors dark:text-brand-400 dark:hover:bg-brand-900/30"
                         title="Edit Payment"
@@ -210,6 +226,16 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </router-link>
+                      <button
+                        v-else
+                        @click="toast.error('You do not have permission to edit payments')"
+                        class="p-1.5 text-brand-600/50 cursor-not-allowed rounded-md dark:text-brand-400/50"
+                        title="Edit Payment (Unauthorized)"
+                      >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -235,7 +261,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
@@ -246,6 +272,7 @@ import DateRangePicker from '@/components/forms/DateRangePicker.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import { usePermissions } from '@/composables/usePermissions'
 import { 
   ClockIcon, 
   CheckCircleIcon, 
@@ -259,8 +286,10 @@ import {
 const router = useRouter()
 const toast = useToast()
 const authStore = useAuthStore()
+const { can } = usePermissions()
 const currentPageTitle = ref('Payments')
 const payments = ref<any[]>([])
+const activeStatusDropdown = ref<number | null>(null)
 const projects = ref<any[]>([])
 const customers = ref<any[]>([])
 const searchQuery = ref('')
@@ -271,7 +300,26 @@ const filters = ref({
   date_range: [] as string[]
 })
 
-const pagination = ref({ current_page: 1, last_page: 1, per_page: 10, total: 0, from: 0, to: 0 })
+const pagination = ref({
+  current_page: 1,
+  last_page: 1,
+  total: 0,
+  per_page: 15,
+  from: 0,
+  to: 0
+})
+
+const toggleStatusDropdown = (id: number) => {
+  if (activeStatusDropdown.value === id) {
+    activeStatusDropdown.value = null
+  } else {
+    activeStatusDropdown.value = id
+  }
+}
+
+const closeStatusDropdown = () => {
+  activeStatusDropdown.value = null
+}
 
 const fetchPayments = async (page = 1) => {
   try {

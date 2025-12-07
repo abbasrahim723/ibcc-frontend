@@ -3,18 +3,59 @@
     <PageBreadcrumb :pageTitle="currentPageTitle" />
     
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div class="mb-6 flex items-center justify-between gap-4">
-        <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Document Management</h3>
-        
-        <div class="flex flex-1 lg:flex-initial items-center gap-4">
+      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+         <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Document Management</h3>
+
+        <div class="flex flex-1 flex-wrap items-center justify-end gap-4">
           <!-- Search -->
-          <input
-            v-model="searchQuery"
-            @input="handleSearch"
-            type="text"
-            placeholder="Search documents..."
-            class="rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          />
+          <div class="relative w-full sm:w-64">
+             <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search documents..."
+              class="w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:text-white dark:placeholder-gray-400"
+              @input="fetchDocuments(1)"
+            />
+             <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+               <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+
+           <!-- Date Range -->
+          <div class="relative w-full sm:w-56 group">
+             <DateRangePicker v-model="dateRange" @change="fetchDocuments(1)" />
+             <button
+               v-if="dateRange"
+               @click="dateRange = ''; fetchDocuments(1)"
+               class="absolute right-8 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+               title="Clear date filter"
+             >
+               <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+               </svg>
+             </button>
+          </div>
+
+          <!-- Category Filter -->
+          <select 
+            v-model="selectedCategory" 
+            @change="fetchDocuments(1)"
+            class="rounded-lg border border-gray-300 bg-transparent py-2.5 pl-3 pr-8 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:text-white dark:bg-gray-800"
+          >
+            <option value="">📂 All Categories</option>
+            <option v-for="cat in categories" :key="cat.value" :value="cat.value">{{ cat.label }}</option>
+          </select>
+
+           <!-- Model Filter -->
+          <select 
+            v-model="selectedModel" 
+            @change="fetchDocuments(1)"
+             class="rounded-lg border border-gray-300 bg-transparent py-2.5 pl-3 pr-8 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:text-white dark:bg-gray-800"
+          >
+            <option v-for="m in models" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </select>
         </div>
       </div>
 
@@ -50,7 +91,7 @@
                       </svg>
                     </div>
                     <div class="min-w-0 flex-1 overflow-hidden">
-                      <div class="text-sm font-medium text-gray-900 dark:text-white truncate" :title="document.name">{{ document.name }}</div>
+                      <div class="text-sm font-medium text-gray-900 dark:text-white truncate" :title="document.name">{{ truncate(document.name, 20) }}</div>
                       <div class="text-xs text-gray-500 truncate">{{ document.file_type?.toUpperCase() }}</div>
                     </div>
                   </div>
@@ -58,8 +99,8 @@
                 <td class="px-4 py-4">
                   <div class="max-w-[150px]">
                     <router-link 
-                      v-if="document.documentable && document.documentable_type.includes('Customer')"
-                      :to="`/customers/${document.documentable_id}`"
+                      v-if="document.documentable && (document.documentable_type.includes('Customer') || document.documentable_type.includes('Project'))"
+                      :to="document.documentable_type.includes('Customer') ? `/customers/${document.documentable_id}` : `/projects/${document.documentable_id}`"
                       class="text-sm text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 truncate block"
                       :title="getDocumentOwner(document)"
                     >
@@ -92,21 +133,39 @@
                     <!-- Preview Button -->
                     <button 
                       v-if="canPreview(document)"
-                      @click="previewDocument(document)" 
-                      class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300"
+                      @click="handlePreview(document)" 
+                      :disabled="loadingDocumentId === document.id"
+                      :class="[
+                        'p-1.5 rounded-md transition-colors',
+                        can('documents', 'view') 
+                          ? 'text-purple-600 hover:text-purple-900 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/30 cursor-pointer' 
+                          : 'text-gray-300 cursor-not-allowed dark:text-gray-600',
+                        loadingDocumentId === document.id ? 'opacity-75 cursor-wait' : ''
+                      ]"
                       title="Preview"
                     >
-                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg v-if="loadingDocumentId === document.id" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <svg v-else class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     </button>
 
+
+
                     <!-- Share Dropdown -->
                     <div class="relative">
                       <button 
-                        @click.stop="toggleShareDropdown(document.id)"
-                        class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                        @click.stop="handleShare(document.id)"
+                        :class="[
+                          'p-1.5 rounded-md transition-colors',
+                          can('documents', 'share') 
+                            ? 'text-green-600 hover:text-green-900 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/30 cursor-pointer' 
+                            : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
+                        ]"
                         title="Share"
                       >
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,9 +211,15 @@
                     </div>
 
                     <!-- Download Button -->
+                    <!-- Download Button -->
                     <button 
-                      @click="downloadDocument(document)" 
-                      class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300"
+                      @click="handleDownload(document)" 
+                      :class="[
+                        'p-1.5 rounded-md transition-colors',
+                        can('documents', 'download') 
+                          ? 'text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 dark:hover:bg-brand-900/30 cursor-pointer' 
+                          : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
+                      ]"
                       title="Download"
                     >
                       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,8 +229,13 @@
 
                     <!-- Delete Button -->
                     <button 
-                      @click="deleteDocument(document)" 
-                      class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                      @click="handleDelete(document)" 
+                      :class="[
+                        'p-1.5 rounded-md transition-colors',
+                        can('documents', 'delete') 
+                          ? 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer' 
+                          : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
+                      ]"
                       title="Delete"
                     >
                       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,6 +341,10 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
+import DateRangePicker from '@/components/forms/DateRangePicker.vue'
+
+const { can } = usePermissions()
 
 interface Document {
   id: number
@@ -293,10 +367,31 @@ const toast = useToast()
 const currentPageTitle = ref('Documents')
 const documents = ref<Document[]>([])
 const searchQuery = ref('')
+const dateRange = ref('')
+const selectedCategory = ref('')
+const selectedModel = ref('')
+
+const categories = [
+  { label: '📷 Thumbnail', value: 'thumbnail' },
+  { label: '🖼️ Image', value: 'image' },
+  { label: '📄 Document', value: 'document' },
+  { label: '📜 Contract', value: 'contract' },
+  { label: '🧾 Invoice', value: 'invoice' },
+  { label: '📐 Plan', value: 'plan' },
+  { label: '🆔 CNIC Front', value: 'CNIC Front' },
+  { label: '🆔 CNIC Back', value: 'CNIC Back' },
+  { label: '📦 Other', value: 'other' }
+]
+const models = [
+  { label: '📂 All Models', value: '' },
+  { label: '👤 Customers', value: 'App\\Models\\Customer' },
+  { label: '🏗️ Projects', value: 'App\\Models\\Project' },
+]
 const activeShareDropdown = ref<number | null>(null)
 const showPreviewModal = ref(false)
 const previewDoc = ref<Document | null>(null)
 const previewUrl = ref('')
+const loadingDocumentId = ref<number | null>(null)
 
 const pagination = ref({
   current_page: 1,
@@ -319,12 +414,22 @@ const fetchDocuments = async (page = 1) => {
     const params: any = {
       page,
       per_page: 15,
+      search: searchQuery.value,
+      category: selectedCategory.value,
+      documentable_type: selectedModel.value,
     }
-    
-    if (searchQuery.value) {
-      params.search = searchQuery.value
+
+    if (dateRange.value) {
+       if (typeof dateRange.value === 'string' && dateRange.value.includes(' to ')) {
+         const [start, end] = dateRange.value.split(' to ')
+         params.start_date = start
+         params.end_date = end || start
+       } else {
+         params.start_date = dateRange.value
+         params.end_date = dateRange.value
+       }
     }
-    
+
     const response = await api.get('/documents', { params })
     documents.value = response.data.data
     pagination.value = {
@@ -386,6 +491,7 @@ const formatDate = (dateString: string): string => {
 }
 
 const previewDocument = async (document: Document) => {
+  loadingDocumentId.value = document.id
   try {
     const response = await api.get(`/documents/${document.id}/url`)
     previewUrl.value = response.data.url
@@ -393,6 +499,8 @@ const previewDocument = async (document: Document) => {
     showPreviewModal.value = true
   } catch (error: any) {
     toast.error(error.response?.data?.message || 'Error loading preview')
+  } finally {
+    loadingDocumentId.value = null
   }
 }
 
@@ -400,6 +508,43 @@ const closePreviewModal = () => {
   showPreviewModal.value = false
   previewDoc.value = null
   previewUrl.value = ''
+}
+
+const handlePreview = (document: Document) => {
+  if (!can('documents', 'view')) {
+    toast.error('You are not authorized to view documents')
+    return
+  }
+  previewDocument(document)
+}
+
+const handleDownload = (document: Document) => {
+  if (!can('documents', 'download')) {
+    toast.error('You are not authorized to download documents')
+    return
+  }
+  downloadDocument(document)
+}
+
+const handleShare = (docId: number) => {
+  if (!can('documents', 'share')) {
+    toast.error('You are not authorized to share documents')
+    return
+  }
+  toggleShareDropdown(docId)
+}
+
+const handleDelete = (document: Document) => {
+    if (!can('documents', 'delete')) {
+        toast.error('You are not authorized to delete documents')
+        return
+    }
+    deleteDocument(document)
+}
+
+const truncate = (s: string | undefined, n = 80) => {
+  if (!s) return ''
+  return s.length > n ? s.substring(0, n - 1) + '…' : s
 }
 
 const toggleShareDropdown = (docId: number) => {

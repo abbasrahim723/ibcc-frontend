@@ -18,6 +18,7 @@
 
           <!-- Add User Button -->
           <button
+            v-if="can('users', 'create')"
             @click="router.push('/users/create')"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
           >
@@ -95,8 +96,13 @@
                 <!-- Approve Button (only for pending users) -->
                 <button
                   v-if="user.approval_status === 'pending'"
-                  @click="approveUser(user.id)"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-green-600 hover:bg-green-50 hover:text-green-800 dark:text-green-400 dark:hover:bg-white/5 dark:hover:text-green-200 mr-2"
+                  @click="can('users', 'edit') ? approveUser(user.id) : toast.error('You do not have permission to approve users')"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 mr-2 transition-colors',
+                    can('users', 'edit') 
+                      ? 'text-green-600 hover:bg-green-50 hover:text-green-800 dark:text-green-400 dark:hover:bg-white/5 dark:hover:text-green-200' 
+                      : 'text-green-600/50 cursor-not-allowed dark:text-green-400/50'
+                  ]"
                   title="Approve User"
                 >
                   <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,28 +112,39 @@
                 </button>
                 
                 <button
-                  @click="router.push(`/users/${user.id}/edit`)"
+                  @click="
+                    isCurrentUser(user.id) ? null : 
+                    (can('users', 'edit') ? router.push(`/users/${user.id}/edit`) : toast.error('You do not have permission to edit users'))
+                  "
                   :disabled="isCurrentUser(user.id)"
                   :class="[
-                    'inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200 mr-2',
-                    isCurrentUser(user.id) ? 'opacity-50 cursor-not-allowed' : ''
+                    'inline-flex items-center justify-center rounded-md p-2 mr-2 transition-colors',
+                    isCurrentUser(user.id) 
+                      ? 'text-gray-300 opacity-50 cursor-not-allowed dark:text-gray-600'
+                      : (can('users', 'edit') 
+                          ? 'text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200' 
+                          : 'text-brand-600/50 cursor-not-allowed dark:text-brand-400/50')
                   ]"
-                  :title="isCurrentUser(user.id) ? 'Use your profile page to edit your own account' : 'Edit'"
+                  :title="isCurrentUser(user.id) ? 'Use your profile page to edit your own account' : (!can('users', 'edit') ? 'You do not have permission to edit users' : 'Edit')"
                 >
                   <SquarePen class="h-4 w-4" />
                   <span class="sr-only">Edit</span>
                 </button>
                 <button
-                  @click="toggleUserStatus(user.id)"
+                  @click="
+                    isCurrentUser(user.id) ? null : 
+                    (can('users', 'delete') ? toggleUserStatus(user.id) : toast.error('You do not have permission to change user status'))
+                  "
                   :disabled="isCurrentUser(user.id)"
                   :class="[
-                    'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
-                    user.is_active
-                      ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300'
-                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300',
-                    isCurrentUser(user.id) ? 'opacity-50 cursor-not-allowed' : ''
+                    'inline-flex items-center justify-center rounded-md p-2 transition-colors',
+                    isCurrentUser(user.id)
+                      ? 'text-gray-300 opacity-50 cursor-not-allowed dark:text-gray-600'
+                      : (can('users', 'delete')
+                        ? (user.is_active ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-gray-100 dark:hover:bg-white/5' : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 hover:bg-gray-100 dark:hover:bg-white/5')
+                        : (user.is_active ? 'text-red-600/50 cursor-not-allowed dark:text-red-400/50' : 'text-green-600/50 cursor-not-allowed dark:text-green-400/50'))
                   ]"
-                  :title="isCurrentUser(user.id) ? 'You cannot deactivate your own account' : (user.is_active ? 'Deactivate' : 'Activate')"
+                  :title="isCurrentUser(user.id) ? 'You cannot deactivate your own account' : (!can('users', 'delete') ? 'You do not have permission to change user status' : (user.is_active ? 'Deactivate' : 'Activate'))"
                 >
                   <component :is="user.is_active ? ShieldAlert : RotateCcw" class="h-4 w-4" />
                   <span class="sr-only">{{ user.is_active ? 'Deactivate' : 'Activate' }}</span>
@@ -183,12 +200,14 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 
 const router = useRouter()
 const toast = useToast()
+const { can } = usePermissions()
 const currentPageTitle = ref('Users')
 const currentUser = ref<any>(null)
-const users = ref([])
+const users = ref<any[]>([])
 const searchQuery = ref('')
 
 const pagination = ref({
@@ -205,7 +224,7 @@ const showConfirmModal = ref(false)
 const confirmModalTitle = ref('')
 const confirmModalMessage = ref('')
 const confirmModalButtonText = ref('Confirm')
-const pendingAction = ref(null)
+const pendingAction = ref<{ type: string; id: number } | null>(null)
 
 // Check if user is the currently logged-in user
 const isCurrentUser = (userId: number) => {

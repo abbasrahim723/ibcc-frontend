@@ -208,7 +208,7 @@
 
                   <!-- Info -->
                   <div class="flex flex-1 flex-col p-4">
-                    <h5 class="mb-1 text-sm font-medium text-gray-900 dark:text-white" :title="doc.name">{{ truncate(doc.name, 80) }}</h5>
+                    <h5 class="mb-1 text-sm font-medium text-gray-900 dark:text-white" :title="doc.name">{{ truncate(doc.name, 20) }}</h5>
                     <div class="mb-2 flex items-center justify-between">
                       <span class="inline-flex rounded-full bg-blue-100 px-2 text-xs font-semibold leading-5 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                         {{ doc.document_category || 'Other' }}
@@ -221,8 +221,13 @@
 
                     <div class="mt-auto flex gap-2">
                       <button
-                        @click="previewDocument(doc)"
-                        class="flex-1 flex items-center justify-center rounded-md bg-brand-50 p-2.5 text-brand-700 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 dark:hover:bg-brand-900/50"
+                        @click="handlePreview(doc)"
+                        :class="[
+                          'flex-1 flex items-center justify-center rounded-md p-2.5',
+                          can('documents', 'view')
+                            ? 'bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 dark:hover:bg-brand-900/50 cursor-pointer'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60 dark:bg-gray-800 dark:text-gray-600'
+                        ]"
                         title="Preview"
                       >
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,8 +236,13 @@
                         </svg>
                       </button>
                       <button
-                        @click="downloadDocument(doc)"
-                        class="flex-1 flex items-center justify-center rounded-md bg-gray-100 p-2.5 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                        @click="handleDownload(doc)"
+                        :class="[
+                          'flex-1 flex items-center justify-center rounded-md p-2.5',
+                          can('documents', 'download')
+                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 cursor-pointer'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60 dark:bg-gray-800 dark:text-gray-600'
+                        ]"
                         title="Download"
                       >
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -241,8 +251,13 @@
                       </button>
                       <div class="relative">
                         <button
-                          @click="toggleShareDropdown(doc.id)"
-                          class="flex items-center justify-center rounded-md bg-green-50 p-2.5 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50"
+                          @click="handleShare(doc.id)"
+                          :class="[
+                            'flex items-center justify-center rounded-md p-2.5',
+                            can('documents', 'share')
+                              ? 'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50 cursor-pointer'
+                              : 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60 dark:bg-gray-800 dark:text-gray-600'
+                          ]"
                           title="Share"
                         >
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -577,14 +592,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
+const { can } = usePermissions()
 const loading = ref(true)
 const customer = ref<any>(null)
 const activities = ref<any[]>([])
@@ -824,6 +842,31 @@ const formatFileSize = (bytes: number): string => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
 }
 
+// Permission handlers
+const handlePreview = (doc: any) => {
+  if (!can('documents', 'view')) {
+    toast.error('You are not authorized to view documents')
+    return
+  }
+  previewDocument(doc)
+}
+
+const handleDownload = (doc: any) => {
+  if (!can('documents', 'download')) {
+    toast.error('You are not authorized to download documents')
+    return
+  }
+  downloadDocument(doc)
+}
+
+const handleShare = (docId: number) => {
+  if (!can('documents', 'share')) {
+    toast.error('You are not authorized to share documents')
+    return
+  }
+  toggleShareDropdown(docId)
+}
+
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', {
@@ -922,6 +965,12 @@ const downloadDocument = async (document: any) => {
 }
 
 onMounted(async () => {
+  if (!can('customers', 'view_details')) {
+    toast.error('You are not authorized to view customer details')
+    router.push('/customers')
+    return
+  }
+
   loading.value = true
   await Promise.all([fetchCustomer(), fetchActivities()])
   loading.value = false

@@ -34,6 +34,9 @@ export function usePermissions() {
 
     const can = (resource: string, action = 'view') => {
         if (!loaded) return false;
+        if (permissions.value.includes('super-admin') || roles.value.includes('super-admin')) {
+            return true;
+        }
         const key = `${resource}.${action}`;
         if (permissions.value.includes(key)) return true;
         // primary: check resource_actions (array of allowed actions per resource)

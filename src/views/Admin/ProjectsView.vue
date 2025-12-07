@@ -2,13 +2,12 @@
   <admin-layout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
 
-    <div class="overflow-x-hidden">
-
-      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6 overflow-x-hidden">
+    <div>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Project Management</h3>
 
-        <div class="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center lg:flex-initial">
+        <div class="flex flex-1 flex-col flex-wrap gap-4 sm:flex-row sm:items-center lg:flex-initial">
           <!-- View Toggle -->
           <div class="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800">
             <button
@@ -72,13 +71,11 @@
           />
 
           <button
+            v-if="can('projects', 'create')"
             @click="router.push('/projects/create')"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
           >
             <span class="flex items-center gap-2">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
               <span class="hidden md:inline">Add Project</span>
             </span>
           </button>
@@ -171,6 +168,7 @@
               <td class="px-4 py-4 whitespace-nowrap">
                 <div class="relative group">
                   <button class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize transition-all duration-200"
+                    @click.stop="toggleStatusDropdown(project.id)"
                     :class="{
                       'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': project.status === 'planning',
                       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400': project.status === 'in_progress',
@@ -181,11 +179,15 @@
                   >
                     <component :is="getStatusIcon(project.status)" class="w-3.5 h-3.5" />
                     {{ project.status?.replace('_', ' ') }}
-                    <svg class="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="w-3 h-3 ml-1 transition-transform duration-200" :class="{ 'rotate-180': activeStatusDropdown === project.id }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                   </button>
                   
                   <!-- Inline Status Dropdown -->
-                  <div class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50 hidden group-hover:block hover:block">
+                  <div 
+                    v-if="can('projects', 'change_status') && activeStatusDropdown === project.id"
+                    class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50"
+                    @click.stop
+                  >
                     <div class="py-1">
                       <button v-for="status in ['planning', 'in_progress', 'completed', 'on_hold', 'cancelled']" 
                         :key="status"
@@ -204,17 +206,11 @@
               <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex items-center justify-end gap-2">
                   <button 
-                    @click="openStatusModal(project)"
-                    class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors dark:text-blue-400 dark:hover:bg-blue-900/30"
-                    title="Change Status"
-                  >
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  </button>
-                  <button 
-                    @click="router.push(`/projects/${project.id}/edit`)" 
-                    class="p-1.5 text-brand-600 hover:bg-brand-50 rounded-md transition-colors dark:text-brand-400 dark:hover:bg-brand-900/30"
+                    @click="handleEditProject(project)" 
+                    :class="[
+                      'p-1.5 rounded-md transition-colors',
+                      can('projects', 'edit') ? 'text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-900/30' : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
+                    ]"
                     title="Edit Project"
                   >
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,8 +218,11 @@
                     </svg>
                   </button>
                   <button 
-                    @click="deleteProject(project.id)" 
-                    class="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-900/30"
+                    @click="handleDeleteProject(project.id)" 
+                    :class="[
+                      'p-1.5 rounded-md transition-colors',
+                      can('projects', 'delete') ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30' : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
+                    ]"
                     title="Delete Project"
                   >
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,8 +256,9 @@
             </div>
             
             <!-- Status Badge -->
-            <div class="absolute top-3 right-3 group/status">
+            <div class="absolute top-3 right-3 z-10">
               <button class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize transition-all duration-200 shadow-sm backdrop-blur-md"
+                @click.stop="toggleStatusDropdown(project.id)"
                 :class="{
                   'bg-blue-100/90 text-blue-800 dark:bg-blue-900/80 dark:text-blue-200': project.status === 'planning',
                   'bg-yellow-100/90 text-yellow-800 dark:bg-yellow-900/80 dark:text-yellow-200': project.status === 'in_progress',
@@ -269,15 +269,19 @@
               >
                 <component :is="getStatusIcon(project.status)" class="w-3.5 h-3.5" />
                 {{ project.status?.replace('_', ' ') }}
-                <svg class="w-3 h-3 ml-1 opacity-0 group-hover/status:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <svg class="w-3 h-3 ml-1 transition-transform duration-200" :class="{ 'rotate-180': activeStatusDropdown === project.id }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               </button>
               
               <!-- Inline Status Dropdown -->
-              <div class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50 hidden group-hover/status:block hover:block">
+              <div 
+                v-if="can('projects', 'change_status') && activeStatusDropdown === project.id"
+                class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50"
+                @click.stop
+              >
                 <div class="py-1">
                   <button v-for="status in ['planning', 'in_progress', 'completed', 'on_hold', 'cancelled']" 
                     :key="status"
-                    @click.stop="updateStatus(project, status)"
+                    @click="updateStatus(project, status)"
                     class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 capitalize transition-colors"
                     :class="{'bg-brand-50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400 font-medium': project.status === status}"
                   >
@@ -454,7 +458,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
@@ -463,6 +467,7 @@ import CustomerSelect from '@/components/forms/CustomerSelect.vue'
 import StatusSelect from '@/components/forms/StatusSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 import { 
   ClockIcon, 
   CheckCircleIcon, 
@@ -475,6 +480,7 @@ import {
 
 const router = useRouter()
 const toast = useToast()
+const { can } = usePermissions()
 const currentPageTitle = ref('Projects')
 const projects = ref<any[]>([])
 const customers = ref<any[]>([])
@@ -507,6 +513,20 @@ const statusForm = ref({
   id: null as number | null,
   status: ''
 })
+
+const activeStatusDropdown = ref<number | null>(null)
+
+const toggleStatusDropdown = (id: number) => {
+  if (activeStatusDropdown.value === id) {
+    activeStatusDropdown.value = null
+  } else {
+    activeStatusDropdown.value = id
+  }
+}
+
+const closeDropdowns = () => {
+  activeStatusDropdown.value = null
+}
 
 const filesToUpload = ref<File[]>([])
 
@@ -597,6 +617,22 @@ const saveProject = async () => {
 
 const editProject = (p: any) => openProjectModal(p)
 
+const handleEditProject = (project: any) => {
+    if (!can('projects', 'edit')) {
+        toast.error('You are not authorized to edit projects')
+        return
+    }
+    router.push(`/projects/${project.id}/edit`)
+}
+
+const handleDeleteProject = (id: number) => {
+    if (!can('projects', 'delete')) {
+        toast.error('You are not authorized to delete projects')
+        return
+    }
+    deleteProject(id)
+}
+
 const deleteProject = async (id: number) => {
   if (!confirm('Are you sure?')) return
   try {
@@ -606,6 +642,14 @@ const deleteProject = async (id: number) => {
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error deleting project')
   }
+}
+
+const handleStatusModalClick = (project: any) => {
+    if (!can('projects', 'change_status')) {
+        toast.error('You are not authorized to change project status')
+        return
+    }
+    openStatusModal(project)
 }
 
 const openStatusModal = (project: any) => {
@@ -621,11 +665,12 @@ const updateStatus = async (project: any, status: string = '') => {
   if (!newStatus) return
 
   try {
-    await api.put(`/projects/${project.id || statusForm.value.id}`, {
+    await api.patch(`/projects/${project.id || statusForm.value.id}/status`, {
       status: newStatus
     })
     toast.success('Project status updated successfully')
     isStatusModalOpen.value = false
+    activeStatusDropdown.value = null
     fetchProjects(pagination.value.current_page)
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error updating project status')
@@ -662,6 +707,11 @@ onMounted(() => {
   fetchProjects()
   fetchCustomers()
   fetchTowns()
+  window.addEventListener('click', closeDropdowns)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeDropdowns)
 })
 
 const truncate = (s: string | undefined, n = 40) => {

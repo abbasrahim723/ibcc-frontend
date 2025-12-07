@@ -112,7 +112,8 @@ const router = createRouter({
       name: 'CreateUser',
       component: () => import('../views/Admin/UserFormView.vue'),
       meta: {
-        title: 'Create User',
+        title: 'Add User',
+        permission: 'users.create'
       },
     },
     {
@@ -121,6 +122,7 @@ const router = createRouter({
       component: () => import('../views/Admin/UserFormView.vue'),
       meta: {
         title: 'Edit User',
+        permission: 'users.edit'
       },
     },
     {
@@ -274,6 +276,7 @@ const router = createRouter({
       component: () => import('../views/Admin/ProjectFormView.vue'),
       meta: {
         title: 'Create Project',
+        permission: 'projects.create'
       },
     },
     {
@@ -282,6 +285,7 @@ const router = createRouter({
       component: () => import('../views/Admin/ProjectFormView.vue'),
       meta: {
         title: 'Edit Project',
+        permission: 'projects.edit'
       },
     },
     {
@@ -307,6 +311,7 @@ const router = createRouter({
       component: () => import('../views/Admin/PaymentFormView.vue'),
       meta: {
         title: 'Create Payment',
+        permission: 'payments.create'
       },
     },
     {
@@ -315,6 +320,7 @@ const router = createRouter({
       component: () => import('../views/Admin/PaymentFormView.vue'),
       meta: {
         title: 'Edit Payment',
+        permission: 'payments.edit'
       },
     },
     {
@@ -452,7 +458,9 @@ const router = createRouter({
 
 export default router
 
-router.beforeEach((to, from, next) => {
+import { usePermissions } from '@/composables/usePermissions'
+
+router.beforeEach(async (to, from, next) => {
   document.title = `Vue.js ${to.meta.title} | TailAdmin - Vue.js Tailwind CSS Dashboard Template`
 
   const token = localStorage.getItem('token')
@@ -465,6 +473,25 @@ router.beforeEach((to, from, next) => {
 
   if (token && publicPages.includes(to.path)) {
     return next('/')
+  }
+
+  // Permission Check
+  if (to.meta.permission) {
+    const { can, permissions, loadPermissions } = usePermissions()
+
+    // Ensure permissions are loaded
+    if (permissions.value.length === 0) {
+      await loadPermissions()
+    }
+
+    const permission = to.meta.permission as string
+    const [resource, action] = permission.split('.')
+
+    if (!can(resource, action)) {
+      // Redirect to dashboard or show unauthorized
+      // For now, redirect to dashboard
+      return next('/')
+    }
   }
 
   next()
