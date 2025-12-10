@@ -133,7 +133,7 @@
                 <img width="{231}" height="{48}" src="/images/logo/auth-logo.svg" alt="Logo" />
               </router-link>
               <p class="text-center text-gray-400 dark:text-white/60">
-                Free and Open-Source Tailwind CSS Admin Dashboard Template
+                IBCC's CRM Developed by Abbas Rahim - Software Engineer
               </p>
             </div>
           </div>
@@ -213,21 +213,21 @@ const handleSubmit = async () => {
 
   try {
     await authStore.verify2FA(userEmail.value, otpCode.value)
-    
+
     // Clear pending 2FA email
     localStorage.removeItem('pending_2fa_email')
-    
+
     // Show success toast
     toast.success('2FA verified successfully!')
-    
+
     // Fetch user data
     await authStore.fetchUser()
-    
+
     // Redirect to dashboard
     router.push('/')
   } catch (error: any) {
     console.error('2FA verification failed', error)
-    
+
     // Handle validation errors
     if (error.response?.status === 422 && error.response?.data?.errors) {
       validationErrors.value = error.response.data.errors
@@ -265,7 +265,7 @@ const resendCode = async () => {
       type: '2fa_login'
     })
     toast.success('New code sent!')
-    
+
     // Reset timers
     timeRemaining.value = 300
     startResendTimer()

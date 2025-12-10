@@ -3,24 +3,43 @@
     <PageBreadcrumb :pageTitle="currentPageTitle" />
 
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div class="mb-6 flex items-center justify-between gap-4">
+      <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Customer Management</h3>
 
-        <div class="flex flex-1 lg:flex-initial items-center gap-4">
+        <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:flex-wrap lg:items-center lg:gap-4">
+          <!-- Date Range -->
+          <DateRangePicker
+            v-model="dateRange"
+            @change="handleSearch"
+            @update:modelValue="handleSearch"
+            class="w-full lg:w-56"
+          />
+
+          <!-- Status Filter -->
+          <select
+            v-model="statusFilter"
+            @change="handleSearch"
+            class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white w-full lg:w-40"
+          >
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+
           <!-- Search -->
           <input
             v-model="searchQuery"
             @input="handleSearch"
             type="text"
             placeholder="Search customers..."
-            class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white w-full lg:flex-1"
           />
 
           <!-- Add Customer Button -->
           <button
             @click="handleAddCustomer"
             :class="[
-              'rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800',
+              'rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800 w-full lg:w-auto',
               can('customers', 'create')
                 ? 'bg-brand-600 hover:bg-brand-700 cursor-pointer'
                 : 'bg-gray-400 cursor-not-allowed opacity-60'
@@ -42,6 +61,7 @@
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Contact</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Projects</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">WhatsApp</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
@@ -90,6 +110,9 @@
                   </svg>
                 </button>
                 <span v-else class="text-xs text-gray-400">N/A</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ formatDate(customer.created_at) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span v-if="customer.is_active" class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -201,6 +224,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import DateRangePicker from '@/components/forms/DateRangePicker.vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
@@ -222,6 +246,7 @@ interface Customer {
   address: string | null
   is_active: boolean
   profile_photo_url: string | null
+  created_at?: string | null
 }
 
 const router = useRouter()
@@ -229,6 +254,8 @@ const toast = useToast()
 const currentPageTitle = ref('Customers')
 const customers = ref<Customer[]>([])
 const searchQuery = ref('')
+const dateRange = ref<string[]>([])
+const statusFilter = ref('')
 
 const pagination = ref({
   current_page: 1,
@@ -248,9 +275,19 @@ const pendingAction = ref<{ type: 'toggle' | 'delete', id: number, status?: bool
 
 const fetchCustomers = async (page = 1) => {
   try {
-    const params = {
+    const params: any = {
       page,
       search: searchQuery.value || undefined,
+    }
+
+    if (statusFilter.value) {
+      params.is_active = statusFilter.value === 'active' ? 1 : 0
+      params.status = statusFilter.value
+    }
+
+    if (dateRange.value && dateRange.value.length === 2) {
+      params.start_date = dateRange.value[0]
+      params.end_date = dateRange.value[1]
     }
     const response = await api.get('/customers', { params })
     customers.value = response.data.data
@@ -284,6 +321,13 @@ const getFullName = (customer: any) => {
   if (!customer) return ''
   const prefix = customer.name_prefix ? `${customer.name_prefix} ` : ''
   return `${prefix}${customer.name}`
+}
+
+const formatDate = (dateString: string | null | undefined) => {
+  if (!dateString) return '—'
+  const d = new Date(dateString)
+  if (isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 // Permission-aware action handlers

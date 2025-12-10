@@ -217,32 +217,37 @@
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Contract Value ({{ currencySymbol }})</label>
-            <div class="flex gap-2 items-center">
-              <div class="flex rounded-lg border border-gray-300 dark:border-gray-700 overflow-hidden bg-gray-50 dark:bg-gray-800">
-                <button type="button" @click="selectCurrency('PKR')" :class="['px-3 py-2 text-sm font-medium transition-colors', form.currency === 'PKR' ? 'bg-brand-500 text-white' : 'text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700']">PKR</button>
-                <button type="button" @click="selectCurrency('USD')" :class="['px-3 py-2 text-sm font-medium border-l border-gray-300 dark:border-gray-700 transition-colors', form.currency === 'USD' ? 'bg-brand-500 text-white' : 'text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700']">USD</button>
-                <button type="button" @click="selectCurrency('EUR')" :class="['px-3 py-2 text-sm font-medium border-l border-gray-300 dark:border-gray-700 transition-colors', form.currency === 'EUR' ? 'bg-brand-500 text-white' : 'text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700']">EUR</button>
+            <div class="flex h-11 items-stretch overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700">
+              <div class="flex items-center px-3 bg-gray-50 text-gray-700 text-sm font-semibold dark:bg-gray-800 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700">
+                {{ currencySymbol }}
               </div>
-              <div class="flex-1 relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 font-semibold text-lg">{{ currencySymbol }}</span>
-                <input v-model.number="form.contract_value" type="number" step="0.01" class="h-11 w-full rounded-lg border border-gray-300 px-3 pl-8 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="0.00" />
-              </div>
+              <input
+                v-model.number="form.contract_value"
+                type="number"
+                step="0.01"
+                class="flex-1 bg-transparent px-3 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white"
+                placeholder="0.00"
+              />
             </div>
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Estimated Cost ({{ currencySymbol }})</label>
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 font-semibold text-lg">{{ currencySymbol }}</span>
-              <input v-model.number="form.estimated_cost" type="number" step="0.01" class="h-11 w-full rounded-lg border border-gray-300 px-3 pl-8 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="0.00" />
+            <div class="flex h-11 items-stretch overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700">
+              <div class="flex items-center px-3 bg-gray-50 text-gray-700 text-sm font-semibold dark:bg-gray-800 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700">
+                {{ currencySymbol }}
+              </div>
+              <input v-model.number="form.estimated_cost" type="number" step="0.01" class="flex-1 bg-transparent px-3 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white" placeholder="0.00" />
             </div>
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Actual Cost ({{ currencySymbol }})</label>
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 font-semibold text-lg">{{ currencySymbol }}</span>
-              <input v-model.number="form.actual_cost" type="number" step="0.01" class="h-11 w-full rounded-lg border border-gray-300 px-3 pl-8 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="0.00" />
+            <div class="flex h-11 items-stretch overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700">
+              <div class="flex items-center px-3 bg-gray-50 text-gray-700 text-sm font-semibold dark:bg-gray-800 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700">
+                {{ currencySymbol }}
+              </div>
+              <input v-model.number="form.actual_cost" type="number" step="0.01" class="flex-1 bg-transparent px-3 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white" placeholder="0.00" />
             </div>
           </div>
 
@@ -260,22 +265,22 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Start Date</label>
-            <input v-model="form.start_date" type="date" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+            <DatePicker v-model="form.start_date" placeholder="dd/mm/yyyy" />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">End Date</label>
-            <input v-model="form.end_date" type="date" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+            <DatePicker v-model="form.end_date" placeholder="dd/mm/yyyy" />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Planned Completion Date</label>
-            <input v-model="form.planned_completion_date" type="date" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+            <DatePicker v-model="form.planned_completion_date" placeholder="dd/mm/yyyy" />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Actual Completion Date</label>
-            <input v-model="form.actual_completion_date" type="date" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+            <DatePicker v-model="form.actual_completion_date" placeholder="dd/mm/yyyy" />
           </div>
         </div>
       </div>
@@ -315,12 +320,12 @@
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Permit Issue Date</label>
-            <input v-model="form.permit_issue_date" type="date" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+            <DatePicker v-model="form.permit_issue_date" placeholder="dd/mm/yyyy" />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Permit Expiry Date</label>
-            <input v-model="form.permit_expiry_date" type="date" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+            <DatePicker v-model="form.permit_expiry_date" placeholder="dd/mm/yyyy" />
           </div>
         </div>
 
@@ -539,6 +544,7 @@ import { useRouter, useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import DatePicker from '@/components/forms/DatePicker.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
@@ -644,6 +650,35 @@ const documentCategories = [
   'Blueprint', 'Planning', 'Site Picture', 'Permit', 'Contract', 'Invoice', 'Other'
 ]
 
+const normalizeDateValue = (val: any) => {
+  if (!val) return ''
+  if (val instanceof Date && !isNaN(val.valueOf())) {
+    return val.toISOString().slice(0, 10)
+  }
+  if (typeof val === 'string') {
+    const trimmed = val.trim()
+    if (!trimmed) return ''
+    // If parseable by Date (e.g., "Dec 1, 2025"), use it
+    const parsed = new Date(trimmed)
+    if (!isNaN(parsed.valueOf())) {
+      return parsed.toISOString().slice(0, 10)
+    }
+    // handle dd/mm/yyyy or dd-mm-yyyy
+    const bySlash = trimmed.split(/[\/-]/)
+    if (bySlash.length === 3 && bySlash[2].length === 4) {
+      const [d, m, y] = bySlash
+      if (y && m && d) {
+        return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+      }
+    }
+    // assume already yyyy-mm-dd
+    if (trimmed.length >= 10) {
+      return trimmed.slice(0, 10)
+    }
+  }
+  return ''
+}
+
 const currencySymbol = computed(() => {
   const symbols: Record<string, string> = {
     'PKR': '₨',
@@ -652,10 +687,6 @@ const currencySymbol = computed(() => {
   }
   return symbols[form.value.currency] || form.value.currency
 })
-
-const selectCurrency = (curr: string) => {
-  form.value.currency = curr
-}
 
 const isEditMode = computed(() => !!route.params.id)
 
@@ -870,21 +901,40 @@ const saveProject = async () => {
   try {
     errors.value = {}
 
+    const normalizedForm: Record<string, any> = { ...form.value }
+    ;['start_date', 'end_date', 'planned_completion_date', 'actual_completion_date', 'permit_issue_date', 'permit_expiry_date'].forEach((field) => {
+      normalizedForm[field] = normalizeDateValue(form.value[field])
+    })
+
     // Normalize boolean fields to values backend expects
-    form.value.is_active = !!form.value.is_active
+    normalizedForm.is_active = !!form.value.is_active
+    normalizedForm.has_electricity = !!form.value.has_electricity
+    normalizedForm.has_water = !!form.value.has_water
+    normalizedForm.has_gas = !!form.value.has_gas
+    normalizedForm.has_sewerage = !!form.value.has_sewerage
 
     const formData = new FormData()
 
-    // Append form fields (skip empty strings but include explicit booleans)
-    Object.entries(form.value).forEach(([key, value]) => {
-      if (key === 'is_active') return // handle below explicitly
+    // Append date fields explicitly so they are always sent (even if cleared)
+    const dateFields = ['start_date', 'end_date', 'planned_completion_date', 'actual_completion_date', 'permit_issue_date', 'permit_expiry_date']
+    dateFields.forEach((field) => {
+      formData.append(field, normalizedForm[field] || '')
+    })
+
+    // Append other fields (skip booleans handled below)
+    Object.entries(normalizedForm).forEach(([key, value]) => {
+      if (key === 'is_active' || dateFields.includes(key)) return // handled separately
       if (value !== null && value !== undefined && value !== '') {
         formData.append(key, value as any)
       }
     })
 
-    // Append is_active explicitly as boolean/true/false string
-    formData.append('is_active', form.value.is_active ? '1' : '0')
+    // Append booleans explicitly as 1/0 so Laravel boolean rule passes
+    formData.append('is_active', normalizedForm.is_active ? '1' : '0')
+    formData.append('has_electricity', normalizedForm.has_electricity ? '1' : '0')
+    formData.append('has_water', normalizedForm.has_water ? '1' : '0')
+    formData.append('has_gas', normalizedForm.has_gas ? '1' : '0')
+    formData.append('has_sewerage', normalizedForm.has_sewerage ? '1' : '0')
 
     // Append documents (use uploadedDocuments if available, fallback to documents)
     const docsToSend = uploadedDocuments.value.length ? uploadedDocuments.value : documents.value

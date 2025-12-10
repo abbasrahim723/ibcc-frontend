@@ -173,33 +173,6 @@
         </form>
       </div>
 
-      <!-- Two-Factor Authentication Section -->
-      <div
-        class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6"
-      >
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-              Two-Factor Authentication
-            </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Add an extra layer of security to your account
-            </p>
-          </div>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input
-              v-model="twoFactorEnabled"
-              type="checkbox"
-              class="sr-only peer"
-              @change="toggle2FA"
-            />
-            <div
-              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 dark:peer-focus:ring-brand-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-500"
-            ></div>
-          </label>
-        </div>
-      </div>
-
       <!-- Biometric Authentication Section -->
       <div
         class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6"
@@ -212,15 +185,23 @@
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Use fingerprint or face recognition to sign in
             </p>
+            <p v-if="!isWebAuthnSupported" class="mt-1 text-xs text-amber-600">
+              Biometrics not supported on this browser/device.
+            </p>
           </div>
         </div>
         <button
+          :disabled="bioLoading || !isWebAuthnSupported"
+          @click="startPasskeyRegistration"
           class="flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
+          :class="{
+            'opacity-60 cursor-not-allowed': bioLoading || !isWebAuthnSupported
+          }"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
           </svg>
-          Setup Biometric Login
+          <span>{{ bioLoading ? 'Setting up…' : 'Setup Biometric Login' }}</span>
         </button>
       </div>
     </div>
@@ -242,6 +223,8 @@ const toast = useToast()
 const currentPageTitle = ref('Security Settings')
 
 const user = computed(() => authStore.user)
+const isWebAuthnSupported = computed(() => !!(window.PublicKeyCredential && typeof window.PublicKeyCredential === 'function'))
+const bioLoading = ref(false)
 
 // Email Change
 const emailOtp = useOTP()
@@ -360,6 +343,67 @@ const resendPasswordOtp = async () => {
 const cancelPasswordChange = () => {
   passwordOtpSent.value = false
   passwordOtpError.value = false
+}
+
+// WebAuthn helpers and setup
+const strToBuffer = (str: string) => Uint8Array.from(window.atob(str.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0))
+const bufferToBase64Url = (buffer: ArrayBuffer) => {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  bytes.forEach((b) => (binary += String.fromCharCode(b)))
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+const startPasskeyRegistration = async () => {
+  if (!isWebAuthnSupported.value) {
+    toast.error('Biometric/Passkey not supported on this device.')
+    return
+  }
+  bioLoading.value = true
+  try {
+    // 1) Get options from server
+    const { data: options } = await api.post('/webauthn/register/options')
+    const publicKey: any = {
+      ...options,
+      challenge: strToBuffer(options.challenge),
+      user: {
+        ...options.user,
+        id: strToBuffer(options.user.id),
+      },
+      excludeCredentials: (options.excludeCredentials || []).map((cred: any) => ({
+        ...cred,
+        id: strToBuffer(cred.id),
+      })),
+    }
+
+    // 2) Create credential
+    const credential = (await navigator.credentials.create({ publicKey })) as PublicKeyCredential
+    if (!credential) throw new Error('Credential creation was cancelled or failed')
+
+    // 3) Send to server to verify/persist
+    const attObj = credential.response as AuthenticatorAttestationResponse
+    const payload = {
+      id: credential.id,
+      rawId: bufferToBase64Url(credential.rawId),
+      type: credential.type,
+      response: {
+        clientDataJSON: bufferToBase64Url(attObj.clientDataJSON),
+        attestationObject: bufferToBase64Url(attObj.attestationObject),
+      },
+    }
+
+    await api.post('/webauthn/register/verify', payload)
+    toast.success('Biometric login enabled on this device')
+  } catch (err: any) {
+    if (err?.response?.status === 404) {
+      toast.error('Biometric API endpoints are not available on the server yet.')
+    } else {
+      const msg = err?.response?.data?.message || err?.message || 'Unable to setup biometric login'
+      toast.error(msg)
+    }
+  } finally {
+    bioLoading.value = false
+  }
 }
 
 // 2FA

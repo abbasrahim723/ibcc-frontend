@@ -53,12 +53,13 @@
           />
 
           <!-- Add Button -->
-          <router-link
-            to="/admin/locations/phases/create"
+          <button
+            v-if="canCreate"
+            @click="handleAddPhase"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
           >
             Add Phase
-          </router-link>
+          </button>
         </div>
       </div>
 
@@ -99,9 +100,11 @@
                   @click="toggleActive(phase)"
                   :class="[
                     'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
-                    phase.is_active
-                      ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
-                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                    !canToggle
+                      ? 'cursor-not-allowed opacity-50 text-gray-400'
+                      : phase.is_active
+                        ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
+                        : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
                   ]"
                   :title="phase.is_active ? 'Deactivate' : 'Activate'"
                   class="mr-2"
@@ -109,17 +112,27 @@
                   <component :is="phase.is_active ? ShieldAlert : RotateCcw" class="h-4 w-4" />
                   <span class="sr-only">{{ phase.is_active ? 'Deactivate' : 'Activate' }}</span>
                 </button>
-                <router-link
-                  :to="`/admin/locations/phases/${phase.id}/edit`"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200 mr-2"
+                <button
+                  @click="handleEditPhase(phase)"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 mr-2 hover:bg-gray-100 dark:hover:bg-white/5',
+                    canEdit
+                      ? 'text-brand-600 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-200'
+                      : 'cursor-not-allowed opacity-50 text-gray-400'
+                  ]"
                   title="Edit"
                 >
                   <SquarePen class="h-4 w-4" />
                   <span class="sr-only">Edit</span>
-                </router-link>
+                </button>
                 <button
                   @click="deletePhase(phase)"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-red-600 hover:bg-red-50 hover:text-red-800 dark:text-red-400 dark:hover:bg-white/5 dark:hover:text-red-200"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 hover:bg-red-50 dark:hover:bg-white/5',
+                    canDelete
+                      ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200'
+                      : 'cursor-not-allowed opacity-50 text-gray-400'
+                  ]"
                   title="Delete"
                 >
                   <Trash2 class="h-4 w-4" />
@@ -169,12 +182,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { RotateCcw, ShieldAlert, SquarePen, Trash2 } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 
 interface Phase {
   id: number
@@ -209,6 +224,8 @@ interface State {
 }
 
 const toast = useToast()
+const router = useRouter()
+const { can } = usePermissions()
 const currentPageTitle = ref('Phases / Sectors')
 const phases = ref<Phase[]>([])
 const states = ref<State[]>([])
@@ -221,6 +238,10 @@ const selectedTownId = ref('') // Default to "All Towns"
 const showDeleteModal = ref(false)
 const phaseToDelete = ref<Phase | null>(null)
 const isDeleting = ref(false)
+const canCreate = computed(() => can('phases', 'create'))
+const canEdit = computed(() => can('phases', 'edit'))
+const canDelete = computed(() => can('phases', 'delete'))
+const canToggle = computed(() => can('phases', 'change_status'))
 
 const pagination = ref({
   current_page: 1,
@@ -311,11 +332,32 @@ const handleTownChange = () => {
   fetchPhases(1)
 }
 
+const handleAddPhase = () => {
+  if (!canCreate.value) {
+    toast.error('You do not have permission to add phases')
+    return
+  }
+  router.push('/admin/locations/phases/create')
+}
+
+const handleEditPhase = (phase: Phase) => {
+  if (!canEdit.value) {
+    toast.error('You do not have permission to edit phases')
+    return
+  }
+  router.push(`/admin/locations/phases/${phase.id}/edit`)
+}
+
 const changePage = (page: number) => {
   fetchPhases(page)
 }
 
 const toggleActive = async (phase: Phase) => {
+  if (!canToggle.value) {
+    toast.error('You do not have permission to update phase status')
+    return
+  }
+
   const newStatus = !phase.is_active
   const actionText = newStatus ? 'Activating' : 'Deactivating'
 
@@ -335,6 +377,10 @@ const toggleActive = async (phase: Phase) => {
 }
 
 const deletePhase = (phase: Phase) => {
+  if (!canDelete.value) {
+    toast.error('You do not have permission to delete phases')
+    return
+  }
   phaseToDelete.value = phase
   showDeleteModal.value = true
 }

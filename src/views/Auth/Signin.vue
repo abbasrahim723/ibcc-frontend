@@ -216,6 +216,22 @@
                         {{ isLoading ? 'Signing In...' : 'Sign In' }}
                       </button>
                     </div>
+                    <div class="pt-2">
+                      <button
+                        type="button"
+                        :disabled="bioLoading || !isWebAuthnSupported"
+                        @click="handleBiometricLogin"
+                        class="flex items-center justify-center w-full gap-2 rounded-lg border border-brand-500 px-4 py-3 text-sm font-medium text-brand-600 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-brand-400 dark:text-brand-300 dark:hover:bg-brand-900/30"
+                      >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                        </svg>
+                        <span>
+                          {{ bioLoading ? 'Authenticating…' : 'Use Biometric Login' }}
+                          <span v-if="!isWebAuthnSupported" class="text-xs text-amber-600 block">Not supported on this browser</span>
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </form>
                 <div class="mt-5">
@@ -244,7 +260,7 @@
                 <img width="{231}" height="{48}" src="/images/logo/auth-logo.svg" alt="Logo" />
               </router-link>
               <p class="text-center text-gray-400 dark:text-white/60">
-                Free and Open-Source Tailwind CSS Admin Dashboard Template
+                IBCC's CRM Developed by Abbas Rahim - Software Engineer
               </p>
             </div>
           </div>
@@ -255,12 +271,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import CommonGridShape from '@/components/common/CommonGridShape.vue'
 import FullScreenLayout from '@/components/layout/FullScreenLayout.vue'
+import api from '@/utils/axios'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -272,13 +289,84 @@ const showPassword = ref(false)
 const keepLoggedIn = ref(false)
 const isLoading = ref(false)
 const validationErrors = ref<any>({})
+const isWebAuthnSupported = computed(() => !!(window.PublicKeyCredential && typeof window.PublicKeyCredential === 'function'))
+const bioLoading = ref(false)
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
+const strToBuffer = (str: string) =>
+  Uint8Array.from(window.atob(str.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0))
+const bufferToBase64Url = (buffer: ArrayBuffer) => {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  bytes.forEach((b) => (binary += String.fromCharCode(b)))
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+const handleBiometricLogin = async () => {
+  if (!email.value) {
+    toast.error('Enter your email to use biometric login.')
+    return
+  }
+  if (!isWebAuthnSupported.value) {
+    toast.error('Biometric/Passkey not supported in this browser.')
+    return
+  }
+  bioLoading.value = true
+  validationErrors.value = {}
+  try {
+    const { data: options } = await api.post('/webauthn/auth/options', { email: email.value })
+    const publicKey: any = {
+      ...options,
+      challenge: strToBuffer(options.challenge),
+      allowCredentials: (options.allowCredentials || []).map((cred: any) => ({
+        ...cred,
+        id: strToBuffer(cred.id),
+      })),
+    }
+
+    const assertion = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential
+    if (!assertion) throw new Error('Biometric authentication cancelled')
+
+    const authRes = assertion.response as AuthenticatorAssertionResponse
+    const payload = {
+      email: email.value,
+      id: assertion.id,
+      rawId: bufferToBase64Url(assertion.rawId),
+      type: assertion.type,
+      response: {
+        clientDataJSON: bufferToBase64Url(authRes.clientDataJSON),
+        authenticatorData: bufferToBase64Url(authRes.authenticatorData),
+        signature: bufferToBase64Url(authRes.signature),
+        userHandle: authRes.userHandle ? bufferToBase64Url(authRes.userHandle) : null,
+      },
+    }
+
+    const verifyRes = await api.post('/webauthn/auth/verify', payload)
+    const token = verifyRes.data.access_token || verifyRes.data.token
+    if (!token) throw new Error('No token returned from server')
+
+    authStore.token = token
+    authStore.user = verifyRes.data.user
+    authStore.isAuthenticated = true
+    localStorage.setItem('token', token)
+    toast.success('Logged in with biometrics')
+    router.push('/')
+    authStore.fetchUser().catch(() => {})
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      toast.error(error?.response?.data?.message || 'No biometric credential found. Please sign in with password and register.')
+    } else {
+      toast.error(error?.response?.data?.message || error?.message || 'Biometric login failed')
+    }
+  } finally {
+    bioLoading.value = false
+  }
+}
+
 const handleSubmit = async () => {
-  // Reset errors
   validationErrors.value = {}
   isLoading.value = true
 
@@ -286,59 +374,41 @@ const handleSubmit = async () => {
     const response = await authStore.login({
       email: email.value,
       password: password.value,
-      remember: keepLoggedIn.value
+      remember: keepLoggedIn.value,
     })
-    
-    // Check if 2FA is required
+
     if (response.data.requires_2fa) {
-      // Store email for 2FA verification
       localStorage.setItem('pending_2fa_email', email.value)
       toast.info('Please verify your 2FA code')
       router.push('/verify-2fa')
       return
     }
-    
-    // Show success toast
+
     toast.success('Login successful! Redirecting...')
-    
-    // Redirect immediately after successful login
+
     setTimeout(() => {
       router.push('/')
-      // Fetch user data after redirect (non-blocking)
-      authStore.fetchUser().catch(err => {
+      authStore.fetchUser().catch((err) => {
         console.error('Error fetching user data:', err)
       })
     }, 500)
   } catch (error: any) {
     console.error('Login failed', error)
-    
-    // Handle validation errors
+
     if (error.response?.status === 422 && error.response?.data?.errors) {
       validationErrors.value = error.response.data.errors
       toast.error('Please fix the validation errors below.')
-    } 
-    // Handle authentication errors
-    else if (error.response?.status === 401) {
+    } else if (error.response?.status === 401) {
       toast.error('Invalid email or password. Please try again.')
-    }
-    // Handle pending approval
-    else if (error.response?.status === 403 && error.response?.data?.message?.includes('pending')) {
+    } else if (error.response?.status === 403 && error.response?.data?.message?.includes('pending')) {
       toast.error('Your account is pending approval. Please contact the administrator.')
-    }
-    // Handle inactive/blocked users
-    else if (error.response?.status === 403) {
+    } else if (error.response?.status === 403) {
       toast.error(error.response?.data?.message || 'Your account is not active. Please contact the administrator.')
-    }
-    // Handle network errors
-    else if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+    } else if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
       toast.error('Unable to connect to the server. Please make sure the Laravel backend is running.')
-    }
-    // Handle connection refused
-    else if (error.code === 'ERR_CONNECTION_REFUSED') {
+    } else if (error.code === 'ERR_CONNECTION_REFUSED') {
       toast.error('Connection refused. Please start the Laravel backend server.')
-    }
-    // Generic error
-    else {
+    } else {
       toast.error(error.response?.data?.message || 'Login failed. Please try again.')
     }
   } finally {

@@ -1,0 +1,20 @@
+
+const documentCategories = [
+  'Blueprint', 'Planning', 'Site Picture', 'Permit', 'Contract', 'Invoice', 'Other'
+]
+
+const currencySymbol = computed(() => {
+  const symbols: Record<string, string> = {
+    'PKR': '₨',
+    'USD': '$',
+    'EUR': '€'
+  }
+  return symbols[form.value.currency] || form.value.currency
+})
+
+const selectCurrency = (curr: string) => {
+  form.value.currency = curr
+}
+
+const isEditMode = computed(() => !!route.params.id)
+

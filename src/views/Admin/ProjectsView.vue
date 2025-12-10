@@ -114,11 +114,12 @@
                     </div>
                   </div>
                   <div class="min-w-0 flex-1">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      <router-link :to="`/projects/${project.id}`" class="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 hover:underline">
-                        {{ project.name }}
-                      </router-link>
-                    </div>
+                    <button
+                      @click="handleOpenProject(project)"
+                      class="text-left text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 hover:underline truncate"
+                    >
+                      {{ project.name }}
+                    </button>
                     <div class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ project.plot_number || '—' }}</div>
                   </div>
                 </div>
@@ -211,6 +212,7 @@
                       'p-1.5 rounded-md transition-colors',
                       can('projects', 'edit') ? 'text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-900/30' : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
                     ]"
+                    :disabled="!can('projects', 'edit')"
                     title="Edit Project"
                   >
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +246,7 @@
       <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <div v-for="project in projects" :key="project.id" class="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
           <!-- Project Thumbnail/Header -->
-          <router-link :to="`/projects/${project.id}`" class="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-900">
+          <div class="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-900">
             <img 
               v-if="getProjectThumbnail(project)" 
               :src="getProjectThumbnail(project)" 
@@ -291,14 +293,17 @@
                 </div>
               </div>
             </div>
-          </router-link>
+          </div>
 
           <!-- Content -->
           <div class="flex flex-1 flex-col p-4">
             <div class="mb-3">
-              <router-link :to="`/projects/${project.id}`" class="block text-lg font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400">
+              <button
+                @click="handleOpenProject(project)"
+                class="block text-left text-lg font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400"
+              >
                 {{ project.name }}
-              </router-link>
+              </button>
               <div class="mt-1 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -340,7 +345,14 @@
                 </span>
               </div>
               <div class="flex gap-2">
-                <button @click="router.push(`/projects/${project.id}/edit`)" class="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
+                <button
+                  @click="handleEditProject(project)"
+                  :disabled="!can('projects', 'edit')"
+                  :class="[
+                    'rounded p-1.5',
+                    can('projects', 'edit') ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300' : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
+                  ]"
+                >
                   <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
@@ -623,6 +635,14 @@ const handleEditProject = (project: any) => {
         return
     }
     router.push(`/projects/${project.id}/edit`)
+}
+
+const handleOpenProject = (project: any) => {
+    if (!can('projects', 'view_details')) {
+        toast.error('You are not authorized to view project details')
+        return
+    }
+    router.push(`/projects/${project.id}`)
 }
 
 const handleDeleteProject = (id: number) => {

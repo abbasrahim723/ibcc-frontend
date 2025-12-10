@@ -29,24 +29,6 @@
               <div v-else class="flex h-full w-full items-center justify-center bg-gray-100 text-4xl font-bold text-gray-400 dark:bg-gray-800">
                 {{ customer.name.charAt(0).toUpperCase() }}
               </div>
-              <!-- Upload Icon -->
-              <button
-                @click="triggerPhotoUpload"
-                class="absolute bottom-0 right-0 rounded-full bg-brand-600 p-2.5 text-white shadow-lg hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 z-10"
-                title="Upload Photo"
-              >
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-              <input
-                ref="photoInput"
-                type="file"
-                accept="image/*"
-                class="hidden"
-                @change="handlePhotoUpload"
-              />
             </div>
 
             <h3 class="mb-1 text-xl font-bold text-gray-900 dark:text-white">{{ getFullName(customer) }}</h3>
@@ -622,7 +604,6 @@ const customerPayments = ref<any[]>([])
 const showPreviewModal = ref(false)
 const previewDoc = ref<any>(null)
 const previewUrl = ref('')
-const photoInput = ref<HTMLInputElement | null>(null)
 const activeShareDropdown = ref<number | null>(null)
 
 // Computed property to aggregate all documents from customer, projects, and payments
@@ -679,41 +660,6 @@ const getFullName = (customer: any) => {
   if (!customer) return ''
   const prefix = customer.name_prefix ? `${customer.name_prefix} ` : ''
   return `${prefix}${customer.name}`
-}
-
-const triggerPhotoUpload = () => {
-  photoInput.value?.click()
-}
-
-const handlePhotoUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (!target.files || !target.files[0]) return
-
-  const file = target.files[0]
-
-  // Validate file size (2MB)
-  if (file.size > 2 * 1024 * 1024) {
-    toast.error('Image size should be less than 2MB')
-    return
-  }
-
-  try {
-    const formData = new FormData()
-    formData.append('profile_photo', file)
-    formData.append('name', customer.value.name) // Include name to pass validation
-    formData.append('_method', 'PUT')
-
-    const response = await api.post(`/customers/${route.params.id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-
-    toast.success('Profile photo updated successfully')
-    await fetchCustomer()
-  } catch (error: any) {
-    toast.error('Error uploading photo')
-  }
 }
 
 const toggleShareDropdown = (docId: number) => {

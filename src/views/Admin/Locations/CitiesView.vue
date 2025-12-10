@@ -79,9 +79,11 @@
                   @click="toggleActive(city)"
                   :class="[
                     'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
-                    city.is_active
-                      ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
-                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                    !canToggle
+                      ? 'cursor-not-allowed opacity-50 text-gray-400'
+                      : city.is_active
+                        ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
+                        : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
                   ]"
                   :title="city.is_active ? 'Deactivate' : 'Activate'"
                 >
@@ -127,6 +129,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 
 interface City {
   id: number
@@ -149,6 +152,7 @@ interface Country {
 }
 
 const toast = useToast()
+const { can } = usePermissions()
 const currentPageTitle = ref('Cities')
 const cities = ref<City[]>([])
 const countries = ref<Country[]>([])
@@ -156,6 +160,7 @@ const allStates = ref<State[]>([])
 const searchQuery = ref('')
 const selectedCountryId = ref('')
 const selectedStateId = ref('')
+const canToggle = computed(() => can('cities', 'change_status'))
 
 const pagination = ref({
   current_page: 1,
@@ -255,6 +260,11 @@ const getStateName = (stateId: number) => {
 }
 
 const toggleActive = async (city: City) => {
+  if (!canToggle.value) {
+    toast.error('You do not have permission to update city status')
+    return
+  }
+
   const newStatus = !city.is_active
   const actionText = newStatus ? 'Activating' : 'Deactivating'
 

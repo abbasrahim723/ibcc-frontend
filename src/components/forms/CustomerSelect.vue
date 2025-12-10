@@ -17,7 +17,7 @@
           {{ selectedCustomer.name.charAt(0) }}
         </span>
         <div class="truncate">
-          <div class="font-medium truncate">{{ selectedCustomer.name }}</div>
+          <div class="font-medium truncate">{{ getDisplayName(selectedCustomer) }}</div>
           <div v-if="showAddress && selectedCustomer.address" class="text-xs text-gray-500 truncate">{{ selectedCustomer.address }}</div>
         </div>
       </span>
@@ -64,7 +64,7 @@
             {{ customer.name.charAt(0) }}
           </span>
           <div class="min-w-0 flex-1">
-            <div class="font-medium text-gray-900 dark:text-white truncate">{{ customer.name }}</div>
+            <div class="font-medium text-gray-900 dark:text-white truncate">{{ getDisplayName(customer) }}</div>
             <div class="text-xs text-gray-500 truncate">{{ customer.address || 'No address' }}</div>
           </div>
           <div v-if="modelValue === customer.id" class="text-brand-600 dark:text-brand-400">
@@ -128,11 +128,14 @@ const selectedCustomer = computed(() => {
 const filteredCustomers = computed(() => {
   if (!searchQuery.value) return customersList.value
   const search = searchQuery.value.toLowerCase()
-  return customersList.value.filter((c: any) =>
-    c.name.toLowerCase().includes(search) ||
-    (c.email && c.email.toLowerCase().includes(search)) ||
-    (c.phone && c.phone.includes(search))
-  )
+  return customersList.value.filter((c: any) => {
+    const display = getDisplayName(c).toLowerCase()
+    return (
+      display.includes(search) ||
+      (c.email && c.email.toLowerCase().includes(search)) ||
+      (c.phone && c.phone.includes(search))
+    )
+  })
 })
 
 const toggleDropdown = async () => {
@@ -177,6 +180,12 @@ const getCustomerPhoto = (c: any) => {
   if (!c) return ''
   const path = c.profile_photo_url || c.photo || c.avatar || c.profile_photo
   return path ? makeAbsoluteUrl(path) : ''
+}
+
+const getDisplayName = (c: any) => {
+  if (!c) return ''
+  const prefix = c.name_prefix ? `${c.name_prefix} ` : ''
+  return `${prefix}${c.name || ''}`.trim()
 }
 
 const makeAbsoluteUrl = (path: string | undefined) => {

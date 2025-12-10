@@ -1,14 +1,12 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 flex items-start justify-center pt-20 sm:items-center sm:pt-0">
-    <div @click="handleBackdropClick" class="fixed inset-0 bg-black/40 z-[999999]"></div>
+  <div v-if="isOpen" class="fixed inset-0 z-[1000000] flex items-center justify-center p-4">
+    <div @click="handleBackdropClick" class="fixed inset-0 bg-black/40 z-[1000001]"></div>
 
-    <!-- Container: anchored near top on desktop (below header), full-screen on mobile -->
-    <div class="relative z-[1000000] w-full h-full sm:h-auto sm:max-w-[90vw] mx-auto">
+    <div class="relative z-[1000002] w-full sm:w-auto sm:max-w-[90vw]">
       <div
-        class="relative w-full h-full sm:h-auto sm:mx-auto sm:max-w-[820px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl sm:rounded-2xl overflow-hidden"
+        class="relative w-full sm:w-auto sm:min-w-[360px] sm:max-w-[720px] max-h-[90vh] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl sm:rounded-2xl overflow-hidden flex flex-col"
       >
-        <!-- Inner scrollable area: on mobile it fills viewport, on desktop constrained to viewport minus header -->
-        <div class="h-full overflow-auto p-4 sm:p-6 sm:max-h-[calc(100vh-6rem)]">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 no-scrollbar">
           <slot v-if="$slots.default"></slot>
           <slot name="body" v-else></slot>
         </div>
@@ -62,3 +60,13 @@ onBeforeUnmount(() => {
   unlockBodyScroll()
 })
 </script>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

@@ -63,9 +63,11 @@
                   @click="toggleActive(state)"
                   :class="[
                     'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
-                    state.is_active
-                      ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
-                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                    !canToggle
+                      ? 'cursor-not-allowed opacity-50 text-gray-400'
+                      : state.is_active
+                        ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
+                        : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
                   ]"
                   :title="state.is_active ? 'Deactivate' : 'Activate'"
                 >
@@ -105,12 +107,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { RotateCcw, ShieldAlert } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 
 interface State {
   id: number
@@ -126,11 +129,13 @@ interface Country {
 }
 
 const toast = useToast()
+const { can } = usePermissions()
 const currentPageTitle = ref('States')
 const states = ref<State[]>([])
 const countries = ref<Country[]>([])
 const searchQuery = ref('')
 const selectedCountryId = ref('')
+const canToggle = computed(() => can('states', 'change_status'))
 
 const pagination = ref({
   current_page: 1,
@@ -196,6 +201,11 @@ const getCountryName = (countryId: number) => {
 }
 
 const toggleActive = async (state: State) => {
+  if (!canToggle.value) {
+    toast.error('You do not have permission to update state status')
+    return
+  }
+
   const newStatus = !state.is_active
   const actionText = newStatus ? 'Activating' : 'Deactivating'
 

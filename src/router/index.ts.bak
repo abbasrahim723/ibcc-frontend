@@ -262,7 +262,6 @@ const router = createRouter({
       component: () => import('../views/Admin/ContractTypesView.vue'),
       meta: {
         title: 'Contract Types',
-        permission: 'contract_types.view'
       },
     },
     {
@@ -271,7 +270,6 @@ const router = createRouter({
       component: () => import('../views/Admin/ContractTypeFormView.vue'),
       meta: {
         title: 'Create Contract Type',
-        permission: 'contract_types.create'
       },
     },
     {
@@ -280,7 +278,6 @@ const router = createRouter({
       component: () => import('../views/Admin/ContractTypeFormView.vue'),
       meta: {
         title: 'Edit Contract Type',
-        permission: 'contract_types.edit'
       },
     },
     {
@@ -342,7 +339,6 @@ const router = createRouter({
       component: () => import('../views/Admin/Locations/PrefixesView.vue'),
       meta: {
         title: 'Prefixes Management',
-        permission: 'prefixes.view'
       },
     },
     {
@@ -350,9 +346,7 @@ const router = createRouter({
       name: 'CreateTown',
       component: () => import('../views/Admin/Locations/TownFormView.vue'),
       meta: {
-        requiresAuth: true,
         title: 'Create Town',
-        permission: 'locations.create'
       },
     },
     {
@@ -360,9 +354,7 @@ const router = createRouter({
       name: 'EditTown',
       component: () => import('../views/Admin/Locations/TownFormView.vue'),
       meta: {
-        requiresAuth: true,
         title: 'Edit Town',
-        permission: 'locations.edit'
       },
     },
     {
@@ -371,7 +363,6 @@ const router = createRouter({
       component: () => import('../views/Admin/Locations/PhasesView.vue'),
       meta: {
         title: 'Phases Management',
-        permission: 'phases.view'
       },
     },
     {
@@ -379,9 +370,7 @@ const router = createRouter({
       name: 'CreatePhase',
       component: () => import('../views/Admin/Locations/PhaseFormView.vue'),
       meta: {
-        requiresAuth: true,
         title: 'Create Phase',
-        permission: 'locations.create'
       },
     },
     {
@@ -389,9 +378,7 @@ const router = createRouter({
       name: 'EditPhase',
       component: () => import('../views/Admin/Locations/PhaseFormView.vue'),
       meta: {
-        requiresAuth: true,
         title: 'Edit Phase',
-        permission: 'locations.edit'
       },
     },
     // Template Management
@@ -430,7 +417,7 @@ const router = createRouter({
       meta: {
         title: 'Signatures',
         requiresAuth: true,
-        permission: 'signatures.view'
+        permission: 'documents.view'
       },
     },
     {
@@ -440,7 +427,7 @@ const router = createRouter({
       meta: {
         title: 'Create Signature',
         requiresAuth: true,
-        permission: 'signatures.create'
+        permission: 'documents.create'
       },
     },
     {
@@ -450,16 +437,7 @@ const router = createRouter({
       meta: {
         title: 'Edit Signature',
         requiresAuth: true,
-        permission: 'signatures.edit'
-      },
-    },
-    {
-      path: '/search',
-      name: 'GlobalSearch',
-      component: () => import('../views/SearchResultsView.vue'),
-      meta: {
-        title: 'Search',
-        requiresAuth: true
+        permission: 'documents.edit'
       },
     },
     {

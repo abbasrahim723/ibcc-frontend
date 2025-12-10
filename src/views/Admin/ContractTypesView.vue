@@ -16,7 +16,8 @@
           />
           
           <button
-            @click="$router.push('/contract-types/create')"
+            v-if="canCreate"
+            @click="handleCreate"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
           >
             <span class="flex items-center gap-2">
@@ -60,8 +61,14 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
-                  @click="$router.push(`/contract-types/${type.id}/edit`)"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200"
+                  @click="handleEdit(type)"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
+                    canEdit
+                      ? 'text-brand-600 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-200'
+                      : 'cursor-not-allowed opacity-50 text-gray-400'
+                  ]"
+                  :disabled="!canEdit"
                   title="Edit"
                 >
                   <SquarePen class="h-4 w-4" />
@@ -71,10 +78,13 @@
                   @click="toggleActive(type)"
                   :class="[
                     'ml-2 inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
-                    type.is_active
-                      ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300'
-                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                    !canToggle
+                      ? 'cursor-not-allowed opacity-50 text-gray-400'
+                      : type.is_active
+                        ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300'
+                        : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
                   ]"
+                  :disabled="!canToggle"
                   :title="type.is_active ? 'Deactivate' : 'Activate'"
                 >
                   <component :is="type.is_active ? Trash2 : RotateCcw" class="h-4 w-4" />
@@ -93,12 +103,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { SquarePen, RotateCcw, Trash2 } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 
 interface ContractType {
   id: number
@@ -110,9 +122,14 @@ interface ContractType {
 }
 
 const toast = useToast()
+const router = useRouter()
+const { can } = usePermissions()
 const currentPageTitle = ref('Contract Types')
 const contractTypes = ref<ContractType[]>([])
 const searchQuery = ref('')
+const canCreate = computed(() => can('contract_types', 'create'))
+const canEdit = computed(() => can('contract_types', 'edit'))
+const canToggle = computed(() => can('contract_types', 'change_status'))
 
 const fetchContractTypes = async () => {
   try {
@@ -126,7 +143,28 @@ const fetchContractTypes = async () => {
 
 const handleSearch = () => fetchContractTypes()
 
+const handleCreate = () => {
+  if (!canCreate.value) {
+    toast.error('You do not have permission to add contract types')
+    return
+  }
+  router.push('/contract-types/create')
+}
+
+const handleEdit = (type: ContractType) => {
+  if (!canEdit.value) {
+    toast.error('You do not have permission to edit contract types')
+    return
+  }
+  router.push(`/contract-types/${type.id}/edit`)
+}
+
 const toggleActive = async (type: ContractType) => {
+  if (!canToggle.value) {
+    toast.error('You do not have permission to change contract type status')
+    return
+  }
+
   const action = type.is_active ? 'deactivate' : 'activate'
   
   try {

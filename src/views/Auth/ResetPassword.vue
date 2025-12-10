@@ -223,7 +223,7 @@
                 <img width="{231}" height="{48}" src="/images/logo/auth-logo.svg" alt="Logo" />
               </router-link>
               <p class="text-center text-gray-400 dark:text-white/60">
-                Free and Open-Source Tailwind CSS Admin Dashboard Template
+                IBCC's CRM Developed by Abbas Rahim - Software Engineer
               </p>
             </div>
           </div>
@@ -281,15 +281,15 @@ const handleSubmit = async () => {
 
   try {
     await authStore.resetPassword(email.value, otpCode.value, password.value, passwordConfirmation.value)
-    
+
     // Show success toast
     toast.success('Password reset successfully! Please sign in with your new password.')
-    
+
     // Redirect to sign in page
     router.push('/signin')
   } catch (error: any) {
     console.error('Password reset failed', error)
-    
+
     // Handle validation errors
     if (error.response?.status === 422 && error.response?.data?.errors) {
       validationErrors.value = error.response.data.errors

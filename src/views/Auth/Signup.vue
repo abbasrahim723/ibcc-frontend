@@ -246,7 +246,7 @@
                 <img width="{231}" height="{48}" src="/images/logo/auth-logo.svg" alt="Logo" />
               </router-link>
               <p class="text-center text-gray-400 dark:text-white/60">
-                Free and Open-Source Tailwind CSS Admin Dashboard Template
+                IBCC's CRM Developed by Abbas Rahim - Software Engineer
               </p>
             </div>
           </div>
@@ -293,17 +293,17 @@ const handleSubmit = async () => {
       password: password.value,
       password_confirmation: password.value
     })
-    
+
     // Show success message about pending approval
     toast.success('Registration successful! Your account is pending approval by an administrator. You will be notified once approved.')
-    
+
     // Redirect to sign in page after a delay
     setTimeout(() => {
       router.push('/signin')
     }, 3000)
   } catch (error: any) {
     console.error('Registration failed', error)
-    
+
     // Handle validation errors
     if (error.response?.status === 422 && error.response?.data?.errors) {
       validationErrors.value = error.response.data.errors

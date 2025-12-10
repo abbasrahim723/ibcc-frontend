@@ -276,13 +276,16 @@ layer(base);
 }
 
 @layer utilities {
-  /* For Remove Date Icon */
+  /* Allow native date/time pickers */
   input[type='date']::-webkit-inner-spin-button,
-  input[type='time']::-webkit-inner-spin-button,
+  input[type='time']::-webkit-inner-spin-button {
+    display: none;
+  }
   input[type='date']::-webkit-calendar-picker-indicator,
   input[type='time']::-webkit-calendar-picker-indicator {
-    display: none;
-    -webkit-appearance: none;
+    display: inline-block;
+    cursor: pointer;
+    opacity: 1;
   }
 }
 

@@ -99,8 +99,8 @@
                 <td class="px-4 py-4">
                   <div class="max-w-[150px]">
                     <router-link 
-                      v-if="document.documentable && (document.documentable_type.includes('Customer') || document.documentable_type.includes('Project'))"
-                      :to="document.documentable_type.includes('Customer') ? `/customers/${document.documentable_id}` : `/projects/${document.documentable_id}`"
+                      v-if="document.documentable && linkFor(document)"
+                      :to="linkFor(document)"
                       class="text-sm text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 truncate block"
                       :title="getDocumentOwner(document)"
                     >
@@ -380,12 +380,14 @@ const categories = [
   { label: '📐 Plan', value: 'plan' },
   { label: '🆔 CNIC Front', value: 'CNIC Front' },
   { label: '🆔 CNIC Back', value: 'CNIC Back' },
+  { label: '💳 Payment Attachment', value: 'payment' },
   { label: '📦 Other', value: 'other' }
 ]
 const models = [
   { label: '📂 All Models', value: '' },
   { label: '👤 Customers', value: 'App\\Models\\Customer' },
   { label: '🏗️ Projects', value: 'App\\Models\\Project' },
+  { label: '💳 Payments', value: 'App\\Models\\Payment' },
 ]
 const activeShareDropdown = ref<number | null>(null)
 const showPreviewModal = ref(false)
@@ -462,19 +464,26 @@ const getFileIcon = (document: Document): string => {
   return 'file'
 }
 
+const linkFor = (document: Document) => {
+  if (!document.documentable_type) return null
+  if (document.documentable_type.includes('Customer')) return `/customers/${document.documentable_id}`
+  if (document.documentable_type.includes('Project')) return `/projects/${document.documentable_id}`
+  if (document.documentable_type.includes('Payment')) return `/payments/${document.documentable_id}/edit`
+  return null
+}
+
 const canPreview = (document: Document): boolean => {
   return getFileIcon(document) === 'image' || getFileIcon(document) === 'pdf'
 }
 
 const getDocumentOwner = (document: Document): string => {
-  if (!document.documentable) {
-    return 'Unknown'
-  }
-  
-  const type = document.documentable_type.split('\\').pop() || document.documentable_type
-  const name = document.documentable.name || `ID: ${document.documentable_id}`
-  
-  return `${type}: ${name}`
+  if (!document.documentable_type) return 'Unknown'
+  const type = document.documentable_type.split('\\').pop()?.toLowerCase() || ''
+  const name = (document.documentable && document.documentable.name) || `ID: ${document.documentable_id}`
+  if (type.includes('customer')) return `Customer: ${name}`
+  if (type.includes('project')) return `Project: ${name}`
+  if (type.includes('payment')) return `Payment #${document.documentable_id}`
+  return `${type || 'Unknown'}: ${name}`
 }
 
 const formatFileSize = (bytes: number): string => {

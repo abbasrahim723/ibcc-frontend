@@ -18,6 +18,7 @@
 
           <!-- Add Button -->
           <router-link
+            v-if="canCreate"
             to="/admin/templates/templates/create"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
           >
@@ -58,10 +59,13 @@
                   @click="toggleActive(template)"
                   :class="[
                     'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
-                    template.status
-                      ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
-                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                    !canToggle
+                      ? 'cursor-not-allowed opacity-50 text-gray-400'
+                      : template.status
+                        ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
+                        : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
                   ]"
+                  :disabled="!canToggle"
                   :title="template.status ? 'Deactivate' : 'Activate'"
                   class="mr-2"
                 >
@@ -70,7 +74,14 @@
                 </button>
                 <router-link
                   :to="`/admin/templates/templates/${template.id}/edit`"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200 mr-2"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 mr-2 hover:bg-gray-100 dark:hover:bg-white/5',
+                    canEdit
+                      ? 'text-brand-600 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-200'
+                      : 'cursor-not-allowed opacity-50 text-gray-400'
+                  ]"
+                  :aria-disabled="!canEdit"
+                  :tabindex="canEdit ? 0 : -1"
                   title="Edit"
                 >
                   <SquarePen class="h-4 w-4" />
@@ -78,7 +89,13 @@
                 </router-link>
                 <button
                   @click="deleteTemplate(template)"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-red-600 hover:bg-red-50 hover:text-red-800 dark:text-red-400 dark:hover:bg-white/5 dark:hover:text-red-200"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 hover:bg-red-50 dark:hover:bg-white/5',
+                    canDelete
+                      ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200'
+                      : 'cursor-not-allowed opacity-50 text-gray-400'
+                  ]"
+                  :disabled="!canDelete"
                   title="Delete"
                 >
                   <Trash2 class="h-4 w-4" />
@@ -111,6 +128,7 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 
 interface Template {
   id: number
@@ -121,12 +139,17 @@ interface Template {
 }
 
 const toast = useToast()
+const { can } = usePermissions()
 const currentPageTitle = ref('Templates')
 const templates = ref<Template[]>([])
 const searchQuery = ref('')
 const showDeleteModal = ref(false)
 const templateToDelete = ref<Template | null>(null)
 const isDeleting = ref(false)
+const canCreate = computed(() => can('templates', 'create'))
+const canEdit = computed(() => can('templates', 'edit'))
+const canDelete = computed(() => can('templates', 'delete'))
+const canToggle = computed(() => can('templates', 'change_status'))
 
 const fetchTemplates = async () => {
   try {
@@ -152,6 +175,11 @@ const filteredTemplates = computed(() => {
 })
 
 const toggleActive = async (template: Template) => {
+  if (!canToggle.value) {
+    toast.error('You do not have permission to change template status')
+    return
+  }
+
   const newStatus = !template.status
   const actionText = newStatus ? 'Activating' : 'Deactivating'
 
@@ -171,6 +199,11 @@ const toggleActive = async (template: Template) => {
 }
 
 const deleteTemplate = (template: Template) => {
+  if (!canDelete.value) {
+    toast.error('You do not have permission to delete templates')
+    return
+  }
+
   templateToDelete.value = template
   showDeleteModal.value = true
 }

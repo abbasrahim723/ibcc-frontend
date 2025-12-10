@@ -113,7 +113,7 @@
                     </div>
                     <span v-else class="text-sm text-gray-400">—</span>
                   </td>
-                  <td class="px-4 py-4">
+                                                      <td class="px-4 py-4">
                     <router-link 
                       v-if="payment.payer"
                       :to="`/customers/${payment.payer.id}`"
@@ -123,16 +123,19 @@
                         <img 
                           v-if="getCustomerPhoto(payment.payer)" 
                           :src="getCustomerPhoto(payment.payer)" 
-                          :alt="payment.payer?.name"
+                          :alt="formatCustomerName(payment.payer)"
                           class="h-full w-full object-cover" 
                         />
                         <div v-else class="h-full w-full flex items-center justify-center text-xs font-bold text-gray-400 dark:text-gray-600">
-                          {{ payment.payer?.name?.charAt(0)?.toUpperCase() || '?' }}
+                          {{ payment.payer?.name?.charAt(0)?.toUpperCase() || '—' }}
                         </div>
                       </div>
                       <div class="min-w-0 flex-1">
-                        <div class="text-sm font-medium text-brand-600 dark:text-brand-400 truncate max-w-[150px] group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors">
-                          {{ payment.payer?.name || payment.payer_id || '—' }}
+                        <div class="text-sm font-medium text-brand-600 dark:text-brand-400 truncate max-w-[180px] group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors">
+                          {{ formatCustomerName(payment.payer) || payment.payer_id || '—' }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
+                          {{ payment.payer?.address || payment.payer?.street_address || '—' }}
                         </div>
                       </div>
                     </router-link>
@@ -371,7 +374,7 @@ const fetchPayments = async (page = 1) => {
 
 const fetchProjects = async () => {
   try {
-    const res = await api.get('/projects')
+    const res = await api.get('/projects', { params: { per_page: 200, with: 'documents' } })
     projects.value = res.data.data || res.data
   } catch (e: any) {
     // ignore
@@ -471,6 +474,13 @@ const getCustomerPhoto = (c: any) => {
   if (!c) return ''
   const path = c.profile_photo_url || c.photo || c.avatar || c.profile_photo
   return path ? makeAbsoluteUrl(path) : ''
+}
+
+const formatCustomerName = (c: any) => {
+  if (!c) return ''
+  const prefix = c.name_prefix ? `${c.name_prefix} ` : ''
+  const full = c.name || [c.first_name, c.last_name].filter(Boolean).join(' ')
+  return (prefix + full).trim() || c.email || ''
 }
 
 const makeAbsoluteUrl = (path: string | undefined) => {

@@ -31,19 +31,73 @@
             >
               Timeline
             </button>
-          </div>
+          </div>          <!-- User Filter (super-admin only) -->
+          <div v-if="isSuperAdmin" class="relative">
+            <button
+              type="button"
+              @click="isUserDropdownOpen = !isUserDropdownOpen"
+              class="flex h-11 items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 sm:px-4 text-left text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              <span v-if="selectedUser" class="flex items-center gap-2 overflow-hidden">
+                <img v-if="getUserPhoto(selectedUser)" :src="getUserPhoto(selectedUser)" class="h-6 w-6 rounded-full object-cover flex-shrink-0" />
+                <span v-else class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700 flex-shrink-0">
+                  {{ selectedUser.name?.charAt(0) || 'U' }}
+                </span>
+                <div class="truncate">
+                  <div class="font-medium truncate">{{ getUserDisplay(selectedUser) }}</div>
+                  <div class="text-xs text-gray-500 truncate">{{ getUserRole(selectedUser) || 'Role' }}</div>
+                </div>
+              </span>
+              <span v-else class="text-gray-500">All Users</span>
+              <svg class="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
 
-          <!-- User Filter -->
-          <select
-            v-model="filters.user_id"
-            @change="handleFilter"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Users</option>
-            <option v-for="user in users" :key="user.id" :value="user.id">
-              {{ user.name }}
-            </option>
-          </select>
+            <div
+              v-if="isUserDropdownOpen"
+              class="absolute z-30 mt-1 max-h-64 w-64 overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+            >
+              <div class="px-3 py-2 sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+                <input
+                  v-model="userSearch"
+                  type="text"
+                  class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="Search users..."
+                  @click.stop
+                />
+              </div>
+              <div
+                class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
+                @click="selectUserFilter(null)"
+              >
+                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">All</div>
+                <div>
+                  <div class="font-medium text-gray-900 dark:text-white">All Users</div>
+                  <div class="text-xs text-gray-500">Show every user</div>
+                </div>
+              </div>
+              <div
+                v-for="user in filteredUsers"
+                :key="user.id"
+                @click="selectUserFilter(user)"
+                class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <img v-if="getUserPhoto(user)" :src="getUserPhoto(user)" class="h-8 w-8 rounded-full object-cover" />
+                <span v-else class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">
+                  {{ user.name?.charAt(0) || 'U' }}
+                </span>
+                <div>
+                  <div class="font-medium text-gray-900 dark:text-white">{{ getUserDisplay(user) }}</div>
+                  <div class="text-xs text-gray-500">{{ getUserRole(user) || 'Role' }}</div>
+                </div>
+              </div>
+              <div v-if="filteredUsers.length === 0" class="px-3 py-2 text-sm text-gray-500 text-center">
+                No users found
+              </div>
+            </div>
+            <div v-if="isUserDropdownOpen" class="fixed inset-0 z-10" @click="isUserDropdownOpen = false"></div>
+          </div>
 
           <!-- Date Range -->
           <div class="flex items-center gap-2">
@@ -226,12 +280,12 @@
                     <div v-for="(newValue, key) in getChangedAttributes(log.changes)" :key="key" class="text-xs">
                       <div class="font-medium text-gray-600 dark:text-gray-400 mb-1">{{ formatAttributeName(key) }}:</div>
                       <div class="ml-3 flex items-start gap-2">
-                        <div class="flex-1">
-                          <span class="text-red-600 dark:text-red-400 line-through">{{ formatValue(log.changes.before[key]) }}</span>
+                        <div class="flex-1 break-words max-w-full overflow-hidden">
+                          <span class="text-red-600 dark:text-red-400 line-through break-words">{{ formatValue(log.changes.before[key]) }}</span>
                         </div>
-                        <span class="text-gray-400">?</span>
-                        <div class="flex-1">
-                          <span class="text-green-600 dark:text-green-400 font-medium">{{ formatValue(newValue) }}</span>
+                        <span class="text-gray-400">-&gt;</span>
+                        <div class="flex-1 break-words max-w-full overflow-hidden">
+                          <span class="text-green-600 dark:text-green-400 font-medium break-words">{{ formatValue(newValue) }}</span>
                         </div>
                       </div>
                     </div>
@@ -248,8 +302,6 @@
                   {{ log.user_agent }}
                 </div>
               </div>
-
-
           </div>
         </div>
 
@@ -346,12 +398,14 @@ import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useDateTimeFormat } from '@/composables/useDateTimeFormat'
+import { usePermissions } from '@/composables/usePermissions'
 import flatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 
 const route = useRoute()
 const toast = useToast()
 const authStore = useAuthStore()
+const { permissions } = usePermissions()
 const { formatDateTime } = useDateTimeFormat()
 
 const currentPageTitle = ref('Activity Logs')
@@ -365,6 +419,14 @@ const loadingMore = ref(false)
 const scrollTrigger = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 const availableActions = ref<string[]>(['created', 'updated', 'deleted', 'login', 'logout'])
+const isSuperAdmin = computed(() => {
+  const userRoles = authStore.user?.roles || []
+  if (Array.isArray(userRoles)) {
+    if (userRoles.some((r: any) => r === 'super-admin' || r?.name === 'super-admin')) return true
+  }
+  if (permissions.value?.includes?.('super-admin')) return true
+  return false
+})
 
 const filters = ref({
   action: '',
@@ -372,6 +434,25 @@ const filters = ref({
   user_id: '',
   start_date: '',
   end_date: ''
+})
+const isUserDropdownOpen = ref(false)
+const userSearch = ref('')
+
+const selectedUser = computed(() => {
+  if (!filters.value.user_id) return null
+  return users.value.find((u: any) => String(u.id) === String(filters.value.user_id)) || null
+})
+
+const filteredUsers = computed(() => {
+  const term = userSearch.value.trim().toLowerCase()
+  if (!term) return users.value
+  return users.value.filter((u: any) => {
+    const hay = [u.name, u.name_prefix, u.first_name, u.last_name, u.email, u.role, u.roles?.[0]?.name]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+    return hay.includes(term)
+  })
 })
 
 const dateConfig = {
@@ -394,6 +475,8 @@ const pagination = ref({
 })
 
 const fetchUsers = async () => {
+  // Only needed for super-admin filter
+  if (!isSuperAdmin.value) return
   try {
     const response = await api.get('/users/list')
     users.value = response.data
@@ -414,6 +497,11 @@ const fetchLogs = async (page = 1, append = false) => {
       page,
       per_page: 15,
       ...filters.value
+    }
+
+    // Force own logs for non super-admin
+    if (!isSuperAdmin.value && authStore.user?.id) {
+      params.user_id = authStore.user.id
     }
 
     // Remove empty filters
@@ -488,6 +576,43 @@ const formatValue = (value: any): string => {
   return String(value)
 }
 
+const getUserPhoto = (user: any) => {
+  if (!user) return ''
+  const path =
+    user.profile_photo_url ||
+    user.avatar_url ||
+    user.photo_url ||
+    user.profile_photo_path ||
+    user.photo ||
+    user.avatar ||
+    user.profile_photo ||
+    (Array.isArray(user.media) && user.media.length ? (user.media[0].original_url || user.media[0].url || user.media[0].preview_url) : '')
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  const base = ((import.meta.env.VITE_FILE_BASE_URL as string) || (import.meta.env.VITE_API_BASE_URL as string) || window.location.origin).replace(/\/api\/?$/, '').replace(/\/$/, '')
+  const rel = path.startsWith('/') ? path : `/storage/${path}`
+  return `${base}${rel}`
+}
+
+const getUserDisplay = (user: any) => {
+  if (!user) return ''
+  const prefix = user.name_prefix ? `${user.name_prefix} ` : ''
+  const full = user.name || [user.first_name, user.last_name].filter(Boolean).join(' ')
+  return (prefix + full).trim() || user.email || 'User'
+}
+
+const getUserRole = (user: any) => {
+  if (!user) return ''
+  if (Array.isArray(user.roles) && user.roles.length) return user.roles[0]?.name || ''
+  return user.role || user.primary_role || ''
+}
+
+const selectUserFilter = (user: any | null) => {
+  filters.value.user_id = user ? user.id.toString() : ''
+  isUserDropdownOpen.value = false
+  handleFilter()
+}
+
 // Check if a log has any changes
 const hasChanges = (log: any): boolean => {
   if (!log.changes) return false
@@ -553,8 +678,10 @@ onMounted(async () => {
 
   await fetchUsers()
 
-  // Check for my_activity param
-  if (route.query.my_activity === 'true' && authStore.user) {
+  // Lock to own logs for non super-admins
+  if (!isSuperAdmin.value && authStore.user?.id) {
+    filters.value.user_id = authStore.user.id.toString()
+  } else if (route.query.my_activity === 'true' && authStore.user) {
     filters.value.user_id = authStore.user.id.toString()
   }
 

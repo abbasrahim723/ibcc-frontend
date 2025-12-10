@@ -41,12 +41,13 @@
           />
 
           <!-- Add Button -->
-          <router-link
-            to="/admin/locations/towns/create"
+          <button
+            v-if="canCreate"
+            @click="handleAddTown"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
           >
             Add Town
-          </router-link>
+          </button>
         </div>
       </div>
 
@@ -91,9 +92,11 @@
                   @click="toggleActive(town)"
                   :class="[
                     'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
-                    town.is_active
-                      ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
-                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                    !canToggle
+                      ? 'cursor-not-allowed opacity-50 text-gray-400'
+                      : town.is_active
+                        ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
+                        : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
                   ]"
                   :title="town.is_active ? 'Deactivate' : 'Activate'"
                   class="mr-2"
@@ -101,17 +104,27 @@
                   <component :is="town.is_active ? ShieldAlert : RotateCcw" class="h-4 w-4" />
                   <span class="sr-only">{{ town.is_active ? 'Deactivate' : 'Activate' }}</span>
                 </button>
-                <router-link
-                  :to="`/admin/locations/towns/${town.id}/edit`"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200 mr-2"
+                <button
+                  @click="handleEditTown(town)"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 mr-2 hover:bg-gray-100 dark:hover:bg-white/5',
+                    canEdit
+                      ? 'text-brand-600 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-200'
+                      : 'cursor-not-allowed opacity-50 text-gray-400'
+                  ]"
                   title="Edit"
                 >
                   <SquarePen class="h-4 w-4" />
                   <span class="sr-only">Edit</span>
-                </router-link>
+                </button>
                 <button
                   @click="deleteTown(town)"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-red-600 hover:bg-red-50 hover:text-red-800 dark:text-red-400 dark:hover:bg-white/5 dark:hover:text-red-200"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 hover:bg-red-50 dark:hover:bg-white/5',
+                    canDelete
+                      ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200'
+                      : 'cursor-not-allowed opacity-50 text-gray-400'
+                  ]"
                   title="Delete"
                 >
                   <Trash2 class="h-4 w-4" />
@@ -161,12 +174,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { RotateCcw, ShieldAlert, SquarePen, Trash2 } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 
 interface Town {
   id: number
@@ -188,6 +203,8 @@ interface State {
 }
 
 const toast = useToast()
+const router = useRouter()
+const { can } = usePermissions()
 const currentPageTitle = ref('Towns')
 const towns = ref<Town[]>([])
 const states = ref<State[]>([])
@@ -198,6 +215,10 @@ const selectedCityId = ref('') // Default to "All Cities"
 const showDeleteModal = ref(false)
 const townToDelete = ref<Town | null>(null)
 const isDeleting = ref(false)
+const canCreate = computed(() => can('towns', 'create'))
+const canEdit = computed(() => can('towns', 'edit'))
+const canDelete = computed(() => can('towns', 'delete'))
+const canToggle = computed(() => can('towns', 'change_status'))
 
 const pagination = ref({
   current_page: 1,
@@ -267,6 +288,22 @@ const handleCityChange = () => {
   fetchTowns(1)
 }
 
+const handleAddTown = () => {
+  if (!canCreate.value) {
+    toast.error('You do not have permission to add towns')
+    return
+  }
+  router.push('/admin/locations/towns/create')
+}
+
+const handleEditTown = (town: Town) => {
+  if (!canEdit.value) {
+    toast.error('You do not have permission to edit towns')
+    return
+  }
+  router.push(`/admin/locations/towns/${town.id}/edit`)
+}
+
 const changePage = (page: number) => {
   fetchTowns(page)
 }
@@ -284,6 +321,11 @@ const getStateName = (cityId: number) => {
 }
 
 const toggleActive = async (town: Town) => {
+  if (!canToggle.value) {
+    toast.error('You do not have permission to update town status')
+    return
+  }
+
   const newStatus = !town.is_active
   const actionText = newStatus ? 'Activating' : 'Deactivating'
 
@@ -303,6 +345,10 @@ const toggleActive = async (town: Town) => {
 }
 
 const deleteTown = (town: Town) => {
+  if (!canDelete.value) {
+    toast.error('You do not have permission to delete towns')
+    return
+  }
   townToDelete.value = town
   showDeleteModal.value = true
 }

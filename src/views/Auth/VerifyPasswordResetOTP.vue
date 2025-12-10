@@ -133,7 +133,7 @@
                 <img width="{231}" height="{48}" src="/images/logo/auth-logo.svg" alt="Logo" />
               </router-link>
               <p class="text-center text-gray-400 dark:text-white/60">
-                Free and Open-Source Tailwind CSS Admin Dashboard Template
+                IBCC's CRM Developed by Abbas Rahim - Software Engineer
               </p>
             </div>
           </div>
@@ -217,10 +217,10 @@ const handleSubmit = async () => {
 
   try {
     await authStore.verifyPasswordResetOTP(email.value, otpCode.value)
-    
+
     // Show success toast
     toast.success('Code verified successfully!')
-    
+
     // Redirect to reset password page
     router.push({
       path: '/reset-password',
@@ -228,7 +228,7 @@ const handleSubmit = async () => {
     })
   } catch (error: any) {
     console.error('OTP verification failed', error)
-    
+
     // Handle validation errors
     if (error.response?.status === 422 && error.response?.data?.errors) {
       validationErrors.value = error.response.data.errors
@@ -263,7 +263,7 @@ const resendCode = async () => {
   try {
     await authStore.initiateForgotPassword(email.value)
     toast.success('New code sent to your email!')
-    
+
     // Reset timers
     timeRemaining.value = 300
     startResendTimer()

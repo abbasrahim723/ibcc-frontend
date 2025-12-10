@@ -4,7 +4,51 @@
 
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">My Signatures</h3>
+        <div class="flex flex-col gap-3">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ isSuperAdmin ? 'Signatures' : 'My Signatures' }}
+          </h3>
+          <div v-if="isSuperAdmin" class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 dark:text-gray-400">Owner</label>
+              <select
+                v-model="filters.owner_id"
+                @change="fetchSignatures"
+                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">All</option>
+                <option v-for="user in users" :key="user.id" :value="user.id">
+                  {{ user.name }}
+                </option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 dark:text-gray-400">Type</label>
+              <select
+                v-model="filters.signature_type"
+                @change="fetchSignatures"
+                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">All</option>
+                <option value="drawn">Drawn</option>
+                <option value="typed">Typed</option>
+                <option value="uploaded">Uploaded</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 dark:text-gray-400">Status</label>
+              <select
+                v-model="filters.status"
+                @change="fetchSignatures"
+                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">All</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- Add Button -->
@@ -66,6 +110,19 @@
             <span v-else class="text-sm text-gray-400"></span>
 
             <div class="flex items-center gap-2">
+              <button
+                @click="toggleStatus(signature)"
+                :class="[
+                  'p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700',
+                  canToggle
+                    ? (signature.status ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400')
+                    : 'text-gray-400 cursor-not-allowed opacity-60'
+                ]"
+                :disabled="!canToggle"
+                :title="signature.status ? 'Deactivate' : 'Activate'"
+              >
+                <component :is="signature.status ? ShieldAlert : RotateCcw" class="h-5 w-5" />
+              </button>
               <router-link
                 :to="`/admin/templates/signatures/${signature.id}/edit`"
                 class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -118,13 +175,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { format } from 'date-fns'
+import { usePermissions } from '@/composables/usePermissions'
+import { ShieldAlert, RotateCcw } from 'lucide-vue-next'
 
 interface Signature {
   id: number
@@ -144,10 +203,31 @@ const signatures = ref<Signature[]>([])
 const showDeleteModal = ref(false)
 const signatureToDelete = ref<Signature | null>(null)
 const isDeleting = ref(false)
+const users = ref<any[]>([])
+const filters = ref({
+  owner_id: '',
+  signature_type: '',
+  status: ''
+})
+
+const { roles, permissions } = usePermissions()
+const isSuperAdmin = computed(() => {
+  const hasRole = Array.isArray(roles.value) && roles.value.some((r: any) => r === 'super-admin' || r?.name === 'super-admin')
+  const hasPerm = Array.isArray(permissions.value) && permissions.value.includes('super-admin')
+  return hasRole || hasPerm
+})
+const canToggle = computed(() => permissions.value?.includes('signatures.change_status') || isSuperAdmin.value)
 
 const fetchSignatures = async () => {
   try {
-    const response = await api.get('/signatures')
+    const params: Record<string, any> = {}
+    if (isSuperAdmin.value) {
+      if (filters.value.owner_id) params.owner_id = filters.value.owner_id
+      if (filters.value.signature_type) params.signature_type = filters.value.signature_type
+      if (filters.value.status !== '') params.status = filters.value.status
+    }
+
+    const response = await api.get('/signatures', { params })
     signatures.value = response.data
   } catch (error: any) {
     toast.error('Error fetching signatures')
@@ -191,6 +271,24 @@ const deleteSignature = (signature: Signature) => {
   showDeleteModal.value = true
 }
 
+const toggleStatus = async (signature: Signature) => {
+  if (!canToggle.value) {
+    toast.error('You do not have permission to change signature status')
+    return
+  }
+  toast.info(signature.status ? 'Deactivating signature...' : 'Activating signature...')
+  try {
+    await api.put(`/signatures/${signature.id}`, {
+      ...signature,
+      status: !signature.status
+    })
+    toast.success('Signature status updated')
+    fetchSignatures()
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Error updating signature status')
+  }
+}
+
 const confirmDelete = async () => {
   if (!signatureToDelete.value) return
 
@@ -211,6 +309,11 @@ const confirmDelete = async () => {
 }
 
 onMounted(() => {
+  if (isSuperAdmin.value) {
+    api.get('/users/list').then(res => {
+      users.value = res.data || []
+    }).catch(() => {})
+  }
   fetchSignatures()
 })
 </script>

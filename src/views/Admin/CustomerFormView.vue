@@ -160,20 +160,8 @@
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Address Information</h4>
           
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <!-- Country -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
-              <select
-                v-model="customerForm.country_id"
-                @change="handleCountryChange"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="">Select Country</option>
-                <option v-for="country in countries" :key="country.id" :value="country.id">
-                  {{ country.name }}
-                </option>
-              </select>
-            </div>
+            <!-- Country hidden (always Pakistan) -->
+            <input type="hidden" v-model="customerForm.country_id" />
 
             <!-- State -->
             <div>
@@ -446,7 +434,7 @@ const customerForm = ref({
   street_address: '',
   house_number: '',
   zip_code: '',
-  country_id: '' as number | '',
+  country_id: 167 as number | '',
   state_id: '' as number | '',
   city_id: '' as number | '',
   town_id: '' as number | '',
@@ -493,6 +481,12 @@ const fetchCountries = async () => {
   try {
     const response = await api.get('/countries', { params: { active_only: true, all: true } })
     countries.value = response.data
+
+    // Default country to Pakistan (id 167) if not set, and preload its states
+    if (!customerForm.value.country_id) {
+      customerForm.value.country_id = 167
+    }
+    fetchStates(Number(customerForm.value.country_id))
   } catch (error) {
     console.error('Error fetching countries', error)
   }

@@ -18,6 +18,7 @@
 
           <!-- Add Button -->
           <button
+            v-if="canCreate"
             @click="openModal()"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
           >
@@ -55,10 +56,13 @@
                   @click="toggleActive(prefix)"
                   :class="[
                     'inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5',
-                    prefix.is_active
-                      ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
-                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
+                    !canToggle
+                      ? 'cursor-not-allowed opacity-50 text-gray-400'
+                      : prefix.is_active
+                        ? 'text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300'
+                        : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300'
                   ]"
+                  :disabled="!canToggle"
                   :title="prefix.is_active ? 'Deactivate' : 'Activate'"
                   class="mr-2"
                 >
@@ -67,7 +71,13 @@
                 </button>
                 <button
                   @click="openModal(prefix)"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200 mr-2"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 mr-2 hover:bg-gray-100 dark:hover:bg-white/5',
+                    canEdit
+                      ? 'text-brand-600 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-200'
+                      : 'cursor-not-allowed opacity-50 text-gray-400'
+                  ]"
+                  :disabled="!canEdit"
                   title="Edit"
                 >
                   <SquarePen class="h-4 w-4" />
@@ -75,7 +85,13 @@
                 </button>
                 <button
                   @click="deletePrefix(prefix)"
-                  class="inline-flex items-center justify-center rounded-md p-2 text-red-600 hover:bg-red-50 hover:text-red-800 dark:text-red-400 dark:hover:bg-white/5 dark:hover:text-red-200"
+                  :class="[
+                    'inline-flex items-center justify-center rounded-md p-2 hover:bg-red-50 dark:hover:bg-white/5',
+                    canDelete
+                      ? 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200'
+                      : 'cursor-not-allowed opacity-50 text-gray-400'
+                  ]"
+                  :disabled="!canDelete"
                   title="Delete"
                 >
                   <Trash2 class="h-4 w-4" />
@@ -151,13 +167,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { SquarePen, RotateCcw, Trash2, ShieldAlert } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { usePermissions } from '@/composables/usePermissions'
 
 interface Prefix {
   id: number
@@ -166,6 +183,7 @@ interface Prefix {
 }
 
 const toast = useToast()
+const { can } = usePermissions()
 const currentPageTitle = ref('Prefixes')
 const prefixes = ref<Prefix[]>([])
 const searchQuery = ref('')
@@ -175,6 +193,10 @@ const prefixToDelete = ref<Prefix | null>(null)
 const isDeleting = ref(false)
 const isEditMode = ref(false)
 const editingId = ref<number | null>(null)
+const canCreate = computed(() => can('prefixes', 'create'))
+const canEdit = computed(() => can('prefixes', 'edit'))
+const canDelete = computed(() => can('prefixes', 'delete'))
+const canToggle = computed(() => can('prefixes', 'change_status'))
 
 const form = ref({
   name: '',
@@ -220,6 +242,15 @@ const changePage = (page: number) => {
 }
 
 const openModal = (prefix?: Prefix) => {
+  if (prefix && !canEdit.value) {
+    toast.error('You do not have permission to edit prefixes')
+    return
+  }
+  if (!prefix && !canCreate.value) {
+    toast.error('You do not have permission to add prefixes')
+    return
+  }
+
   if (prefix) {
     isEditMode.value = true
     editingId.value = prefix.id
@@ -240,6 +271,15 @@ const closeModal = () => {
 }
 
 const savePrefix = async () => {
+  if (isEditMode.value && !canEdit.value) {
+    toast.error('You do not have permission to edit prefixes')
+    return
+  }
+  if (!isEditMode.value && !canCreate.value) {
+    toast.error('You do not have permission to add prefixes')
+    return
+  }
+
   try {
     if (isEditMode.value && editingId.value) {
       await api.put(`/prefixes/${editingId.value}`, form.value)
@@ -268,6 +308,11 @@ const savePrefix = async () => {
 }
 
 const toggleActive = async (prefix: Prefix) => {
+  if (!canToggle.value) {
+    toast.error('You do not have permission to change prefix status')
+    return
+  }
+
   const newStatus = !prefix.is_active
   const actionText = newStatus ? 'Activating' : 'Deactivating'
 
@@ -287,6 +332,11 @@ const toggleActive = async (prefix: Prefix) => {
 }
 
 const deletePrefix = (prefix: Prefix) => {
+  if (!canDelete.value) {
+    toast.error('You do not have permission to delete prefixes')
+    return
+  }
+
   prefixToDelete.value = prefix
   showDeleteModal.value = true
 }

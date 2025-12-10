@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import { UserCircleIcon, ChevronDownIcon, LogoutIcon, SettingsIcon, PlugInIcon, ListIcon } from '@/icons'
+import { UserCircleIcon, ChevronDownIcon, LogoutIcon, SettingsIcon, PlugInIcon, ListIcon, DocsIcon } from '@/icons'
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -93,6 +93,7 @@ const userRole = computed(() => {
 const menuItems = [
   { href: '/profile', icon: UserCircleIcon, text: 'My Profile' },
   { href: '/admin/activity-logs?my_activity=true', icon: ListIcon, text: 'My Activity' },
+  { href: '/admin/templates/signatures', icon: DocsIcon, text: 'My Signatures' },
   { href: '/settings', icon: SettingsIcon, text: 'Account Settings' },
   { href: '/security', icon: PlugInIcon, text: 'Security Settings' },
 ]

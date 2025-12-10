@@ -36,7 +36,7 @@
 
     <Modal v-if="isOpen" @close="closeModal">
       <template #body>
-        <div class="relative w-full max-w-[600px] rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-10">
+        <div class="relative w-full max-w-[700px] rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-6 flex flex-col max-h-[80vh]">
           <button
             @click="closeModal"
             class="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -46,129 +46,132 @@
             </svg>
           </button>
 
-          <h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">
-            Update Profile Photo
-          </h3>
-          <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
-            Upload a custom photo or choose from our default avatars.
-          </p>
+          <div class="flex-1 overflow-y-auto no-scrollbar pr-1">
+            <h3 class="mb-1 text-xl font-bold text-gray-900 dark:text-white">
+              Update Profile Photo
+            </h3>
+            <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+              Upload a custom photo or choose from our default avatars.
+            </p>
 
-          <div class="mb-6 flex justify-center">
-            <div class="h-32 w-32 rounded-full overflow-hidden border-4 border-gray-100 dark:border-gray-800 shadow-inner">
-              <img
-                :src="previewUrl || currentPhotoUrl"
-                class="h-full w-full object-cover"
-                alt="Preview"
-              />
-            </div>
-          </div>
-
-          <!-- Tabs -->
-          <div class="mb-6 flex border-b border-gray-200 dark:border-gray-700">
-            <button
-              @click="activeTab = 'upload'"
-              :class="[
-                'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
-                activeTab === 'upload'
-                  ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
-              ]"
-            >
-              Upload Photo
-            </button>
-            <button
-              @click="activeTab = 'default'"
-              :class="[
-                'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
-                activeTab === 'default'
-                  ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
-              ]"
-            >
-              Default Avatars
-            </button>
-          </div>
-
-          <!-- Upload Tab -->
-          <div v-if="activeTab === 'upload'" class="space-y-4">
-            <div
-              class="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-10 dark:border-gray-700 dark:bg-gray-800/50"
-              @dragover.prevent
-              @drop.prevent="handleDrop"
-            >
-              <div class="text-center">
-                <svg
-                  class="mx-auto h-12 w-12 text-gray-400"
-                  stroke="currentColor"
-                  fill="none"
-                  viewBox="0 0 48 48"
-                >
-                  <path
-                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-                <div class="mt-4 flex text-sm text-gray-600 dark:text-gray-400">
-                  <label
-                    for="file-upload"
-                    class="relative cursor-pointer rounded-md font-medium text-brand-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 hover:text-brand-500 dark:text-brand-400"
-                  >
-                    <span>Upload a file</span>
-                    <input
-                      id="file-upload"
-                      name="file-upload"
-                      type="file"
-                      class="sr-only"
-                      accept="image/*"
-                      @change="handleFileSelect"
-                    />
-                  </label>
-                  <p class="pl-1">or drag and drop</p>
-                </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  PNG, JPG, GIF up to 2MB
-                </p>
+            <div class="mb-3 flex justify-center">
+              <div class="h-24 w-24 rounded-full overflow-hidden border-4 border-gray-100 dark:border-gray-800 shadow-inner">
+                <img
+                  :src="previewUrl || currentPhotoUrl"
+                  class="h-full w-full object-cover"
+                  alt="Preview"
+                />
               </div>
             </div>
-          </div>
 
-          <!-- Default Avatars Tab -->
-          <div v-else class="grid grid-cols-4 gap-4 max-h-[300px] overflow-y-auto custom-scrollbar p-1">
-            <button
-              v-for="avatar in defaultAvatars"
-              :key="avatar"
-              @click="selectDefaultAvatar(avatar)"
-              :class="[
-                'relative rounded-full overflow-hidden border-2 transition-all hover:scale-105',
-                selectedAvatar === avatar
-                  ? 'border-brand-500 ring-2 ring-brand-500/30'
-                  : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600',
-              ]"
-            >
-              <img
-                :src="`/images/avatars/${avatar}`"
-                :alt="avatar"
-                class="h-full w-full object-cover"
-              />
-              <div
-                v-if="selectedAvatar === avatar"
-                class="absolute inset-0 flex items-center justify-center bg-black/20"
+            <!-- Tabs -->
+            <div class="mb-6 flex border-b border-gray-200 dark:border-gray-700">
+              <button
+                @click="activeTab = 'upload'"
+                :class="[
+                  'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                  activeTab === 'upload'
+                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
+                ]"
               >
-                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
+                Upload Photo
+              </button>
+              <button
+                @click="activeTab = 'default'"
+                :class="[
+                  'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                  activeTab === 'default'
+                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
+                ]"
+              >
+                Default Avatars
+              </button>
+            </div>
+
+            <!-- Upload Tab -->
+            <div v-if="activeTab === 'upload'" class="space-y-4">
+              <div
+                class="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-5 py-7 dark:border-gray-700 dark:bg-gray-800/50 min-h-[200px]"
+                @dragover.prevent
+                @drop.prevent="handleDrop"
+              >
+                <div class="text-center">
+                  <svg
+                    class="mx-auto h-12 w-12 text-gray-400"
+                    stroke="currentColor"
+                    fill="none"
+                    viewBox="0 0 48 48"
+                  >
+                    <path
+                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  <div class="mt-4 flex text-sm text-gray-600 dark:text-gray-400">
+                    <label
+                      for="file-upload"
+                      class="relative cursor-pointer rounded-md font-medium text-brand-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 hover:text-brand-500 dark:text-brand-400"
+                    >
+                      <span>Upload a file</span>
+                      <input
+                        id="file-upload"
+                        name="file-upload"
+                        type="file"
+                        class="sr-only"
+                        accept="image/*"
+                        @change="handleFileSelect"
+                      />
+                    </label>
+                    <p class="pl-1">or drag and drop</p>
+                  </div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    PNG, JPG, GIF up to 2MB
+                  </p>
+                </div>
               </div>
-            </button>
+            </div>
+
+            <!-- Default Avatars Tab -->
+            <div v-else class="grid grid-cols-4 gap-4 max-h-[300px] overflow-y-auto custom-scrollbar p-1">
+              <button
+                v-for="avatar in defaultAvatars"
+                :key="avatar"
+                @click="selectDefaultAvatar(avatar)"
+                :class="[
+                  'relative rounded-full overflow-hidden border-2 transition-all hover:scale-105',
+                  selectedAvatar === avatar
+                    ? 'border-brand-500 ring-2 ring-brand-500/30'
+                    : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600',
+                ]"
+              >
+                <img
+                  :src="getAvatarSrc(avatar)"
+                  :alt="avatar"
+                  class="h-full w-full object-cover"
+                />
+                <div
+                  v-if="selectedAvatar === avatar"
+                  class="absolute inset-0 flex items-center justify-center bg-black/20"
+                >
+                  <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </button>
+            </div>
           </div>
 
           <!-- Actions -->
-          <div class="mt-8 flex justify-end gap-3">
+          <div class="pt-6 mt-6 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-700">
             <button
               @click="removePhoto"
               type="button"
-              class="mr-auto text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+              :disabled="!selectedFile && !selectedAvatar"
+              class="mr-auto text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Remove Photo
             </button>
@@ -217,12 +220,27 @@ const previewUrl = ref('')
 
 const currentPhotoUrl = computed(() => authStore.user?.profile_photo_url || '/images/user/owner.jpg')
 
+const getAvatarSrc = (avatar: string) => {
+  if (avatar.startsWith('data:image')) return avatar
+  return `/images/avatars/${avatar}`
+}
+
+const fallbackAvatars = () => {
+  const colors = ['#4F46E5', '#22C55E', '#F97316', '#EF4444', '#0EA5E9', '#8B5CF6']
+  return Array.from({ length: 12 }).map((_, idx) => {
+    const bg = colors[idx % colors.length]
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="120" height="120" rx="60" fill="${bg}"/><text x="50%" y="55%" font-size="48" fill="white" font-family="sans-serif" text-anchor="middle" dominant-baseline="middle">A</text></svg>`
+    return `data:image/svg+xml;base64,${btoa(svg)}`
+  })
+}
+
 onMounted(async () => {
   try {
     const response = await api.get('/avatars/defaults')
-    defaultAvatars.value = response.data.avatars
+    defaultAvatars.value = response.data.avatars && response.data.avatars.length ? response.data.avatars : fallbackAvatars()
   } catch (error) {
     console.error('Failed to fetch default avatars', error)
+    defaultAvatars.value = fallbackAvatars()
   }
 })
 

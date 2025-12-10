@@ -15,7 +15,9 @@
             <div
               class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left"
             >
-              <p class="text-sm text-gray-500 dark:text-gray-400">{{ user.job_title || 'Team Manager' }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ displayRole || user.job_title || 'Team Manager' }}
+              </p>
               <div class="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
               <p class="text-sm text-gray-500 dark:text-gray-400">
                 {{ [user.city, user.country].filter(Boolean).join(', ') || 'Location N/A' }}
@@ -328,11 +330,20 @@ import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import Modal from '@/components/profile/Modal.vue'
 import ProfilePhotoManager from '@/components/profile/ProfilePhotoManager.vue'
+import { usePermissions } from '@/composables/usePermissions'
 
 const authStore = useAuthStore()
 const toast = useToast()
 const user = computed(() => authStore.user || {})
 const socialLinks = computed(() => authStore.preferences?.social_links || {})
+const { roles } = usePermissions()
+const displayRole = computed(() => {
+  if (roles.value && roles.value.length) {
+    const r = roles.value[0]
+    return typeof r === 'string' ? r.replace(/-/g, ' ') : (r?.name || '').replace(/-/g, ' ')
+  }
+  return ''
+})
 const isProfileInfoModal = ref(false)
 const isLoading = ref(false)
 

@@ -28,12 +28,12 @@ export async function loadPermissions() {
 
 export function usePermissions() {
     const hasPermission = (perm: string) => {
-        if (!loaded) return false;
+        if (!loaded.value) return false;
         return permissions.value.includes(perm) || roles.value.includes('super-admin');
     };
 
     const can = (resource: string, action = 'view') => {
-        if (!loaded) return false;
+        if (!loaded.value) return false;
         if (permissions.value.includes('super-admin') || roles.value.includes('super-admin')) {
             return true;
         }

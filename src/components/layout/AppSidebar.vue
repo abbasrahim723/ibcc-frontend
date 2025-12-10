@@ -25,7 +25,7 @@
           class="dark:hidden"
           src="/images/logo/logo.svg"
           alt="Logo"
-          width="150"
+          width="250"
           height="40"
         />
         <img
@@ -33,15 +33,15 @@
           class="hidden dark:block"
           src="/images/logo/logo-dark.svg"
           alt="Logo"
-          width="150"
+          width="250"
           height="40"
         />
         <img
           v-else
           src="/images/logo/logo-icon.svg"
           alt="Logo"
-          width="32"
-          height="32"
+          width="100"
+          height="100"
         />
       </router-link>
     </div>
