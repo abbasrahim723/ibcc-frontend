@@ -38,28 +38,55 @@
         class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100 dark:border-gray-800"
       >
         <h5 class="text-lg font-semibold text-gray-800 dark:text-white/90">Notification</h5>
-
-        <button @click="closeDropdown" class="text-gray-500 dark:text-gray-400">
-          <svg
-            class="fill-current"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+        <div class="flex items-center gap-2">
+          <button
+            class="text-xs rounded-full border border-gray-200 px-3 py-1 text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            @click.stop="toggleUnreadFilter"
           >
-            <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
-              d="M6.21967 7.28131C5.92678 6.98841 5.92678 6.51354 6.21967 6.22065C6.51256 5.92775 6.98744 5.92775 7.28033 6.22065L11.999 10.9393L16.7176 6.22078C17.0105 5.92789 17.4854 5.92788 17.7782 6.22078C18.0711 6.51367 18.0711 6.98855 17.7782 7.28144L13.0597 12L17.7782 16.7186C18.0711 17.0115 18.0711 17.4863 17.7782 17.7792C17.4854 18.0721 17.0105 18.0721 16.7176 17.7792L11.999 13.0607L7.28033 17.7794C6.98744 18.0722 6.51256 18.0722 6.21967 17.7794C5.92678 17.4865 5.92678 17.0116 6.21967 16.7187L10.9384 12L6.21967 7.28131Z"
-              fill=""
-            />
+            {{ showUnreadOnly ? 'Show all' : 'Show unread' }}
+          </button>
+          <button @click="closeDropdown" class="text-gray-500 dark:text-gray-400">
+            <svg
+              class="fill-current"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M6.21967 7.28131C5.92678 6.98841 5.92678 6.51354 6.21967 6.22065C6.51256 5.92775 6.98744 5.92775 7.28033 6.22065L11.999 10.9393L16.7176 6.22078C17.0105 5.92789 17.4854 5.92788 17.7782 6.22078C18.0711 6.51367 18.0711 6.98855 17.7782 7.28144L13.0597 12L17.7782 16.7186C18.0711 17.0115 18.0711 17.4863 17.7782 17.7792C17.4854 18.0721 17.0105 18.0721 16.7176 17.7792L11.999 13.0607L7.28033 17.7794C6.98744 18.0722 6.51256 18.0722 6.21967 17.7794C5.92678 17.4865 5.92678 17.0116 6.21967 16.7187L10.9384 12L6.21967 7.28131Z"
+                fill=""
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div v-if="decoratedNotifications.length === 0" class="flex h-full flex-col items-center justify-center py-8 text-center text-gray-500 dark:text-gray-400">
+        <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-500 dark:bg-blue-900/30">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 6a9 9 0 100 12 9 9 0 000-12z" />
           </svg>
+        </div>
+        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">No notifications yet</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">You’re all caught up. Actions for your team will show here.</p>
+        <button
+          class="mt-3 text-xs rounded-full border border-gray-200 px-3 py-1 text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          @click="toggleUnreadFilter"
+        >
+          {{ showUnreadOnly ? 'Show all' : 'Show unread' }}
         </button>
       </div>
 
-      <ul class="flex flex-col h-auto overflow-y-auto custom-scrollbar">
-        <li v-for="notification in notifications" :key="notification.id" @click="handleItemClick">
+      <ul v-else class="flex flex-col h-auto overflow-y-auto custom-scrollbar">
+        <li
+          v-for="notification in decoratedNotifications"
+          :key="notification.id"
+          @click.prevent="handleItemClick(notification)"
+        >
           <a
             class="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
             href="#"
@@ -67,8 +94,8 @@
             <span class="relative block w-full h-10 rounded-full z-1 max-w-10">
               <img :src="notification.userImage" alt="User" class="overflow-hidden rounded-full" />
               <span
-                :class="notification.status === 'online' ? 'bg-success-500' : 'bg-error-500'"
-                class="absolute bottom-0 right-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white dark:border-gray-900"
+                v-if="notification.isUnread"
+                class="absolute bottom-0 right-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-blue-500 dark:border-gray-900"
               ></span>
             </span>
 
@@ -78,9 +105,6 @@
                   {{ notification.userName }}
                 </span>
                 {{ notification.action }}
-                <span class="font-medium text-gray-800 dark:text-white/90">
-                  {{ notification.project }}
-                </span>
               </span>
 
               <span class="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
@@ -94,7 +118,7 @@
       </ul>
 
       <router-link
-        to="#"
+        :to="{ name: 'Notifications' }"
         class="mt-3 flex justify-center rounded-lg border border-gray-300 bg-white p-3 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
         @click="handleViewAllClick"
       >
@@ -105,132 +129,113 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { RouterLink } from 'vue-router'
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { useNotifications } from '@/composables/useNotifications'
 
 const dropdownOpen = ref(false)
-const notifying = ref(true)
-const dropdownRef = ref(null)
+const dropdownRef = ref<HTMLElement | null>(null)
+const route = useRoute()
+const router = useRouter()
+const { notifications, unreadCount, fetchUnreadCount, fetchNotifications, markRead } = useNotifications()
+const showUnreadOnly = ref(true)
 
-const notifications = ref([
-  {
-    id: 1,
-    userName: 'Terry Franci',
-    userImage: '/images/user/user-02.jpg',
-    action: 'requests permission to change',
-    project: 'Project - Nganter App',
-    type: 'Project',
-    time: '5 min ago',
-    status: 'online',
-  },
-  {
-    id: 2,
-    userName: 'Terry Franci',
-    userImage: '/images/user/user-03.jpg',
-    action: 'requests permission to change',
-    project: 'Project - Nganter App',
-    type: 'Project',
-    time: '5 min ago',
-    status: 'offline',
-  },
-  {
-    id: 3,
-    userName: 'Terry Franci',
-    userImage: '/images/user/user-04.jpg',
-    action: 'requests permission to change',
-    project: 'Project - Nganter App',
-    type: 'Project',
-    time: '5 min ago',
-    status: 'online',
-  },
-  {
-    id: 4,
-    userName: 'Terry Franci',
-    userImage: '/images/user/user-05.jpg',
-    action: 'requests permission to change',
-    project: 'Project - Nganter App',
-    type: 'Project',
-    time: '5 min ago',
-    status: 'online',
-  },
-  {
-    id: 5,
-    userName: 'Terry Franci',
-    userImage: '/images/user/user-06.jpg',
-    action: 'requests permission to change',
-    project: 'Project - Nganter App',
-    type: 'Project',
-    time: '5 min ago',
-    status: 'offline',
-  },
-  {
-    id: 6,
-    userName: 'Terry Franci',
-    userImage: '/images/user/user-07.jpg',
-    action: 'requests permission to change',
-    project: 'Project - Nganter App',
-    type: 'Project',
-    time: '5 min ago',
-    status: 'online',
-  },
-  {
-    id: 7,
-    userName: 'Terry Franci',
-    userImage: '/images/user/user-08.jpg',
-    action: 'requests permission to change',
-    project: 'Project - Nganter App',
-    type: 'Project',
-    time: '5 min ago',
-    status: 'online',
-  },
-  {
-    id: 7,
-    userName: 'Terry Franci',
-    userImage: '/images/user/user-09.jpg',
-    action: 'requests permission to change',
-    project: 'Project - Nganter App',
-    type: 'Project',
-    time: '5 min ago',
-    status: 'online',
-  },
-  // Add more notifications here...
-])
+const notifying = computed(() => (unreadCount.value || 0) > 0)
 
-const toggleDropdown = () => {
+const toggleDropdown = async () => {
   dropdownOpen.value = !dropdownOpen.value
-  notifying.value = false
+  if (dropdownOpen.value) {
+    await fetchNotifications({ unread: showUnreadOnly.value ? true : undefined })
+    await fetchUnreadCount()
+  }
 }
 
 const closeDropdown = () => {
   dropdownOpen.value = false
 }
 
-const handleClickOutside = (event) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+const handleClickOutside = (event: MouseEvent) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
     closeDropdown()
   }
 }
 
-const handleItemClick = (event) => {
-  event.preventDefault()
-  // Handle the item click action here
-  console.log('Notification item clicked')
+const handleItemClick = async (notification: any) => {
   closeDropdown()
+  await markRead(notification.id)
+  const target = resolveLink(notification)
+  if (target) {
+    router.push(target)
+  }
 }
 
-const handleViewAllClick = (event) => {
+const handleViewAllClick = async (event: Event) => {
   event.preventDefault()
-  // Handle the "View All Notification" action here
-  console.log('View All Notifications clicked')
   closeDropdown()
+  await router.push({ name: 'Notifications' })
 }
 
-onMounted(() => {
+const toggleUnreadFilter = async () => {
+  showUnreadOnly.value = !showUnreadOnly.value
+  await fetchNotifications({ unread: showUnreadOnly.value ? true : undefined })
+  await fetchUnreadCount()
+}
+
+const formatRelativeTime = (dateString?: string) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const diff = Date.now() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hr ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+const resolveLink = (notification: any) => {
+  const data = notification.data || {}
+  const type = (notification.notifiable_type || '').toLowerCase()
+
+  if (data.payment_id) return `/payments/${data.payment_id}/edit`
+  if (type.includes('project') || data.project_id) return `/projects/${data.project_id || notification.notifiable_id}`
+  if (type.includes('customer')) return `/customers/${notification.notifiable_id}`
+  if (type.includes('supplier')) return `/suppliers/${notification.notifiable_id}`
+  if (type.includes('labour')) return `/labours/${notification.notifiable_id}`
+  if (type.includes('document')) return `/documents`
+  if (type.includes('paymentschedule')) return `/scheduled-payments`
+  return null
+}
+
+const decoratedNotifications = computed(() =>
+  (notifications.value || []).map((n) => ({
+    ...n,
+    userName: n.actor?.name || 'System',
+    userImage: n.actor?.profile_photo_url || '/images/user/user-01.jpg',
+    action: n.message || '',
+    type: n.type?.split('.')[0] || 'General',
+    time: formatRelativeTime(n.created_at),
+    isUnread: !n.read_at,
+  }))
+)
+
+onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
+  await fetchUnreadCount()
+  await fetchNotifications({ unread: showUnreadOnly.value ? true : undefined })
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
+
+// Refresh unread on route change (page navigation)
+watch(
+  () => route.fullPath,
+  async () => {
+    await fetchUnreadCount()
+  }
+)
 </script>

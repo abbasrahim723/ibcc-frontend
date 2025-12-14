@@ -90,76 +90,51 @@
             <div v-if="isProjectDropdownOpen" @click="isProjectDropdownOpen = false" class="fixed inset-0 z-10"></div>
           </div>
 
-          <!-- Customer Dropdown -->
-          <div class="md:col-span-2">
-            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Payer (Customer)</label>
-            <div class="relative">
-              <button
-                type="button"
-                @click="isCustomerDropdownOpen = !isCustomerDropdownOpen"
-                class="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-3 text-left text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-              >
-                <span v-if="selectedCustomer" class="flex items-center gap-2">
-                  <img
-                    v-if="selectedCustomer.profile_photo_url"
-                    :src="selectedCustomer.profile_photo_url"
-                    alt=""
-                    class="h-6 w-6 rounded-full object-cover"
-                  />
-                  <span v-else class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">
-                    {{ selectedCustomer.name.charAt(0) }}
-                  </span>
-                  <div>
-                    <div class="font-medium">{{ selectedCustomer.name }}</div>
-                    <div class="text-xs text-gray-500">{{ selectedCustomer.address || 'No address' }}</div>
-                  </div>
-                </span>
-                <span v-else class="text-gray-500">Select customer</span>
-                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+          <!-- Direction & Party Type -->
+          <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div>
+               <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Direction</label>
+               <div class="flex gap-4">
+                 <label class="inline-flex items-center">
+                   <input type="radio" v-model="form.direction" value="incoming" class="form-radio text-brand-600">
+                   <span class="ml-2 text-gray-700 dark:text-gray-300">Incoming (Received)</span>
+                 </label>
+                 <label class="inline-flex items-center">
+                   <input type="radio" v-model="form.direction" value="outgoing" class="form-radio text-brand-600">
+                   <span class="ml-2 text-gray-700 dark:text-gray-300">Outgoing (Paid)</span>
+                 </label>
+               </div>
+             </div>
+             
+             <div>
+               <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Party Type</label>
+               <div class="flex gap-4">
+                 <label class="inline-flex items-center">
+                   <input type="radio" v-model="partyType" value="customer" class="form-radio text-brand-600">
+                   <span class="ml-2 text-gray-700 dark:text-gray-300">Customer</span>
+                 </label>
+                 <label class="inline-flex items-center">
+                   <input type="radio" v-model="partyType" value="labour" class="form-radio text-brand-600">
+                   <span class="ml-2 text-gray-700 dark:text-gray-300">Labour</span>
+                 </label>
+                 <label class="inline-flex items-center">
+                   <input type="radio" v-model="partyType" value="supplier" class="form-radio text-brand-600">
+                   <span class="ml-2 text-gray-700 dark:text-gray-300">Supplier</span>
+                 </label>
+               </div>
+             </div>
+          </div>
 
-              <div
-                v-if="isCustomerDropdownOpen"
-                class="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-              >
-                <div class="px-3 py-2 sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                  <input
-                    v-model="customerSearch"
-                    type="text"
-                    class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    placeholder="Search customers..."
-                    @click.stop
-                  />
-                </div>
-                <div
-                  v-for="customer in filteredCustomers"
-                  :key="customer.id"
-                  @click="selectCustomer(customer)"
-                  class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <img
-                    v-if="customer.profile_photo_url"
-                    :src="customer.profile_photo_url"
-                    alt=""
-                    class="h-8 w-8 rounded-full object-cover"
-                  />
-                  <span v-else class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">
-                    {{ customer.name.charAt(0) }}
-                  </span>
-                  <div>
-                    <div class="font-medium text-gray-900 dark:text-white">{{ customer.name }}</div>
-                    <div class="text-xs text-gray-500">{{ customer.address || 'No address' }}</div>
-                  </div>
-                </div>
-                <div v-if="filteredCustomers.length === 0" class="px-3 py-2 text-sm text-gray-500 text-center">
-                  No customers found
-                </div>
-              </div>
-            </div>
-            <!-- Overlay to close dropdown -->
-            <div v-if="isCustomerDropdownOpen" @click="isCustomerDropdownOpen = false" class="fixed inset-0 z-10"></div>
+          <!-- Payer/Payee Selection -->
+          <div class="md:col-span-2">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              {{ form.direction === 'incoming' ? 'Payer' : 'Payee' }} ({{ partyType.charAt(0).toUpperCase() + partyType.slice(1) }})
+            </label>
+            <CustomerSelect
+              v-model="form.payer_id"
+              :type="partyType"
+              :placeholder="`Select ${partyType}`"
+            />
           </div>
 
           <!-- Amount & Currency -->
@@ -200,7 +175,9 @@
 
           <!-- Received By -->
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Received By</label>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              {{ form.direction === 'outgoing' ? 'Paid By' : 'Received By' }}
+            </label>
             <div class="relative">
               <button
                 type="button"
@@ -401,6 +378,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import CustomerSelect from '@/components/forms/CustomerSelect.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -419,7 +397,11 @@ const form = ref<any>({
   notes: '',
   received_by: null,
   approved_by: null,
+  direction: 'incoming',
+  type: 'incoming',
 })
+
+const partyType = ref('customer')
 
 const projects = ref<any[]>([])
 const customers = ref<any[]>([])
@@ -543,11 +525,12 @@ const loadData = async () => {
   try {
     const [pRes, cRes, uRes] = await Promise.all([
       api.get('/projects?per_page=100&with=documents'),
-      api.get('/customers?per_page=100'),
+      api.get('/projects?per_page=100&with=documents'),
+      // api.get('/customers?per_page=100'),
       api.get('/users?per_page=100')
     ])
     projects.value = pRes.data.data || pRes.data
-    customers.value = cRes.data.data || cRes.data
+    // customers.value = cRes.data.data || cRes.data
     users.value = uRes.data.data || uRes.data
   } catch (e) {
     console.error(e)
@@ -574,9 +557,14 @@ const save = async () => {
     })
     
     // Default payer_type to customer if payer_id is set
+    // Default payer_type to customer if payer_id is set
     if (form.value.payer_id) {
       fd.append('payer_type', 'customer')
     }
+    
+    // Ensure direction/type is set
+    fd.append('type', form.value.direction || 'incoming')
+    fd.append('direction', form.value.direction || 'incoming')
 
     const uploadable = files.value.filter((f) => f instanceof File) as File[]
     uploadable.forEach((f, i) => { fd.append(`document_files[${i}]`, f) })
@@ -623,9 +611,34 @@ onMounted(async () => {
       if (data.payment_date) {
         form.value.payment_date = new Date(data.payment_date).toISOString().split('T')[0]
       }
+      
+      if (data.direction || data.type) {
+        form.value.direction = data.direction || data.type
+      }
+      
+      // Auto-detect party type
+      if (data.payer?.type === 'labour') {
+        partyType.value = 'labour'
+      } else if (data.payer?.type === 'supplier') {
+        partyType.value = 'supplier'
+      }
     } catch (e) {
       console.error(e)
       toast.error('Error loading payment details')
+    }
+  } else {
+    // Handle query params for new payment
+    const { payer_id, type, direction } = route.query
+    if (payer_id) form.value.payer_id = Number(payer_id)
+    if (type) partyType.value = type as string
+    if (direction) form.value.direction = direction as string
+  }
+})
+
+watch(partyType, (newType) => {
+  if (newType === 'supplier' || newType === 'labour') {
+    if (!isEdit.value && !route.query.direction) {
+       form.value.direction = 'outgoing'
     }
   }
 })

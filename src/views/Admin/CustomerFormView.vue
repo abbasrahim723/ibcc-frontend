@@ -5,10 +5,10 @@
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ isEditMode ? 'Edit Customer' : 'Create New Customer' }}
+          {{ isEditMode ? (type === 'labour' ? 'Edit Labour' : (type === 'supplier' ? 'Edit Supplier' : 'Edit Customer')) : (type === 'labour' ? 'Create New Labour' : (type === 'supplier' ? 'Create New Supplier' : 'Create New Customer')) }}
         </h3>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ isEditMode ? 'Update customer information' : 'Add a new customer to the system' }}
+          {{ isEditMode ? `Update ${type} information` : `Add a new ${type} to the system` }}
         </p>
       </div>
 
@@ -372,7 +372,7 @@
             :disabled="loading"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 disabled:opacity-50 dark:focus:ring-brand-800"
           >
-            {{ loading ? 'Saving...' : (isEditMode ? 'Update Customer' : 'Create Customer') }}
+            {{ loading ? 'Saving...' : (isEditMode ? (type === 'labour' ? 'Update Labour' : (type === 'supplier' ? 'Update Supplier' : 'Update Customer')) : (type === 'labour' ? 'Create Labour' : (type === 'supplier' ? 'Create Supplier' : 'Create Customer'))) }}
           </button>
         </div>
       </form>
@@ -398,7 +398,8 @@ const toast = useToast()
 
 const customerId = computed(() => route.params.id as string)
 const isEditMode = computed(() => !!customerId.value)
-const pageTitle = computed(() => isEditMode.value ? 'Edit Customer' : 'Create Customer')
+const type = computed(() => (route.meta.type as string) || 'customer')
+const pageTitle = computed(() => isEditMode.value ? (type.value === 'labour' ? 'Edit Labour' : (type.value === 'supplier' ? 'Edit Supplier' : 'Edit Customer')) : (type.value === 'labour' ? 'Create Labour' : (type.value === 'supplier' ? 'Create Supplier' : 'Create Customer')))
 
 const loading = ref(false)
 const checkingEmail = ref(false)
@@ -422,6 +423,7 @@ const loadingTowns = ref(false)
 const loadingPhases = ref(false)
 
 const customerForm = ref({
+  type: 'customer',
   name_prefix: '',
   name: '',
   email: '',
@@ -653,6 +655,7 @@ const fetchCustomer = async () => {
     originalEmail.value = customer.email
     
     customerForm.value = {
+      type: customer.type || 'customer',
       name_prefix: customer.name_prefix || '',
       name: customer.name,
       email: customer.email || '',
@@ -689,7 +692,7 @@ const fetchCustomer = async () => {
 
   } catch (error: any) {
     toast.error(error.response?.data?.message || 'Error fetching customer')
-    router.push('/customers')
+    router.push(type.value === 'labour' ? '/labours' : (type.value === 'supplier' ? '/suppliers' : '/customers'))
   } finally {
     loading.value = false
   }
@@ -710,6 +713,7 @@ const saveCustomer = async () => {
     
     // Create FormData object for file upload
     const formData = new FormData()
+    formData.append('type', isEditMode.value ? customerForm.value.type : type.value)
     formData.append('name', customerForm.value.name)
     if (customerForm.value.name_prefix) formData.append('name_prefix', customerForm.value.name_prefix)
     
@@ -781,7 +785,8 @@ const saveCustomer = async () => {
       toast.success(response.data.message)
     }
     
-    router.push('/customers')
+    const targetRoute = type.value === 'labour' ? '/labours' : (type.value === 'supplier' ? '/suppliers' : '/customers')
+    router.push(targetRoute)
   } catch (error: any) {
     // Handle validation errors from backend
     if (error.response?.data?.errors) {
@@ -801,7 +806,8 @@ const saveCustomer = async () => {
 }
 
 const goBack = () => {
-  router.push('/customers')
+  const targetRoute = type.value === 'labour' ? '/labours' : (type.value === 'supplier' ? '/suppliers' : '/customers')
+  router.push(targetRoute)
 }
 
 onMounted(async () => {

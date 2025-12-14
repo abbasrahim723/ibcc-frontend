@@ -4,8 +4,8 @@
       :pageTitle="getFullName(customer) || 'Customer Details'"
       :breadcrumbs="[
         { label: 'Home', to: '/' },
-        { label: 'Customers', to: '/customers' },
-        { label: getFullName(customer) || 'Customer Details' }
+        { label: type === 'labour' ? 'Labours' : 'Customers', to: type === 'labour' ? '/labours' : '/customers' },
+        { label: getFullName(customer) || (type === 'labour' ? 'Labour Details' : 'Customer Details') }
       ]"
     />
 
@@ -157,13 +157,25 @@
             <!-- Documents Tab -->
             <div v-if="currentTab === 'documents'" class="space-y-6">
               <div class="flex items-center justify-between">
-                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">All Documents</h4>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ allDocuments.length }} total</p>
+                <div class="flex items-center gap-3">
+                  <h4 class="text-lg font-semibold text-gray-900 dark:text-white">All Documents</h4>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">{{ documentsTotal }} total</span>
+                </div>
+                <button
+                  v-if="can('documents', 'attach')"
+                  @click="openAttachDocuments"
+                  class="inline-flex items-center gap-2 rounded-md bg-brand-50 px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-300"
+                >
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14" />
+                  </svg>
+                  Upload
+                </button>
               </div>
 
-              <div v-if="allDocuments.length > 0" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div v-if="pagedDocuments.length > 0" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div
-                  v-for="doc in allDocuments"
+                  v-for="doc in pagedDocuments"
                   :key="doc.id"
                   class="group relative flex flex-col rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
                 >
@@ -295,17 +307,43 @@
                 <h3 class="text-sm font-medium text-gray-900 dark:text-white">No documents</h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No documents found for this customer or their projects.</p>
               </div>
+              <div class="flex items-center justify-center" v-if="hasMoreDocuments">
+                <button
+                  @click="loadMoreDocuments"
+                  class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                >
+                  Load more
+                </button>
+              </div>
             </div>
 
             <!-- Activity Log Tab -->
             <div v-else-if="currentTab === 'activity'" class="space-y-6">
-              <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Activity History</h4>
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3">
+                  <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Activity History</h4>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">{{ activitiesTotal }}</span>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                  <div class="relative w-44">
+                    <select
+                      v-model="activityActionFilter"
+                      class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                    >
+                      <option value="all">All Actions</option>
+                      <option value="created">Created</option>
+                      <option value="updated">Updated</option>
+                      <option value="deleted">Deleted</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
 
-              <div v-if="activities.length > 0" class="flow-root">
+              <div v-if="pagedActivities.length > 0" class="flow-root">
                 <ul role="list" class="-mb-8">
-                  <li v-for="(activity, activityIdx) in activities" :key="activity.id">
+                  <li v-for="(activity, activityIdx) in pagedActivities" :key="activity.id || activityIdx">
                     <div class="relative pb-8">
-                      <span v-if="activityIdx !== activities.length - 1" class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></span>
+                      <span v-if="activityIdx !== pagedActivities.length - 1" class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></span>
                       <div class="relative flex space-x-3">
                         <div>
                           <span :class="[
@@ -331,6 +369,15 @@
                     </div>
                   </li>
                 </ul>
+
+                <div class="mt-4 flex justify-center" v-if="hasMoreActivities">
+                  <button
+                    @click="loadMoreActivities"
+                    class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    Load more
+                  </button>
+                </div>
               </div>
               <div v-else class="text-center text-sm text-gray-500 dark:text-gray-400">
                 No activity recorded yet.
@@ -339,20 +386,27 @@
 
             <!-- Transactions Tab -->
             <div v-else-if="currentTab === 'transactions'" class="space-y-4">
-              <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Payment Transactions</h4>
-              <div v-if="customerPayments.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
-                <div class="mb-3 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
-                  <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Payment Transactions</h4>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">{{ paymentsTotal }}</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">No transactions</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No payment transactions found for this customer.</p>
+                <button
+                  v-if="can('payments', 'create')"
+                  @click="goToNewPayment"
+                  class="inline-flex items-center gap-2 rounded-md bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600"
+                >
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Payment
+                </button>
               </div>
-              <div v-else class="space-y-3">
-                <div 
-                  v-for="payment in customerPayments" 
-                  :key="payment.id" 
+
+              <div v-if="pagedPayments.length > 0" class="space-y-3">
+                <div
+                  v-for="payment in pagedPayments"
+                  :key="payment.id"
                   class="rounded-lg border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
                 >
                   <div class="flex items-start justify-between">
@@ -361,7 +415,7 @@
                         <h5 class="text-sm font-semibold text-gray-900 dark:text-white">
                           Payment #{{ payment.id }}
                         </h5>
-                        <span 
+                        <span
                           :class="[
                             'inline-flex rounded-full px-2 py-0.5 text-xs font-semibold',
                             payment.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
@@ -372,7 +426,7 @@
                           {{ payment.status || 'N/A' }}
                         </span>
                       </div>
-                      
+
                       <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                         <div v-if="payment.project" class="flex items-center gap-1">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,28 +437,28 @@
                             {{ payment.project.name }}
                           </router-link>
                         </div>
-                        
+
                         <div class="flex items-center gap-1">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                           </svg>
                           <span class="font-medium">Method:</span> {{ payment.method || 'N/A' }}
                         </div>
-                        
+
                         <div v-if="payment.reference" class="flex items-center gap-1">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                           </svg>
                           <span class="font-medium">Reference:</span> {{ payment.reference }}
                         </div>
-                        
+
                         <div class="flex items-center gap-1">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                           <span class="font-medium">Date:</span> {{ formatDate(payment.payment_date || payment.created_at) }}
                         </div>
-                        
+
                         <div v-if="payment.notes" class="mt-2 text-xs italic text-gray-500 dark:text-gray-400">
                           {{ payment.notes }}
                         </div>
@@ -425,9 +479,15 @@
                         </div>
                       </div>
                     </div>
-                    
+
                     <div class="text-right">
-                      <div class="text-lg font-bold text-gray-900 dark:text-white">
+                      <div class="text-lg font-bold text-gray-900 dark:text-white flex items-center justify-end gap-2">
+                         <span v-if="payment.direction === 'outgoing'" class="text-red-500" title="Outgoing">
+                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                         </span>
+                         <span v-else class="text-green-500" title="Incoming">
+                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                         </span>
                         {{ formatCurrency(payment.amount) }}
                       </div>
                       <div v-if="payment.currency" class="text-xs text-gray-500 dark:text-gray-400">
@@ -436,6 +496,25 @@
                     </div>
                   </div>
                 </div>
+
+                <div class="flex justify-center" v-if="hasMorePayments">
+                  <button
+                    @click="loadMorePayments"
+                    class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    Load more
+                  </button>
+                </div>
+              </div>
+
+              <div v-else class="flex flex-col items-center justify-center py-12 text-center">
+                <div class="mb-3 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
+                  <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">No transactions</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No payment transactions found for this customer.</p>
               </div>
             </div>
 
@@ -445,7 +524,7 @@
                 <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Projects</h4>
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ customerProjects.length }} total</p>
               </div>
-              
+
               <div v-if="customerProjects.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
                 <div class="mb-3 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
                   <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -455,19 +534,19 @@
                 <h3 class="text-sm font-medium text-gray-900 dark:text-white">No projects</h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">This customer doesn't have any projects yet.</p>
               </div>
-              
+
               <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <router-link 
-                  v-for="proj in customerProjects" 
-                  :key="proj.id" 
+                <router-link
+                  v-for="proj in customerProjects"
+                  :key="proj.id"
                   :to="`/projects/${proj.id}`"
                   class="group relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-all hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
                 >
                   <!-- Project Thumbnail/Header -->
                   <div class="relative h-32 bg-gradient-to-br from-brand-500 to-brand-700 overflow-hidden">
-                    <img 
-                      v-if="getProjectThumbnail(proj)" 
-                      :src="getProjectThumbnail(proj)" 
+                    <img
+                      v-if="getProjectThumbnail(proj)"
+                      :src="getProjectThumbnail(proj)"
                       :alt="proj.name"
                       class="h-full w-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                     />
@@ -476,7 +555,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </div>
-                    
+
                     <!-- Status Badge -->
                     <div class="absolute top-3 right-3">
                       <span :class="[
@@ -487,13 +566,13 @@
                       </span>
                     </div>
                   </div>
-                  
+
                   <!-- Project Info -->
                   <div class="p-4">
                     <h5 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                       {{ proj.name }}
                     </h5>
-                    
+
                     <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                       <div v-if="proj.plot_number" class="flex items-center gap-2">
                         <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -501,7 +580,7 @@
                         </svg>
                         <span class="truncate">Plot: {{ proj.plot_number }}</span>
                       </div>
-                      
+
                       <div v-if="proj.address" class="flex items-center gap-2">
                         <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -509,14 +588,14 @@
                         </svg>
                         <span class="truncate">{{ truncate(proj.address, 40) }}</span>
                       </div>
-                      
+
                       <div class="flex items-center gap-2">
                         <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span>{{ formatDate(proj.created_at) }}</span>
                       </div>
-                      
+
                       <div v-if="proj.contract_value" class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                         <div class="flex items-center justify-between">
                           <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Contract Value</span>
@@ -580,15 +659,28 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
+import { formatAmount } from '@/utils/currency'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const { can } = usePermissions()
+const type = computed(() => (route.meta.type as string) || 'customer')
 const loading = ref(true)
 const customer = ref<any>(null)
 const activities = ref<any[]>([])
 const currentTab = ref('documents')
+const activityActionFilter = ref<'all' | 'created' | 'updated' | 'deleted'>('all')
+
+// pagination state
+const documentsPage = ref(1)
+const documentsPerPage = 6
+const activitiesPage = ref(1)
+const activitiesPerPage = 6
+const paymentsPage = ref(1)
+const paymentsPerPage = 5
+const projectsPage = ref(1)
+const projectsPerPage = 5
 
 const tabs = [
   { name: 'documents', label: 'Documents' },
@@ -609,14 +701,14 @@ const activeShareDropdown = ref<number | null>(null)
 // Computed property to aggregate all documents from customer, projects, and payments
 const allDocuments = computed(() => {
   const docs: any[] = []
-  
+
   // Customer documents
   if (customer.value?.documents) {
     customer.value.documents.forEach((doc: any) => {
       docs.push({ ...doc, source: 'Customer' })
     })
   }
-  
+
   // Project documents
   if (customer.value?.projects) {
     customer.value.projects.forEach((project: any) => {
@@ -625,7 +717,7 @@ const allDocuments = computed(() => {
           docs.push({ ...doc, source: `Project: ${project.name}` })
         })
       }
-      
+
       // Payment documents from projects
       if (project.payments) {
         project.payments.forEach((payment: any) => {
@@ -638,15 +730,38 @@ const allDocuments = computed(() => {
       }
     })
   }
-  
+
   return docs
 })
+
+const documentsTotal = computed(() => allDocuments.value.length)
+const pagedDocuments = computed(() => {
+  const end = documentsPage.value * documentsPerPage
+  return allDocuments.value.slice(0, end)
+})
+const hasMoreDocuments = computed(() => pagedDocuments.value.length < documentsTotal.value)
+
+const filteredActivities = computed(() => {
+  if (activityActionFilter.value === 'all') return activities.value
+  return activities.value.filter((a) => (a.action || '').toLowerCase() === activityActionFilter.value)
+})
+const activitiesTotal = computed(() => filteredActivities.value.length)
+const pagedActivities = computed(() => filteredActivities.value.slice(0, activitiesPage.value * activitiesPerPage))
+const hasMoreActivities = computed(() => pagedActivities.value.length < activitiesTotal.value)
+
+const paymentsTotal = computed(() => customerPayments.value.length)
+const pagedPayments = computed(() => customerPayments.value.slice(0, paymentsPage.value * paymentsPerPage))
+const hasMorePayments = computed(() => pagedPayments.value.length < paymentsTotal.value)
+
+const projectsTotal = computed(() => customerProjects.value.length)
+const pagedProjects = computed(() => customerProjects.value.slice(0, projectsPage.value * projectsPerPage))
+const hasMoreProjects = computed(() => pagedProjects.value.length < projectsTotal.value)
 
 const getProjectThumbnail = (project: any) => {
   if (!project) return ''
   // Look for thumbnail in project documents
-  const thumbnail = project.documents?.find((d: any) => 
-    (d.document_category || '').toLowerCase().includes('thumbnail') || 
+  const thumbnail = project.documents?.find((d: any) =>
+    (d.document_category || '').toLowerCase().includes('thumbnail') ||
     (d.document_category || '').toLowerCase().includes('thumb')
   )
   if (thumbnail) {
@@ -708,12 +823,16 @@ const handleTabClick = async (tabName: string) => {
   currentTab.value = tabName
   // Refresh data when switching tabs
   if (tabName === 'documents') {
+    documentsPage.value = 1
     await fetchCustomer()
   } else if (tabName === 'activity') {
+    activitiesPage.value = 1
     await fetchActivities()
   } else if (tabName === 'transactions') {
+    paymentsPage.value = 1
     await fetchCustomerPayments()
   } else if (tabName === 'projects') {
+    projectsPage.value = 1
     await fetchCustomerProjects()
   }
 }
@@ -723,12 +842,12 @@ const getDocumentUrl = (doc: any): string => {
   const candidate = doc.url || doc.file_path || doc.file_path
   if (!candidate) return ''
   if (candidate.startsWith('http')) return candidate
-  
+
   // Get base URL and remove /api suffix if present
   let fileBase = (import.meta.env.VITE_FILE_BASE_URL as string) || (import.meta.env.VITE_API_BASE_URL as string) || window?.location?.origin || ''
   fileBase = fileBase.replace(/\/api\/?$/, '')
   const base = fileBase.replace(/\/$/, '')
-  
+
   const relative = candidate.startsWith('/') ? candidate : `/storage/${candidate}`
   return `${base}${relative}`
 }
@@ -755,12 +874,12 @@ const fetchActivities = async () => {
 const getProfilePhotoUrl = (path: string) => {
   if (!path) return ''
   if (path.startsWith('http')) return path
-  
+
   // Get base URL and remove /api suffix if present
   let fileBase = (import.meta.env.VITE_FILE_BASE_URL as string) || (import.meta.env.VITE_API_BASE_URL as string) || window?.location?.origin || ''
   fileBase = fileBase.replace(/\/api\/?$/, '')
   const base = fileBase.replace(/\/$/, '')
-  
+
   const relative = path.startsWith('/') ? path : `/storage/${path}`
   return `${base}${relative}`
 }
@@ -829,11 +948,40 @@ const truncate = (s: string | undefined, n = 80) => {
   return s.length > n ? s.substring(0, n - 1) + '…' : s
 }
 
-const formatCurrency = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined) return '—'
-  const num = Number(value) || 0
-  const formatted = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(num)
-  return `₨ ${formatted}`
+const formatCurrency = (value: number | string | null | undefined, currency: string = 'PKR') => formatAmount(value, currency, { compact: true })
+
+const loadMoreDocuments = () => {
+  if (hasMoreDocuments.value) documentsPage.value += 1
+}
+
+const loadMoreActivities = () => {
+  if (hasMoreActivities.value) activitiesPage.value += 1
+}
+
+const loadMorePayments = () => {
+  if (hasMorePayments.value) paymentsPage.value += 1
+}
+
+const loadMoreProjects = () => {
+  if (hasMoreProjects.value) projectsPage.value += 1
+}
+
+const openAttachDocuments = () => {
+  router.push({
+    path: '/documents/attach',
+    query: {
+      model: 'App\\\\Models\\\\Customer',
+      id: route.params.id
+    }
+  })
+}
+
+const goToNewPayment = () => {
+  router.push('/payments/create')
+}
+
+const goToNewProject = () => {
+  router.push('/projects/create')
 }
 
 const fetchCustomerProjects = async () => {

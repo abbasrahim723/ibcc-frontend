@@ -248,7 +248,7 @@ const menuGroups = [
         icon: GridIcon,
         name: "Dashboard",
         subItems: [
-          { name: "Ecommerce", path: "/", pro: false },
+          { name: "Cash Flow", path: "/cash-flow", pro: false },
           { name: "CRM", path: "/crm", pro: false },
           { name: "Calendar", path: "/calendar", pro: false }
         ],
@@ -257,6 +257,16 @@ const menuGroups = [
         icon: UserGroupIcon,
         name: "Customers",
         path: "/customers",
+      },
+      {
+        icon: UserGroupIcon,
+        name: "Labours",
+        path: "/labours",
+      },
+      {
+        icon: BoxCubeIcon,
+        name: "Suppliers",
+        path: "/suppliers",
       },
       {
         icon: DocsIcon,
@@ -272,6 +282,11 @@ const menuGroups = [
         icon: DocsIcon,
         name: "Payments",
         path: "/payments",
+      },
+      {
+        icon: DocsIcon,
+        name: "Scheduled Payments",
+        path: "/scheduled-payments",
       },
     ],
   },
@@ -348,13 +363,16 @@ const isSuperAdmin = computed(() => {
 
 const resourceMapByName = {
   'Dashboard': 'dashboard',
-  'Ecommerce': 'dashboard',
+  'Cash Flow': 'dashboard',
   'CRM': 'dashboard',
   'Calendar': 'calendar',
   'Customers': 'customers',
+  'Labours': 'customers', // Share permission for now
+  'Suppliers': 'customers', // Share permission
   'Documents': 'documents',
   'Projects': 'projects',
   'Payments': 'payments',
+  'Scheduled Payments': 'scheduled_payments',
   'Users': 'users',
   'Roles & Permissions': 'roles',
   'Activity Logs': 'activity_logs',
@@ -372,11 +390,12 @@ function resourceForItem(item) {
     // try to find a known resource in path
     for (let i = parts.length - 1; i >= 0; i--) {
       const part = parts[i];
-      if (['dashboard','crm','calendar','customers','documents','projects','payments','users','roles','activity-logs','locations','countries','states','cities','towns','phases','prefixes','placeholders','signatures','templates'].includes(part)) {
+      if (['dashboard','crm','calendar','customers','documents','projects','payments','scheduled-payments','users','roles','activity-logs','locations','countries','states','cities','towns','phases','prefixes','placeholders','signatures','templates'].includes(part)) {
         if (part === 'activity-logs') return 'activity_logs';
         if (part === 'crm') return 'dashboard';
         if (['prefixes'].includes(part)) return 'locations';
         if (['placeholders','signatures','templates'].includes(part)) return 'documents';
+        if (part === 'scheduled-payments') return 'scheduled_payments';
         return part;
       }
     }

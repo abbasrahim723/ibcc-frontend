@@ -30,11 +30,11 @@
           </div>
 
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Customer/Owner</label>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Customer</label>
             <CustomerSelect
               v-model="form.customer_id"
-              :customers="customers"
-              placeholder="Select customer"
+              :type="'customer'"
+              placeholder="Select Customer"
             />
           </div>
 
@@ -556,6 +556,7 @@ const authStore = useAuthStore()
 
 const currentPageTitle = ref('Projects')
 const customers = ref<any[]>([])
+// const ownerType = ref('customer') - Removed as per user request
 const countries = ref<any[]>([])
 const states = ref<any[]>([])
 const cities = ref<any[]>([])
@@ -967,7 +968,7 @@ const saveProject = async () => {
 }
 
 onMounted(() => {
-  fetchCustomers()
+  // fetchCustomers() // Handled by CustomerSelect
   fetchContractTypes()
   fetchCountries()
   fetchUsers()

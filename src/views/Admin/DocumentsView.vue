@@ -385,7 +385,7 @@ const categories = [
 ]
 const models = [
   { label: '📂 All Models', value: '' },
-  { label: '👤 Customers', value: 'App\\Models\\Customer' },
+  { label: '👤 Customers / Labours / Suppliers', value: 'App\\Models\\Customer' },
   { label: '🏗️ Projects', value: 'App\\Models\\Project' },
   { label: '💳 Payments', value: 'App\\Models\\Payment' },
 ]
@@ -466,7 +466,12 @@ const getFileIcon = (document: Document): string => {
 
 const linkFor = (document: Document) => {
   if (!document.documentable_type) return null
-  if (document.documentable_type.includes('Customer')) return `/customers/${document.documentable_id}`
+  if (document.documentable_type.includes('Customer')) {
+    const type = document.documentable?.type
+    if (type === 'supplier') return `/suppliers/${document.documentable_id}`
+    if (type === 'labour') return `/labours/${document.documentable_id}`
+    return `/customers/${document.documentable_id}`
+  }
   if (document.documentable_type.includes('Project')) return `/projects/${document.documentable_id}`
   if (document.documentable_type.includes('Payment')) return `/payments/${document.documentable_id}/edit`
   return null
@@ -480,7 +485,11 @@ const getDocumentOwner = (document: Document): string => {
   if (!document.documentable_type) return 'Unknown'
   const type = document.documentable_type.split('\\').pop()?.toLowerCase() || ''
   const name = (document.documentable && document.documentable.name) || `ID: ${document.documentable_id}`
-  if (type.includes('customer')) return `Customer: ${name}`
+  if (type.includes('customer')) {
+    const docType = document.documentable?.type
+    const label = docType === 'supplier' ? 'Supplier' : (docType === 'labour' ? 'Labour' : 'Customer')
+    return `${label}: ${name}`
+  }
   if (type.includes('project')) return `Project: ${name}`
   if (type.includes('payment')) return `Payment #${document.documentable_id}`
   return `${type || 'Unknown'}: ${name}`

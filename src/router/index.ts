@@ -35,6 +35,23 @@ const router = createRouter({
       },
     },
     {
+      path: '/cash-flow',
+      name: 'CashFlow',
+      component: () => import('../views/Dashboard/CashFlowView.vue'),
+      meta: {
+        title: 'Cash Flow',
+      },
+    },
+    {
+      path: '/notifications',
+      name: 'Notifications',
+      component: () => import('../views/NotificationsView.vue'),
+      meta: {
+        title: 'Notifications',
+        permission: 'notifications.view',
+      },
+    },
+    {
       path: '/admin/users',
       name: 'Users',
       component: () => import('../views/Admin/UsersView.vue'),
@@ -165,6 +182,94 @@ const router = createRouter({
         permission: 'customers.view'
       },
     },
+    // Labour Management
+    {
+      path: '/labours',
+      name: 'Labours',
+      component: () => import('../views/Admin/CustomersView.vue'),
+      meta: {
+        title: 'Labour Management',
+        requiresAuth: true,
+        permission: 'customers.view',
+        type: 'labour'
+      },
+    },
+    {
+      path: '/labours/create',
+      name: 'CreateLabour',
+      component: () => import('../views/Admin/CustomerFormView.vue'),
+      meta: {
+        title: 'Create Labour',
+        permission: 'customers.create',
+        type: 'labour'
+      },
+    },
+    {
+      path: '/labours/:id/edit',
+      name: 'LabourEdit',
+      component: () => import('../views/Admin/CustomerFormView.vue'),
+      meta: {
+        title: 'Edit Labour',
+        requiresAuth: true,
+        permission: 'customers.edit',
+        type: 'labour'
+      },
+    },
+    {
+      path: '/labours/:id',
+      name: 'LabourDetail',
+      component: () => import('../views/Admin/CustomerDetailView.vue'),
+      meta: {
+        title: 'Labour Details',
+        requiresAuth: true,
+        permission: 'customers.view',
+        type: 'labour'
+      },
+    },
+    // Supplier Management
+    {
+      path: '/suppliers',
+      name: 'Suppliers',
+      component: () => import('../views/Admin/CustomersView.vue'),
+      meta: {
+        title: 'Supplier Management',
+        requiresAuth: true,
+        permission: 'customers.view',
+        type: 'supplier'
+      },
+    },
+    {
+      path: '/suppliers/create',
+      name: 'CreateSupplier',
+      component: () => import('../views/Admin/CustomerFormView.vue'),
+      meta: {
+        title: 'Create Supplier',
+        permission: 'customers.create',
+        type: 'supplier'
+      },
+    },
+    {
+      path: '/suppliers/:id/edit',
+      name: 'SupplierEdit',
+      component: () => import('../views/Admin/CustomerFormView.vue'),
+      meta: {
+        title: 'Edit Supplier',
+        requiresAuth: true,
+        permission: 'customers.edit',
+        type: 'supplier'
+      },
+    },
+    {
+      path: '/suppliers/:id',
+      name: 'SupplierDetail',
+      component: () => import('../views/Admin/CustomerDetailView.vue'),
+      meta: {
+        title: 'Supplier Details',
+        requiresAuth: true,
+        permission: 'customers.view',
+        type: 'supplier'
+      },
+    },
     {
       path: '/documents',
       name: 'Documents',
@@ -266,6 +371,16 @@ const router = createRouter({
       },
     },
     {
+      path: '/documents/attach',
+      name: 'AttachDocuments',
+      component: () => import('../views/Documents/AttachDocumentsView.vue'),
+      meta: {
+        title: 'Attach Documents',
+        requiresAuth: true,
+        permission: 'documents.create',
+      },
+    },
+    {
       path: '/contract-types/create',
       name: 'CreateContractType',
       component: () => import('../views/Admin/ContractTypeFormView.vue'),
@@ -316,6 +431,46 @@ const router = createRouter({
       component: () => import('../views/Admin/PaymentsView.vue'),
       meta: {
         title: 'Payments',
+      },
+    },
+    {
+      path: '/scheduled-payments',
+      name: 'ScheduledPayments',
+      component: () => import('../views/Admin/ScheduledPaymentsView.vue'),
+      meta: {
+        title: 'Scheduled Payments',
+        requiresAuth: true,
+        permission: 'scheduled_payments.view'
+      },
+    },
+    {
+      path: '/scheduled-payments/:id/preview',
+      name: 'ScheduledPaymentPreview',
+      component: () => import('../views/Admin/SchedulePreviewView.vue'),
+      meta: {
+        title: 'Scheduled Payment Preview',
+        requiresAuth: true,
+        permission: 'scheduled_payments.view'
+      },
+    },
+    {
+      path: '/scheduled-payments/create',
+      name: 'CreateSchedule',
+      component: () => import('../views/Admin/SchedulePaymentForm.vue'),
+      meta: {
+        title: 'Create Payment Schedule',
+        requiresAuth: true,
+        permission: 'scheduled_payments.create'
+      },
+    },
+    {
+      path: '/scheduled-payments/:id/edit',
+      name: 'EditSchedule',
+      component: () => import('../views/Admin/SchedulePaymentForm.vue'),
+      meta: {
+        title: 'Edit Payment Schedule',
+        requiresAuth: true,
+        permission: 'scheduled_payments.edit'
       },
     },
     {
@@ -535,5 +690,3 @@ router.beforeEach(async (to, from, next) => {
 
   next()
 })
-
-

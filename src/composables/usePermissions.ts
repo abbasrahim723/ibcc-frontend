@@ -53,12 +53,12 @@ export function usePermissions() {
     };
 
     const hasAnyPermission = (perms: string[]) => {
-        if (!loaded) return false;
+        if (!loaded.value) return false;
         return perms.some(perm => hasPermission(perm));
     };
 
     const hasAllPermissions = (perms: string[]) => {
-        if (!loaded) return false;
+        if (!loaded.value) return false;
         return perms.every(perm => hasPermission(perm));
     };
 

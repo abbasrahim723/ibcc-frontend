@@ -347,6 +347,7 @@ import api from '@/utils/axios'
 import { usePermissions } from '@/composables/usePermissions'
 import { useToast } from '@/composables/useToast'
 import { ClockIcon, CheckCircleIcon, PlayCircleIcon, PauseCircleIcon, XCircleIcon, FileTextIcon, ImageIcon } from 'lucide-vue-next'
+import { formatAmount } from '@/utils/currency'
 
 const route = useRoute()
 const router = useRouter()
@@ -450,10 +451,7 @@ const fetchResource = async (url: string, key: keyof typeof results.value, enabl
   }
 }
 
-const formatCurrency = (value: any) => {
-  const num = Number(value) || 0
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(num)
-}
+const formatCurrency = (value: any) => formatAmount(value, 'PKR', { compact: true })
 
 const formatDate = (date: any) => {
   if (!date) return ''

@@ -158,7 +158,16 @@
               </td>
 
               <td class="px-4 py-4 text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                {{ formatCurrency(paymentsTotal(project)) }}
+                <div class="flex flex-col gap-1">
+                  <div class="text-xs font-medium text-green-600 dark:text-green-400 flex items-center gap-1" title="Received (Incoming)">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                    {{ formatCurrency(project.incoming_payments_sum_amount || 0) }}
+                  </div>
+                  <div class="text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1" title="Paid (Outgoing)">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                    {{ formatCurrency(project.outgoing_payments_sum_amount || 0) }}
+                  </div>
+                </div>
               </td>
 
               <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">
@@ -206,6 +215,16 @@
               
               <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex items-center justify-end gap-2">
+                  <button
+                    v-if="can('documents', 'attach')"
+                    @click="goAttachDocs('App\\Models\\Project', project.id)"
+                    class="p-1.5 rounded-md text-brand-600 hover:bg-gray-100 dark:text-brand-400 dark:hover:bg-gray-800"
+                    title="Attach Documents"
+                  >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2m-4-9l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                  </button>
                   <button 
                     @click="handleEditProject(project)" 
                     :class="[
@@ -480,6 +499,7 @@ import StatusSelect from '@/components/forms/StatusSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
+import { formatAmount } from '@/utils/currency'
 import { 
   ClockIcon, 
   CheckCircleIcon, 
@@ -751,12 +771,7 @@ const paymentsTotal = (p: any) => {
   return p.payments_sum_amount ?? (p.payments_sum?.amount ?? p.payments_sum ?? 0)
 }
 
-const formatCurrency = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined) return '—'
-  const num = Number(value) || 0
-  const formatted = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(num)
-  return `₨ ${formatted}`
-}
+const formatCurrency = (value: number | string | null | undefined, currency: string = 'PKR') => formatAmount(value, currency, { compact: true })
 
 const getProjectThumbnail = (p: any) => {
   if (!p) return ''
@@ -779,6 +794,10 @@ const getCustomerDisplayName = (c: any) => {
   if (!c) return ''
   const prefix = c.name_prefix ? `${c.name_prefix} ` : ''
   return `${prefix}${c.name}`.trim()
+}
+
+const goAttachDocs = (model: string, id: number) => {
+  router.push({ path: '/documents/attach', query: { model, id } })
 }
 
 const handleImageError = (e: Event) => {

@@ -7,7 +7,7 @@
         <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Payments</h3>
 
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 items-center">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 items-center">
             <!-- Filters -->
             <!-- Filters -->
             <ProjectSelect
@@ -30,7 +30,7 @@
 
             <StatusSelect
               v-model="filters.status"
-              :statuses="['pending', 'completed', 'failed', 'cancelled']"
+              :statuses="['scheduled','draft','pending', 'completed', 'failed', 'cancelled', 'rejected']"
               placeholder="All Status"
               @change="handleSearch"
               class="w-full"
@@ -51,8 +51,22 @@
                 class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </div>
+            
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <input
+                  type="checkbox"
+                  v-model="filters.is_scheduled"
+                  true-value="1"
+                  false-value=""
+                  @change="handleSearch"
+                  class="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                />
+                Scheduled only
+              </label>
+            </div>
           </div>
-          
+
           <div class="mt-4 flex justify-end" v-if="can('payments', 'create')">
               <button
                 @click="router.push('/payments/create')"
@@ -92,11 +106,11 @@
                   <td class="px-4 py-4">
                     <div v-if="payment.project" class="flex items-center gap-3">
                       <div class="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                        <img 
-                          v-if="getProjectThumbnail(payment.project)" 
-                          :src="getProjectThumbnail(payment.project)" 
+                        <img
+                          v-if="getProjectThumbnail(payment.project)"
+                          :src="getProjectThumbnail(payment.project)"
                           :alt="payment.project.name"
-                          class="h-full w-full object-cover" 
+                          class="h-full w-full object-cover"
                         />
                         <div v-else class="h-full w-full flex items-center justify-center text-sm font-bold text-gray-400 dark:text-gray-600">
                           {{ payment.project.name?.charAt(0)?.toUpperCase() }}
@@ -114,17 +128,17 @@
                     <span v-else class="text-sm text-gray-400">—</span>
                   </td>
                                                       <td class="px-4 py-4">
-                    <router-link 
+                    <router-link
                       v-if="payment.payer"
                       :to="`/customers/${payment.payer.id}`"
                       class="flex items-center gap-2 group"
                     >
                       <div class="h-8 w-8 flex-shrink-0 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 group-hover:border-brand-400 transition-colors">
-                        <img 
-                          v-if="getCustomerPhoto(payment.payer)" 
-                          :src="getCustomerPhoto(payment.payer)" 
+                        <img
+                          v-if="getCustomerPhoto(payment.payer)"
+                          :src="getCustomerPhoto(payment.payer)"
                           :alt="formatCustomerName(payment.payer)"
-                          class="h-full w-full object-cover" 
+                          class="h-full w-full object-cover"
                         />
                         <div v-else class="h-full w-full flex items-center justify-center text-xs font-bold text-gray-400 dark:text-gray-600">
                           {{ payment.payer?.name?.charAt(0)?.toUpperCase() || '—' }}
@@ -142,9 +156,15 @@
                     <div v-else class="text-sm text-gray-400">—</div>
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap">
-                    <span class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ formatCurrency(payment.amount, payment.currency) }}
-                    </span>
+                    <div class="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                       <span v-if="payment.direction === 'outgoing'" class="text-red-500" title="Outgoing">
+                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                       </span>
+                       <span v-else class="text-green-500" title="Incoming">
+                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                       </span>
+                       {{ formatCurrency(payment.amount, payment.currency) }}
+                    </div>
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {{ formatDate(payment.payment_date) }}
@@ -167,7 +187,7 @@
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap">
                     <div class="relative group">
-                      <button 
+                      <button
                         @click.stop="can('payments', 'change_status') ? toggleStatusDropdown(payment.id) : null"
                         class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize transition-all duration-200"
                         :class="[
@@ -184,11 +204,17 @@
                         {{ payment.status }}
                         <svg v-if="can('payments', 'change_status')" class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                       </button>
-                      
+                      <div v-if="payment.is_scheduled" class="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                        Scheduled
+                        <router-link v-if="payment.schedule_id" :to="`/scheduled-payments/${payment.schedule_id}/edit`" class="underline hover:text-brand-800">
+                          View
+                        </router-link>
+                      </div>
+
                       <!-- Inline Status Dropdown -->
                       <div v-if="activeStatusDropdown === payment.id" class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50">
                         <div class="py-1">
-                          <button v-for="status in ['pending', 'completed', 'failed', 'cancelled']" 
+                          <button v-for="status in ['pending', 'completed', 'failed', 'cancelled']"
                             :key="status"
                             @click="updatePaymentStatus(payment, status)"
                             class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 capitalize transition-colors"
@@ -203,13 +229,23 @@
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div class="flex items-center justify-end gap-2">
-                      <button 
+                      <button
+                        v-if="can('documents', 'attach')"
+                        @click="goAttachDocs('App\\Models\\Payment', payment.id)"
+                        class="p-1.5 rounded-md text-brand-600 hover:bg-gray-50 dark:text-brand-400 dark:hover:bg-brand-900/30"
+                        title="Attach Documents"
+                      >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2m-4-9l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                      </button>
+                      <button
                         v-if="payment.status === 'pending'"
                         @click="can('payments', 'edit') ? approvePayment(payment) : toast.error('You do not have permission to approve payments')"
                         class="p-1.5 rounded-md transition-colors"
                         :class="[
-                          can('payments', 'edit') 
-                            ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30' 
+                          can('payments', 'edit')
+                            ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30'
                             : 'text-green-600/50 cursor-not-allowed dark:text-green-400/50'
                         ]"
                         title="Approve Payment"
@@ -218,10 +254,10 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                       </button>
-                      
-                      <router-link 
+
+                      <router-link
                         v-if="can('payments', 'edit')"
-                        :to="`/payments/${payment.id}/edit`" 
+                        :to="`/payments/${payment.id}/edit`"
                         class="p-1.5 text-brand-600 hover:bg-brand-50 rounded-md transition-colors dark:text-brand-400 dark:hover:bg-brand-900/30"
                         title="Edit Payment"
                       >
@@ -274,14 +310,15 @@ import StatusSelect from '@/components/forms/StatusSelect.vue'
 import DateRangePicker from '@/components/forms/DateRangePicker.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import { formatAmount } from '@/utils/currency'
 import { useAuthStore } from '@/stores/auth'
 import { usePermissions } from '@/composables/usePermissions'
-import { 
-  ClockIcon, 
-  CheckCircleIcon, 
-  XCircleIcon, 
-  AlertCircleIcon, 
-  PauseCircleIcon, 
+import {
+  ClockIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  AlertCircleIcon,
+  PauseCircleIcon,
   PlayCircleIcon,
   CalendarIcon
 } from 'lucide-vue-next'
@@ -300,6 +337,7 @@ const filters = ref({
   project_id: '',
   customer_id: '',
   status: '',
+  is_scheduled: '',
   date_range: [] as string[]
 })
 
@@ -326,14 +364,15 @@ const closeStatusDropdown = () => {
 
 const fetchPayments = async (page = 1) => {
   try {
-    const params: any = { 
-      page, 
+    const params: any = {
+      page,
       search: searchQuery.value || undefined,
       project_id: filters.value.project_id || undefined,
       customer_id: filters.value.customer_id || undefined,
-      status: filters.value.status || undefined
+      status: filters.value.status || undefined,
+      is_scheduled: filters.value.is_scheduled || undefined
     }
-    
+
     if (filters.value.date_range && filters.value.date_range.length === 2) {
       // Assuming backend expects start_date and end_date or a date_range param
       // Let's send start_date and end_date
@@ -350,7 +389,7 @@ const fetchPayments = async (page = 1) => {
          start = parts[0]
          end = parts[1]
       }
-      
+
       if (start && end) {
         params.start_date = start
         params.end_date = end
@@ -393,12 +432,7 @@ const fetchCustomers = async () => {
 const handleSearch = () => fetchPayments(1)
 const changePage = (page: number) => fetchPayments(page)
 
-const formatCurrency = (value: number | string | null | undefined, currency: string = 'PKR') => {
-  if (value === null || value === undefined) return '—'
-  const num = Number(value) || 0
-  const formatted = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(num)
-  return `${currency} ${formatted}`
-}
+const formatCurrency = (value: number | string | null | undefined, currency: string = 'PKR') => formatAmount(value, currency, { compact: true })
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '—'
@@ -423,10 +457,15 @@ const approvePayment = async (payment: any) => {
 const updatePaymentStatus = async (payment: any, status: string) => {
   if (payment.status === status) return
   try {
+    const approvedId =
+      status === 'completed'
+        ? (payment.approved_by?.id || authStore.user?.id || payment.approved_by || null)
+        : (payment.approved_by?.id || payment.approved_by || null)
+
     await api.put(`/payments/${payment.id}`, {
       status: status,
-      // If completing, set approved_by if not already set
-      approved_by: status === 'completed' && !payment.approved_by ? authStore.user?.id : payment.approved_by
+      // ensure approved_by is an id, not a populated object
+      approved_by: approvedId
     })
     toast.success(`Status updated to ${status}`)
     fetchPayments(pagination.value.current_page)
@@ -481,6 +520,10 @@ const formatCustomerName = (c: any) => {
   const prefix = c.name_prefix ? `${c.name_prefix} ` : ''
   const full = c.name || [c.first_name, c.last_name].filter(Boolean).join(' ')
   return (prefix + full).trim() || c.email || ''
+}
+
+const goAttachDocs = (model: string, id: number) => {
+  router.push({ path: '/documents/attach', query: { model, id } })
 }
 
 const makeAbsoluteUrl = (path: string | undefined) => {

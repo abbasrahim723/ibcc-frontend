@@ -4,7 +4,7 @@
 
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Customer Management</h3>
+        <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">{{ currentPageTitle }}</h3>
 
         <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:flex-wrap lg:items-center lg:gap-4">
           <!-- Date Range -->
@@ -31,7 +31,7 @@
             v-model="searchQuery"
             @input="handleSearch"
             type="text"
-            placeholder="Search customers..."
+            :placeholder="`Search ${type}s...`"
             class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white w-full lg:flex-1"
           />
 
@@ -46,7 +46,7 @@
             ]"
           >
             <span class="flex items-center gap-2">
-              <span>Add Customer</span>
+              <span>Add {{ type === 'labour' ? 'Labour' : (type === 'supplier' ? 'Supplier' : 'Customer') }}</span>
             </span>
           </button>
         </div>
@@ -57,7 +57,7 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Customer</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ type === 'labour' ? 'Labour' : (type === 'supplier' ? 'Supplier' : 'Customer') }}</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Contact</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Projects</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">WhatsApp</th>
@@ -78,7 +78,7 @@
                   </div>
                   <div class="ml-4">
                     <router-link
-                      :to="`/customers/${customer.id}`"
+                      :to="getDetailLink(customer)"
                       class="text-sm font-medium text-gray-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400"
                     >
                       {{ getFullName(customer) }}
@@ -123,6 +123,25 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <!-- Make Payment Button -->
+                <button
+                  v-if="can('payments', 'create')"
+                  @click="router.push({
+                    path: '/payments/create',
+                    query: { 
+                      payer_id: customer.id, 
+                      type: type, // 'labour' or 'customer'
+                      direction: (type === 'labour' || type === 'supplier') ? 'outgoing' : 'incoming'
+                    }
+                  })"
+                  class="mr-3 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-green-600 dark:text-green-400"
+                  title="Make Payment"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </button>
+
                 <!-- Edit Button -->
                 <button
                   @click="handleEditCustomer(customer)"
@@ -136,6 +155,18 @@
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+
+                <!-- Attach Documents Button -->
+                <button
+                  v-if="can('documents', 'attach')"
+                  @click="goAttachDocs('App\\\\Models\\\\Customer', customer.id)"
+                  class="mr-3 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-brand-600 dark:text-brand-400"
+                  title="Attach Documents"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2m-4-9l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                 </button>
                 
@@ -223,9 +254,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import DateRangePicker from '@/components/forms/DateRangePicker.vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
@@ -247,14 +278,22 @@ interface Customer {
   is_active: boolean
   profile_photo_url: string | null
   created_at?: string | null
+  projects_count?: number
 }
 
 const router = useRouter()
+const route = useRoute()
 const toast = useToast()
-const currentPageTitle = ref('Customers')
+const type = computed(() => (route.meta.type as string) || 'customer')
+const currentPageTitle = computed(() => {
+  if (type.value === 'labour') return 'Labour Management'
+  if (type.value === 'supplier') return 'Supplier Management'
+  return 'Customer Management'
+})
+
 const customers = ref<Customer[]>([])
 const searchQuery = ref('')
-const dateRange = ref<string[]>([])
+const dateRange = ref<string[] | string>([])
 const statusFilter = ref('')
 
 const pagination = ref({
@@ -284,10 +323,17 @@ const fetchCustomers = async (page = 1) => {
       params.is_active = statusFilter.value === 'active' ? 1 : 0
       params.status = statusFilter.value
     }
+    
+    params.type = type.value
 
-    if (dateRange.value && dateRange.value.length === 2) {
-      params.start_date = dateRange.value[0]
-      params.end_date = dateRange.value[1]
+    const dr = dateRange.value
+    if (Array.isArray(dr) && dr.length === 2) {
+      params.start_date = dr[0]
+      params.end_date = dr[1]
+    } else if (typeof dr === 'string' && dr.includes(' to ')) {
+      const parts = dr.split(' to ')
+      params.start_date = parts[0]
+      params.end_date = parts[1]
     }
     const response = await api.get('/customers', { params })
     customers.value = response.data.data
@@ -323,6 +369,10 @@ const getFullName = (customer: any) => {
   return `${prefix}${customer.name}`
 }
 
+const goAttachDocs = (model: string, id: number) => {
+  router.push({ path: '/documents/attach', query: { model, id } })
+}
+
 const formatDate = (dateString: string | null | undefined) => {
   if (!dateString) return '—'
   const d = new Date(dateString)
@@ -331,12 +381,21 @@ const formatDate = (dateString: string | null | undefined) => {
 }
 
 // Permission-aware action handlers
+
 const handleAddCustomer = () => {
   if (!can('customers', 'create')) {
     toast.error('You are not authorized to perform this action')
     return
   }
-  router.push('/customers/create')
+  if (type.value === 'labour') router.push('/labours/create')
+  else if (type.value === 'supplier') router.push('/suppliers/create')
+  else router.push('/customers/create')
+}
+
+const getDetailLink = (customer: Customer) => {
+  if (type.value === 'labour') return `/labours/${customer.id}`
+  if (type.value === 'supplier') return `/suppliers/${customer.id}`
+  return `/customers/${customer.id}`
 }
 
 const handleEditCustomer = (customer: any) => {
@@ -344,7 +403,9 @@ const handleEditCustomer = (customer: any) => {
     toast.error('You are not authorized to perform this action')
     return
   }
-  router.push(`/customers/${customer.id}/edit`)
+  if (type.value === 'labour') router.push(`/labours/${customer.id}/edit`)
+  else if (type.value === 'supplier') router.push(`/suppliers/${customer.id}/edit`)
+  else router.push(`/customers/${customer.id}/edit`)
 }
 
 const handleToggleStatus = (customer: any) => {
@@ -417,5 +478,9 @@ const closeConfirmModal = () => {
 
 onMounted(() => {
   fetchCustomers()
+})
+
+watch(() => route.path, () => {
+    fetchCustomers()
 })
 </script>

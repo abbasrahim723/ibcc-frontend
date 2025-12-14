@@ -478,8 +478,8 @@ const fetchUsers = async () => {
   // Only needed for super-admin filter
   if (!isSuperAdmin.value) return
   try {
-    const response = await api.get('/users/list')
-    users.value = response.data
+    const response = await api.get('/users', { params: { per_page: 200 } })
+    users.value = response.data?.data || response.data || []
   } catch (error) {
     console.error('Error fetching users', error)
   }

@@ -21,7 +21,7 @@
           <div v-if="showAddress && selectedCustomer.address" class="text-xs text-gray-500 truncate">{{ selectedCustomer.address }}</div>
         </div>
       </span>
-      <span v-else class="text-gray-500">{{ placeholder }}</span>
+      <span v-else class="text-gray-500">{{ placeholder || (type === 'labour' ? 'Select Labour' : 'Select Customer') }}</span>
       <svg class="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
@@ -37,7 +37,7 @@
           ref="searchInput"
           type="text"
           class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-          placeholder="Search customers..."
+          placeholder="Search..."
           @click.stop
         />
       </div>
@@ -74,7 +74,7 @@
           </div>
         </div>
         <div v-if="filteredCustomers.length === 0" class="px-3 py-2 text-sm text-gray-500 text-center">
-          No customers found
+          No {{ type === 'labour' ? 'labours' : 'customers' }} found
         </div>
       </template>
     </div>
@@ -95,7 +95,11 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: 'Select Customer'
+    default: ''
+  },
+  type: {
+    type: String,
+    default: 'customer'
   },
   showAddress: {
     type: Boolean,
@@ -167,7 +171,7 @@ const fetchCustomers = async () => {
   
   loading.value = true
   try {
-    const res = await api.get('/customers', { params: { status: 'active', per_page: 100 } })
+    const res = await api.get('/customers', { params: { status: 'active', per_page: 100, type: props.type } })
     internalCustomers.value = res.data.data || res.data
   } catch (e) {
     console.error('Error fetching customers', e)
@@ -208,5 +212,16 @@ onMounted(() => {
       // isOpen.value = false
     }
   })
+})
+
+watch(() => props.type, () => {
+  internalCustomers.value = []
+  if (props.customers.length === 0) {
+    // If not using external list, force new fetch on next open or immediately
+    // If we want immediate update when type changes (if dropdown is open):
+    if (isOpen.value) {
+      fetchCustomers()
+    }
+  }
 })
 </script>
