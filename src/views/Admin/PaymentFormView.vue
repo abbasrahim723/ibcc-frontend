@@ -8,6 +8,18 @@
         <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Payment Details</h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex items-center gap-3 md:col-span-2">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Mark as Expense</label>
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="checkbox" v-model="form.is_expense" class="sr-only">
+              <span class="relative inline-block h-6 w-11 rounded-full transition"
+                    :class="form.is_expense ? 'bg-brand-500' : 'bg-gray-300'">
+                <span class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition"
+                      :class="form.is_expense ? 'translate-x-5' : ''"></span>
+              </span>
+            </label>
+            <span class="text-xs text-gray-500 dark:text-gray-400">For travel/food/etc. sets outgoing automatically.</span>
+          </div>
           <!-- Project Dropdown -->
           <div class="md:col-span-2">
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Project</label>
@@ -91,7 +103,7 @@
           </div>
 
           <!-- Direction & Party Type -->
-          <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-if="!form.is_expense" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
              <div>
                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Direction</label>
                <div class="flex gap-4">
@@ -125,8 +137,18 @@
              </div>
           </div>
 
+          <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4" v-if="form.is_expense">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Expense Category</label>
+              <select v-model="form.category_id" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" required>
+                <option value="">Select category</option>
+                <option v-for="cat in expenseCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Payer/Payee Selection -->
-          <div class="md:col-span-2">
+          <div class="md:col-span-2" v-if="!form.is_expense">
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               {{ form.direction === 'incoming' ? 'Payer' : 'Payee' }} ({{ partyType.charAt(0).toUpperCase() + partyType.slice(1) }})
             </label>
@@ -379,6 +401,7 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import { formatAmount } from '@/utils/currency'
 
 const route = useRoute()
 const router = useRouter()
@@ -399,12 +422,15 @@ const form = ref<any>({
   approved_by: null,
   direction: 'incoming',
   type: 'incoming',
+  is_expense: false,
+  category_id: '',
 })
 
 const partyType = ref('customer')
 
 const projects = ref<any[]>([])
 const customers = ref<any[]>([])
+const expenseCategories = ref<any[]>([])
 const users = ref<any[]>([])
 const files = ref<File[]>([])
 const existingDocs = ref<any[]>([])
@@ -458,9 +484,9 @@ const selectedApprovedUser = computed(() => users.value.find(u => u.id === form.
 const selectProject = (project: any) => {
   form.value.project_id = project ? project.id : null
   isProjectDropdownOpen.value = false
-  
-  // Auto-select customer if project has one
-  if (project && project.customer_id) {
+
+  // Auto-select customer if project has one (only for normal payments)
+  if (!form.value.is_expense && project && project.customer_id) {
     form.value.payer_id = project.customer_id
   }
 }
@@ -523,14 +549,13 @@ const selectApprovedUser = (user: any) => {
 
 const loadData = async () => {
   try {
-    const [pRes, cRes, uRes] = await Promise.all([
+    const [pRes, catRes, uRes] = await Promise.all([
       api.get('/projects?per_page=100&with=documents'),
-      api.get('/projects?per_page=100&with=documents'),
-      // api.get('/customers?per_page=100'),
+      api.get('/expense-categories'),
       api.get('/users?per_page=100')
     ])
     projects.value = pRes.data.data || pRes.data
-    // customers.value = cRes.data.data || cRes.data
+    expenseCategories.value = catRes.data?.data ?? catRes.data ?? []
     users.value = uRes.data.data || uRes.data
   } catch (e) {
     console.error(e)
@@ -552,19 +577,23 @@ const removeFile = (index: number) => {
 const save = async () => {
   try {
     const fd = new FormData()
+    // Base fields
     Object.entries(form.value).forEach(([k, v]) => { 
+      if (k === 'is_expense') return // handled explicitly below
       if (v !== null && v !== undefined && v !== '') fd.append(k, v as any) 
     })
+    fd.append('is_expense', form.value.is_expense ? '1' : '0')
     
-    // Default payer_type to customer if payer_id is set
-    // Default payer_type to customer if payer_id is set
-    if (form.value.payer_id) {
-      fd.append('payer_type', 'customer')
+    // Default payer_type to the selected party when not expense
+    if (!form.value.is_expense && form.value.payer_id) {
+      fd.append('payer_type', partyType.value || 'customer')
     }
     
     // Ensure direction/type is set
-    fd.append('type', form.value.direction || 'incoming')
-    fd.append('direction', form.value.direction || 'incoming')
+    const effectiveDirection = form.value.is_expense ? 'outgoing' : (form.value.direction || 'incoming')
+    const effectiveType = form.value.is_expense ? 'expense' : (form.value.direction || 'incoming')
+    fd.append('type', effectiveType)
+    fd.append('direction', effectiveDirection)
 
     const uploadable = files.value.filter((f) => f instanceof File) as File[]
     uploadable.forEach((f, i) => { fd.append(`document_files[${i}]`, f) })
@@ -577,7 +606,7 @@ const save = async () => {
       await api.post('/payments', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
       toast.success('Payment created')
     }
-    router.push('/payments')
+    router.push(form.value.is_expense ? '/expenses' : '/payments')
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error saving payment')
   }
@@ -628,10 +657,13 @@ onMounted(async () => {
     }
   } else {
     // Handle query params for new payment
-    const { payer_id, type, direction } = route.query
+    const { payer_id, type, direction, expense } = route.query
     if (payer_id) form.value.payer_id = Number(payer_id)
     if (type) partyType.value = type as string
     if (direction) form.value.direction = direction as string
+    if (expense === '1' || expense === 'true') {
+      form.value.is_expense = true
+    }
   }
 })
 
@@ -640,6 +672,20 @@ watch(partyType, (newType) => {
     if (!isEdit.value && !route.query.direction) {
        form.value.direction = 'outgoing'
     }
+  }
+})
+
+// Force expense behaviour
+watch(() => form.value.is_expense, (isExpense) => {
+  if (isExpense) {
+    form.value.direction = 'outgoing'
+    form.value.type = 'expense'
+    form.value.payer_id = null
+    partyType.value = 'customer'
+    form.value.category_id = form.value.category_id || ''
+  } else {
+    form.value.type = form.value.direction || 'incoming'
+    form.value.category_id = ''
   }
 })
 </script>

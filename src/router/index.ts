@@ -20,11 +20,7 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'Dashboard',
-      component: () => import('../views/Dashboard/DashboardView.vue'),
-      meta: {
-        title: 'Dashboard',
-      },
+      redirect: '/crm'
     },
     {
       path: '/crm',
@@ -431,6 +427,25 @@ const router = createRouter({
       component: () => import('../views/Admin/PaymentsView.vue'),
       meta: {
         title: 'Payments',
+        permission: 'payments.view'
+      },
+    },
+    {
+      path: '/expenses',
+      name: 'Expenses',
+      component: () => import('../views/Admin/ExpensesWrapper.vue'),
+      meta: {
+        title: 'Expenses',
+        permission: 'payments.view'
+      },
+    },
+    {
+      path: '/expense-categories',
+      name: 'ExpenseCategories',
+      component: () => import('../views/Admin/ExpenseCategoriesView.vue'),
+      meta: {
+        title: 'Expense Categories',
+        permission: 'expenses.view'
       },
     },
     {

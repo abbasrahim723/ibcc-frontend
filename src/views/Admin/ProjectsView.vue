@@ -4,46 +4,62 @@
 
     <div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Project Management</h3>
+      <div class="mb-6 flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Project Management</h3>
 
-        <div class="flex flex-1 flex-col flex-wrap gap-4 sm:flex-row sm:items-center lg:flex-initial">
-          <!-- View Toggle -->
-          <div class="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800">
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- View Toggle -->
+            <div class="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800">
+              <button
+                @click="viewMode = 'list'"
+                :class="[
+                  'rounded-md p-1.5 transition-colors',
+                  viewMode === 'list'
+                    ? 'bg-white text-brand-600 shadow-sm dark:bg-gray-700 dark:text-brand-400'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                ]"
+                title="List View"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <button
+                @click="viewMode = 'kanban'"
+                :class="[
+                  'rounded-md p-1.5 transition-colors',
+                  viewMode === 'kanban'
+                    ? 'bg-white text-brand-600 shadow-sm dark:bg-gray-700 dark:text-brand-400'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                ]"
+                title="Kanban View"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h6M4 12h6M4 18h6M14 6h6M14 12h6M14 18h6" />
+                </svg>
+              </button>
+            </div>
+
             <button
-              @click="viewMode = 'list'"
-              :class="[
-                'rounded-md p-1.5 transition-colors',
-                viewMode === 'list' 
-                  ? 'bg-white text-brand-600 shadow-sm dark:bg-gray-700 dark:text-brand-400' 
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-              ]"
-              title="List View"
+              v-if="can('projects', 'create')"
+              @click="router.push('/projects/create')"
+              class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
             >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <button
-              @click="viewMode = 'grid'"
-              :class="[
-                'rounded-md p-1.5 transition-colors',
-                viewMode === 'grid' 
-                  ? 'bg-white text-brand-600 shadow-sm dark:bg-gray-700 dark:text-brand-400' 
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-              ]"
-              title="Grid View"
-            >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
+              <span class="flex items-center gap-2">
+                <span class="hidden md:inline">Add Project</span>
+                <span class="md:hidden">Add</span>
+              </span>
             </button>
           </div>
+        </div>
 
-          <!-- Filters -->
-          <select v-model="filters.town_id" @change="handleSearch" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+        <!-- Filters row -->
+        <div class="flex flex-wrap items-center gap-3">
+          <select v-model="filters.town_id" @change="handleSearch" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" :disabled="loadingTowns">
             <option value="">All Towns</option>
-            <option v-for="town in towns" :key="town.id" :value="town.id">{{ town.name }}</option>
+            <option v-if="loadingTowns" value="" disabled>Loading...</option>
+            <option v-else v-for="town in towns" :key="town.id" :value="town.id">{{ town.name }}</option>
           </select>
 
           <CustomerSelect
@@ -67,18 +83,8 @@
             @input="handleSearch"
             type="text"
             placeholder="Search projects..."
-            class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="min-w-[220px] flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
-
-          <button
-            v-if="can('projects', 'create')"
-            @click="router.push('/projects/create')"
-            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
-          >
-            <span class="flex items-center gap-2">
-              <span class="hidden md:inline">Add Project</span>
-            </span>
-          </button>
         </div>
       </div>
 
@@ -98,15 +104,60 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-            <tr v-for="project in projects" :key="project.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+            <!-- Loading Skeleton -->
+            <tr v-if="loading" v-for="n in 5" :key="'skeleton-' + n" class="animate-pulse">
+              <td class="px-4 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="h-12 w-12 flex-shrink-0 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="min-w-0 flex-1">
+                    <div class="h-4 bg-gray-200 rounded dark:bg-gray-700 mb-2"></div>
+                    <div class="h-3 bg-gray-200 rounded w-3/4 dark:bg-gray-700"></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-4 py-4">
+                <div class="flex items-center gap-2">
+                  <div class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-4 bg-gray-200 rounded w-20 dark:bg-gray-700"></div>
+                </div>
+              </td>
+              <td class="px-4 py-4">
+                <div class="space-y-1">
+                  <div class="h-4 bg-gray-200 rounded dark:bg-gray-700"></div>
+                  <div class="h-3 bg-gray-200 rounded w-2/3 dark:bg-gray-700"></div>
+                </div>
+              </td>
+              <td class="px-4 py-4">
+                <div class="h-4 bg-gray-200 rounded w-16 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-4 py-4">
+                <div class="space-y-1">
+                  <div class="h-3 bg-gray-200 rounded w-24 dark:bg-gray-700"></div>
+                  <div class="h-3 bg-gray-200 rounded w-20 dark:bg-gray-700"></div>
+                </div>
+              </td>
+              <td class="px-4 py-4">
+                <div class="h-6 bg-gray-200 rounded-full w-20 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-4 py-4 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <div class="h-8 w-8 bg-gray-200 rounded dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 bg-gray-200 rounded dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 bg-gray-200 rounded dark:bg-gray-700"></div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Actual Data Rows -->
+            <tr v-else v-for="project in projects" :key="project.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
               <td class="px-4 py-4">
                 <div class="flex items-center gap-3">
                   <div class="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                    <img 
-                      v-if="getProjectThumbnail(project)" 
-                      :src="getProjectThumbnail(project)" 
+                    <img
+                      v-if="getProjectThumbnail(project)"
+                      :src="getProjectThumbnail(project)"
                       :alt="project.name"
-                      class="h-full w-full object-cover" 
+                      class="h-full w-full object-cover"
                       @error="handleImageError"
                     />
                     <div v-else class="h-full w-full flex items-center justify-center text-lg font-bold text-gray-400 dark:text-gray-600">
@@ -126,17 +177,17 @@
               </td>
 
               <td class="px-4 py-4">
-                <router-link 
-                  v-if="project.customer" 
-                  :to="`/customers/${project.customer?.id}`" 
+                <router-link
+                  v-if="project.customer"
+                  :to="`/customers/${project.customer?.id}`"
                   class="flex items-center gap-2 group"
                 >
                   <div class="h-10 w-10 flex-shrink-0 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 group-hover:border-brand-400 transition-colors">
-                    <img 
-                      v-if="getCustomerPhoto(project.customer)" 
-                      :src="getCustomerPhoto(project.customer)" 
+                    <img
+                      v-if="getCustomerPhoto(project.customer)"
+                      :src="getCustomerPhoto(project.customer)"
                       :alt="project.customer?.name"
-                      class="h-full w-full object-cover" 
+                      class="h-full w-full object-cover"
                       @error="handleImageError"
                     />
                     <div v-else class="h-full w-full flex items-center justify-center text-sm font-bold text-gray-400 dark:text-gray-600">
@@ -191,15 +242,15 @@
                     {{ project.status?.replace('_', ' ') }}
                     <svg class="w-3 h-3 ml-1 transition-transform duration-200" :class="{ 'rotate-180': activeStatusDropdown === project.id }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                   </button>
-                  
+
                   <!-- Inline Status Dropdown -->
-                  <div 
+                  <div
                     v-if="can('projects', 'change_status') && activeStatusDropdown === project.id"
                     class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50"
                     @click.stop
                   >
                     <div class="py-1">
-                      <button v-for="status in ['planning', 'in_progress', 'completed', 'on_hold', 'cancelled']" 
+                      <button v-for="status in ['planning', 'in_progress', 'completed', 'on_hold', 'cancelled']"
                         :key="status"
                         @click="updateStatus(project, status)"
                         class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 capitalize transition-colors"
@@ -212,7 +263,7 @@
                   </div>
                 </div>
               </td>
-              
+
               <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex items-center justify-end gap-2">
                   <button
@@ -225,8 +276,8 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2m-4-9l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                   </button>
-                  <button 
-                    @click="handleEditProject(project)" 
+                  <button
+                    @click="handleEditProject(project)"
                     :class="[
                       'p-1.5 rounded-md transition-colors',
                       can('projects', 'edit') ? 'text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-900/30' : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
@@ -238,8 +289,8 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </button>
-                  <button 
-                    @click="handleDeleteProject(project.id)" 
+                  <button
+                    @click="handleDeleteProject(project.id)"
                     :class="[
                       'p-1.5 rounded-md transition-colors',
                       can('projects', 'delete') ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30' : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
@@ -261,144 +312,182 @@
         </div>
       </div>
 
-      <!-- Grid View -->
-      <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div v-for="project in projects" :key="project.id" class="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
-          <!-- Project Thumbnail/Header -->
-          <div class="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-900">
-            <img 
-              v-if="getProjectThumbnail(project)" 
-              :src="getProjectThumbnail(project)" 
-              class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              @error="handleImageError"
-            />
-            <div v-else class="h-full w-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
-               <span class="text-4xl font-bold text-white opacity-30">{{ project.name?.charAt(0)?.toUpperCase() }}</span>
+      <!-- Kanban View -->
+      <div v-else class="space-y-6">
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          <div
+            v-for="col in kanbanColumns"
+            :key="col.key"
+            class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900/60"
+          >
+            <div class="mb-3 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span :class="['h-2.5 w-2.5 rounded-full', col.dot]"></span>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ col.title }}</span>
+              </div>
+              <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                {{ groupedProjects[col.key]?.length || 0 }}
+              </span>
             </div>
-            
-            <!-- Status Badge -->
-            <div class="absolute top-3 right-3 z-10">
-              <button class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize transition-all duration-200 shadow-sm backdrop-blur-md"
-                @click.stop="toggleStatusDropdown(project.id)"
-                :class="{
-                  'bg-blue-100/90 text-blue-800 dark:bg-blue-900/80 dark:text-blue-200': project.status === 'planning',
-                  'bg-yellow-100/90 text-yellow-800 dark:bg-yellow-900/80 dark:text-yellow-200': project.status === 'in_progress',
-                  'bg-orange-100/90 text-orange-800 dark:bg-orange-900/80 dark:text-orange-200': project.status === 'on_hold',
-                  'bg-green-100/90 text-green-800 dark:bg-green-900/80 dark:text-green-200': project.status === 'completed',
-                  'bg-red-100/90 text-red-800 dark:bg-red-900/80 dark:text-red-200': project.status === 'cancelled'
-                }"
+
+            <div class="space-y-3">
+              <!-- Kanban Loading Skeletons -->
+              <div v-if="loading" v-for="n in 3" :key="'kanban-skeleton-' + n" class="animate-pulse">
+                <div class="rounded-xl border border-gray-100 bg-gray-50 p-3 shadow-sm dark:border-gray-800 dark:bg-gray-800/70">
+                  <div class="flex items-start gap-3">
+                    <div class="h-12 w-12 overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="h-4 bg-gray-200 rounded w-32 dark:bg-gray-700"></div>
+                        <div class="h-5 bg-gray-200 rounded-full w-16 dark:bg-gray-700"></div>
+                      </div>
+                      <div class="flex items-center gap-1 mb-3">
+                        <div class="h-3 w-3 bg-gray-200 rounded dark:bg-gray-700"></div>
+                        <div class="h-3 bg-gray-200 rounded w-24 dark:bg-gray-700"></div>
+                      </div>
+                      <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <div class="h-6 bg-gray-200 rounded-full w-16 dark:bg-gray-700"></div>
+                        <div class="h-6 bg-gray-200 rounded-full w-16 dark:bg-gray-700"></div>
+                        <div class="h-6 bg-gray-200 rounded-full w-20 dark:bg-gray-700"></div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <div class="h-6 w-6 bg-gray-200 rounded-full dark:bg-gray-700"></div>
+                        <div class="h-4 bg-gray-200 rounded w-20 dark:bg-gray-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+                    <div class="h-7 bg-gray-200 rounded-full w-12 dark:bg-gray-700"></div>
+                    <div class="h-7 bg-gray-200 rounded-full w-12 dark:bg-gray-700"></div>
+                    <div class="h-7 bg-gray-200 rounded-full w-12 dark:bg-gray-700"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actual Kanban Cards -->
+              <div
+                v-else
+                v-for="project in groupedProjects[col.key] || []"
+                :key="project.id"
+                class="rounded-xl border border-gray-100 bg-gray-50 p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-800/70"
               >
-                <component :is="getStatusIcon(project.status)" class="w-3.5 h-3.5" />
-                {{ project.status?.replace('_', ' ') }}
-                <svg class="w-3 h-3 ml-1 transition-transform duration-200" :class="{ 'rotate-180': activeStatusDropdown === project.id }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-              </button>
-              
-              <!-- Inline Status Dropdown -->
-              <div 
-                v-if="can('projects', 'change_status') && activeStatusDropdown === project.id"
-                class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50"
-                @click.stop
-              >
-                <div class="py-1">
-                  <button v-for="status in ['planning', 'in_progress', 'completed', 'on_hold', 'cancelled']" 
-                    :key="status"
-                    @click="updateStatus(project, status)"
-                    class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 capitalize transition-colors"
-                    :class="{'bg-brand-50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400 font-medium': project.status === status}"
+                <div class="flex items-start gap-3">
+                  <div class="h-12 w-12 overflow-hidden rounded-lg border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900">
+                    <img
+                      v-if="getProjectThumbnail(project)"
+                      :src="getProjectThumbnail(project)"
+                      :alt="project.name"
+                      class="h-full w-full object-cover"
+                      @error="handleImageError"
+                    />
+                    <div v-else class="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-400">
+                      {{ project.name?.charAt(0)?.toUpperCase() }}
+                    </div>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-2">
+                      <button
+                        @click="handleOpenProject(project)"
+                        class="truncate text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-300"
+                      >
+                        {{ project.name }}
+                      </button>
+                      <span :class="['rounded-full px-2 py-0.5 text-[11px] font-semibold capitalize', col.chip]">
+                        {{ project.status?.replace('_', ' ') || 'other' }}
+                      </span>
+                    </div>
+                    <div class="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                      <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span class="truncate">{{ fullAddress(project) || 'No address' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                  <div class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-800">
+                    <svg class="h-3 w-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                    {{ formatCurrency(project.incoming_payments_sum_amount || 0) }}
+                  </div>
+                  <div class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-800">
+                    <svg class="h-3 w-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                    {{ formatCurrency(project.outgoing_payments_sum_amount || 0) }}
+                  </div>
+                  <div v-if="project.contract_value" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-800">
+                    <span class="text-gray-500 dark:text-gray-400">Contract</span>
+                    <span class="font-semibold text-gray-800 dark:text-gray-200">{{ formatCurrency(project.contract_value) }}</span>
+                  </div>
+                </div>
+
+                <div class="mt-3 flex items-center gap-2">
+                  <router-link
+                    v-if="project.customer"
+                    :to="`/customers/${project.customer.id}`"
+                    class="group inline-flex items-center gap-2 rounded-full bg-white px-2 py-1 text-xs shadow-sm hover:shadow dark:bg-gray-800 dark:border dark:border-gray-700"
                   >
-                    <component :is="getStatusIcon(status)" class="w-4 h-4" :class="getStatusColor(status)" />
-                    {{ status.replace('_', ' ') }}
+                    <div class="h-6 w-6 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                      <img v-if="getCustomerPhoto(project.customer)" :src="getCustomerPhoto(project.customer)" class="h-full w-full object-cover" @error="handleImageError" />
+                      <div v-else class="flex h-full w-full items-center justify-center text-[11px] font-semibold text-gray-500">
+                        {{ project.customer?.name?.charAt(0)?.toUpperCase() }}
+                      </div>
+                    </div>
+                    <span class="truncate font-medium text-gray-800 group-hover:text-brand-600 dark:text-gray-100 dark:group-hover:text-brand-300">
+                      {{ getCustomerDisplayName(project.customer) || 'Owner' }}
+                    </span>
+                  </router-link>
+                  <span v-else class="text-xs text-gray-400">No owner</span>
+                </div>
+
+                <div class="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+                  <button
+                    v-if="can('documents', 'attach')"
+                    @click="goAttachDocs('App\\Models\\Project', project.id)"
+                    class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    Docs
+                  </button>
+                  <button
+                    @click="handleEditProject(project)"
+                    :disabled="!can('projects', 'edit')"
+                    class="rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-900/20 dark:text-brand-200"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    v-if="can('projects', 'delete')"
+                    @click="handleDeleteProject(project.id)"
+                    class="rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-300"
+                  >
+                    Delete
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Content -->
-          <div class="flex flex-1 flex-col p-4">
-            <div class="mb-3">
-              <button
-                @click="handleOpenProject(project)"
-                class="block text-left text-lg font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400"
-              >
-                {{ project.name }}
-              </button>
-              <div class="mt-1 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span class="truncate">{{ fullAddress(project) || 'No address' }}</span>
-              </div>
-            </div>
-
-            <!-- Owner -->
-            <component
-              :is="project.customer ? 'router-link' : 'div'"
-              :to="project.customer ? `/customers/${project.customer.id}` : undefined"
-              class="mb-4 flex items-center gap-3 rounded-lg bg-gray-50 p-2 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-            >
-              <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
-                <img 
-                  v-if="getCustomerPhoto(project.customer)" 
-                  :src="getCustomerPhoto(project.customer)" 
-                  class="h-full w-full object-cover"
-                />
-                <div v-else class="flex h-full w-full items-center justify-center text-xs font-bold text-gray-500">
-                  {{ project.customer?.name?.charAt(0)?.toUpperCase() }}
-                </div>
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="truncate text-sm font-medium text-gray-900 dark:text-white">
-                  {{ getCustomerDisplayName(project.customer) || 'Unknown Owner' }}
-                </div>
-                <div class="truncate text-xs text-gray-500 dark:text-gray-400">Owner</div>
-              </div>
-            </component>
-
-            <div class="mt-auto flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-700">
-              <div class="flex flex-col">
-                <span class="text-xs text-gray-500 dark:text-gray-400">Contract Value</span>
-                <span class="font-semibold text-brand-600 dark:text-brand-400">
-                  {{ formatCurrency(project.contract_value) }}
-                </span>
-              </div>
-              <div class="flex gap-2">
-                <button
-                  @click="handleEditProject(project)"
-                  :disabled="!can('projects', 'edit')"
-                  :class="[
-                    'rounded p-1.5',
-                    can('projects', 'edit') ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300' : 'text-gray-300 cursor-not-allowed dark:text-gray-600'
-                  ]"
-                >
-                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
+              <div v-if="(groupedProjects[col.key]?.length || 0) === 0" class="rounded-lg border border-dashed border-gray-200 px-3 py-6 text-center text-sm text-gray-400 dark:border-gray-700 dark:text-gray-500">
+                No projects in this lane
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Empty State Grid -->
-        <div v-if="projects.length === 0" class="col-span-full flex flex-col items-center justify-center py-12 text-center">
-          <div class="mb-3 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
-            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-          </div>
-          <h3 class="text-sm font-medium text-gray-900 dark:text-white">No projects found</h3>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters or search query.</p>
         </div>
       </div>
 
       <!-- Pagination -->
-      <div v-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
+      <div v-if="!loading && pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
         <div class="text-sm text-gray-700 dark:text-gray-400">Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} results</div>
         <div class="flex gap-2">
           <button @click="changePage(pagination.current_page - 1)" :disabled="pagination.current_page === 1" class="rounded-lg border border-gray-300 px-3 py-1 text-sm disabled:opacity-50 dark:border-gray-700">Previous</button>
           <button @click="changePage(pagination.current_page + 1)" :disabled="pagination.current_page === pagination.last_page" class="rounded-lg border border-gray-300 px-3 py-1 text-sm disabled:opacity-50 dark:border-gray-700">Next</button>
+        </div>
+      </div>
+
+      <!-- Loading Pagination Skeleton -->
+      <div v-if="loading" class="mt-4 flex items-center justify-between animate-pulse">
+        <div class="h-4 bg-gray-200 rounded w-48 dark:bg-gray-700"></div>
+        <div class="flex gap-2">
+          <div class="h-8 bg-gray-200 rounded w-20 dark:bg-gray-700"></div>
+          <div class="h-8 bg-gray-200 rounded w-12 dark:bg-gray-700"></div>
         </div>
       </div>
     </div>
@@ -489,7 +578,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
@@ -500,12 +589,12 @@ import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
 import { formatAmount } from '@/utils/currency'
-import { 
-  ClockIcon, 
-  CheckCircleIcon, 
-  XCircleIcon, 
-  AlertCircleIcon, 
-  PauseCircleIcon, 
+import {
+  ClockIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  AlertCircleIcon,
+  PauseCircleIcon,
   PlayCircleIcon,
   CalendarIcon
 } from 'lucide-vue-next'
@@ -518,7 +607,19 @@ const projects = ref<any[]>([])
 const customers = ref<any[]>([])
 const towns = ref<any[]>([])
 const searchQuery = ref('')
-const viewMode = ref<'list' | 'grid'>('list')
+const viewMode = ref<'list' | 'kanban'>('list')
+const loading = ref(false)
+const loadingCustomers = ref(false)
+const loadingTowns = ref(false)
+const kanbanColumns = [
+  { key: 'planning', title: 'Planning', dot: 'bg-blue-500', chip: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200' },
+  { key: 'in_progress', title: 'In Progress', dot: 'bg-amber-500', chip: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200' },
+  { key: 'on_hold', title: 'On Hold', dot: 'bg-orange-500', chip: 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200' },
+  { key: 'completed', title: 'Completed', dot: 'bg-green-500', chip: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200' },
+  { key: 'cancelled', title: 'Cancelled', dot: 'bg-red-500', chip: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200' },
+  { key: 'other', title: 'Other', dot: 'bg-gray-400', chip: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200' },
+]
+
 const filters = ref({
   town_id: '',
   customer_id: '',
@@ -548,6 +649,24 @@ const statusForm = ref({
 
 const activeStatusDropdown = ref<number | null>(null)
 
+const groupedProjects = computed(() => {
+  const groups: Record<string, any[]> = {
+    planning: [],
+    in_progress: [],
+    on_hold: [],
+    completed: [],
+    cancelled: [],
+    other: [],
+  }
+
+  projects.value.forEach((p) => {
+    const key = (p?.status && groups[p.status] !== undefined) ? p.status : 'other'
+    groups[key].push(p)
+  })
+
+  return groups
+})
+
 const toggleStatusDropdown = (id: number) => {
   if (activeStatusDropdown.value === id) {
     activeStatusDropdown.value = null
@@ -563,9 +682,10 @@ const closeDropdowns = () => {
 const filesToUpload = ref<File[]>([])
 
 const fetchProjects = async (page = 1) => {
+  loading.value = true
   try {
-    const params = { 
-      page, 
+    const params = {
+      page,
       search: searchQuery.value || undefined,
       town_id: filters.value.town_id || undefined,
       customer_id: filters.value.customer_id || undefined,
@@ -583,24 +703,32 @@ const fetchProjects = async (page = 1) => {
     }
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error fetching projects')
+  } finally {
+    loading.value = false
   }
 }
 
 const fetchCustomers = async () => {
+  loadingCustomers.value = true
   try {
     const res = await api.get('/customers')
     customers.value = res.data.data || res.data
   } catch (e: any) {
     // ignore
+  } finally {
+    loadingCustomers.value = false
   }
 }
 
 const fetchTowns = async () => {
+  loadingTowns.value = true
   try {
     const res = await api.get('/towns')
     towns.value = res.data.data || res.data
   } catch (e: any) {
     // ignore
+  } finally {
+    loadingTowns.value = false
   }
 }
 
@@ -810,14 +938,14 @@ const handleImageError = (e: Event) => {
 const makeAbsoluteUrl = (path: string | undefined) => {
   if (!path) return ''
   if (path.startsWith('http')) return path
-  
+
   // Get base URL and remove /api suffix if present
   let fileBase = (import.meta.env.VITE_FILE_BASE_URL as string) || (import.meta.env.VITE_API_BASE_URL as string) || window?.location?.origin || ''
-  
+
   // Remove /api from the end if it exists
   fileBase = fileBase.replace(/\/api\/?$/, '')
   const base = fileBase.replace(/\/$/, '')
-  
+
   const relative = path.startsWith('/') ? path : `/storage/${path}`
   return `${base}${relative}`
 }

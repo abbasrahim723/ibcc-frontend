@@ -224,7 +224,7 @@ const handleSubmit = async () => {
     await authStore.fetchUser()
 
     // Redirect to dashboard
-    router.push('/')
+    router.push('/crm')
   } catch (error: any) {
     console.error('2FA verification failed', error)
 

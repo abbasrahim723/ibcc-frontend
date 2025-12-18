@@ -353,7 +353,7 @@ const handleBiometricLogin = async () => {
     authStore.isAuthenticated = true
     localStorage.setItem('token', token)
     toast.success('Logged in with biometrics')
-    router.push('/')
+    router.push('/crm')
     authStore.fetchUser().catch(() => {})
   } catch (error: any) {
     if (error?.response?.status === 404) {
@@ -387,7 +387,7 @@ const handleSubmit = async () => {
     toast.success('Login successful! Redirecting...')
 
     setTimeout(() => {
-      router.push('/')
+      router.push('/crm')
       authStore.fetchUser().catch((err) => {
         console.error('Error fetching user data:', err)
       })

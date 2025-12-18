@@ -5,6 +5,23 @@
     <div class="space-y-6">
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <!-- Loading Skeletons -->
+        <div v-if="loading" v-for="n in 8" :key="'stat-skeleton-' + n" class="animate-pulse rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="h-4 bg-gray-200 rounded w-24 mb-2 dark:bg-gray-700"></div>
+              <div class="h-8 bg-gray-200 rounded w-16 mb-2 dark:bg-gray-700"></div>
+              <div class="flex items-center gap-2">
+                <div class="h-4 bg-gray-200 rounded w-12 dark:bg-gray-700"></div>
+                <div class="h-3 bg-gray-200 rounded w-20 dark:bg-gray-700"></div>
+              </div>
+            </div>
+            <div class="h-14 w-14 bg-gray-200 rounded-full dark:bg-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- Actual Stats Cards -->
+        <template v-else>
         <!-- Active Customers -->
         <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
           <div class="flex items-center justify-between">
@@ -147,12 +164,37 @@
             </div>
           </div>
         </div>
+        </template>
       </div>
 
       <!-- Charts and Progress -->
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <!-- Revenue Chart -->
         <div :class="['rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]', isFullscreen ? 'lg:col-span-3' : 'lg:col-span-2']">
+          <!-- Chart Loading Skeleton -->
+          <div v-if="loading" class="animate-pulse">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <div class="h-6 bg-gray-200 rounded w-32 mb-2 dark:bg-gray-700"></div>
+                <div class="h-4 bg-gray-200 rounded w-48 dark:bg-gray-700"></div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="h-8 bg-gray-200 rounded w-40 dark:bg-gray-700"></div>
+                <div class="h-8 bg-gray-200 rounded w-8 dark:bg-gray-700"></div>
+              </div>
+            </div>
+            <div class="mb-6 flex items-center gap-6">
+              <div>
+                <div class="h-4 bg-gray-200 rounded w-32 mb-1 dark:bg-gray-700"></div>
+                <div class="h-8 bg-gray-200 rounded w-24 mb-1 dark:bg-gray-700"></div>
+                <div class="h-4 bg-gray-200 rounded w-12 dark:bg-gray-700"></div>
+              </div>
+            </div>
+            <div :class="isFullscreen ? 'h-[480px]' : 'h-[320px]'" class="bg-gray-100 rounded dark:bg-gray-800"></div>
+          </div>
+
+          <!-- Actual Chart -->
+          <div v-else>
           <div class="mb-4 flex items-center justify-between">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Statistics</h3>
@@ -179,7 +221,7 @@
               </button>
             </div>
           </div>
-          
+
           <div class="mb-6 flex items-center gap-6">
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Avg. Yearly Profit</p>
@@ -189,112 +231,143 @@
           </div>
 
           <div ref="chartContainer" :class="isFullscreen ? 'h-[480px]' : 'h-[320px]'"></div>
+          </div>
         </div>
 
         <!-- Estimated Revenue Circle -->
         <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Estimated Revenue</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Current month incoming (completed vs pending/scheduled)</p>
-          </div>
-
-          <div class="flex flex-col items-center gap-6">
-            <div class="relative h-48 w-48">
-              <svg class="h-full w-full -rotate-90 transform">
-                <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="none" class="text-gray-200 dark:text-gray-700" />
-                <circle
-                  cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="none"
-                  class="text-brand-600 dark:text-brand-400"
-                  :stroke-dasharray="`${(estimatedProgress / 100) * 553} 553`"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-xs text-gray-500 dark:text-gray-400">This Month</span>
-                <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ estimatedProgress }}%</span>
+          <!-- Loading State -->
+          <div v-if="loading" class="animate-pulse">
+            <div class="mb-6">
+              <div class="h-6 bg-gray-200 rounded w-40 mb-2 dark:bg-gray-700"></div>
+              <div class="h-4 bg-gray-200 rounded w-64 dark:bg-gray-700"></div>
+            </div>
+            <div class="flex flex-col items-center gap-6">
+              <div class="relative h-48 w-48">
+                <div class="h-full w-full bg-gray-200 rounded-full dark:bg-gray-700"></div>
+              </div>
+              <div class="flex flex-col gap-2 w-full">
+                <div class="flex items-center justify-between">
+                  <div class="h-4 bg-gray-200 rounded w-20 dark:bg-gray-700"></div>
+                  <div class="h-4 bg-gray-200 rounded w-16 dark:bg-gray-700"></div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div class="h-4 bg-gray-200 rounded w-32 dark:bg-gray-700"></div>
+                  <div class="h-4 bg-gray-200 rounded w-16 dark:bg-gray-700"></div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div class="h-4 bg-gray-200 rounded w-24 dark:bg-gray-700"></div>
+                  <div class="h-4 bg-gray-200 rounded w-16 dark:bg-gray-700"></div>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div class="flex flex-col gap-2 w-full">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Completed</span>
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                  {{ formatCurrency(estimated.incoming_completed_month) }}
-                </span>
+          <!-- Actual Content -->
+          <div v-else>
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Estimated Revenue</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Current month incoming (completed vs pending/scheduled)</p>
+            </div>
+
+            <div class="flex flex-col items-center gap-6">
+              <div class="relative h-48 w-48">
+                <svg class="h-full w-full -rotate-90 transform">
+                  <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="none" class="text-gray-200 dark:text-gray-700" />
+                  <circle
+                    cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="none"
+                    class="text-brand-600 dark:text-brand-400"
+                    :stroke-dasharray="`${(estimatedProgress / 100) * 553} 553`"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-xs text-gray-500 dark:text-gray-400">This Month</span>
+                  <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ estimatedProgress }}%</span>
+                </div>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Pending / Scheduled</span>
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                  {{ formatCurrency(estimated.incoming_pending_month) }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Monthly Target</span>
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                  {{ formatCurrency(estimated.target || 0) }}
-                </span>
+
+              <div class="flex flex-col gap-2 w-full">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Completed</span>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                    {{ formatCurrency(estimated.incoming_completed_month) }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Pending / Scheduled</span>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                    {{ formatCurrency(estimated.incoming_pending_month) }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Monthly Target</span>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                    {{ formatCurrency(estimated.target || 0) }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
       </div>
-
-      <!-- Top Customers & Recent Activities -->
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <!-- Top Customers -->
-        <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-          <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Top Customers</h3>
-          <div class="space-y-4">
-            <div v-for="customer in topCustomers" :key="customer.id" class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <img
-                  v-if="getCustomerPhoto(customer)"
-                  :src="getCustomerPhoto(customer)"
-                  class="h-10 w-10 rounded-full object-cover border border-gray-200"
-                />
-                <div
-                  v-else
-                  class="h-10 w-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-sm font-bold text-white"
-                >
-                  {{ customer.name?.charAt(0)?.toUpperCase() }}
+              <!-- Top Customers & Recent Activities -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <!-- Top Customers -->
+          <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+            <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Top Customers</h3>
+            <div class="space-y-4">
+              <div v-for="customer in topCustomers" :key="customer.id" class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <img
+                    v-if="getCustomerPhoto(customer)"
+                    :src="getCustomerPhoto(customer)"
+                    class="h-10 w-10 rounded-full object-cover border border-gray-200"
+                  />
+                  <div
+                    v-else
+                    class="h-10 w-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-sm font-bold text-white"
+                  >
+                    {{ customer.name?.charAt(0)?.toUpperCase() }}
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ formatCustomerName(customer) }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ customer.email || 'No email' }}</p>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ formatCustomerName(customer) }}</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ customer.email || 'No email' }}</p>
-                </div>
-              </div>
-              <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatCurrency(customer.total_revenue) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Activities -->
-        <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-          <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Recent Activities</h3>
-          <div class="space-y-4 max-h-[400px] overflow-y-auto">
-            <div v-for="(activity, index) in recentActivities" :key="index" class="flex gap-3">
-              <div class="flex-shrink-0">
-                <div :class="getActivityIconClass(activity.type)" class="h-8 w-8 rounded-full flex items-center justify-center">
-                  <svg v-if="activity.type === 'payment_in'" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <svg v-else-if="activity.type === 'payment_out'" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                  </svg>
-                  <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
-                </div>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ activity.title }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ activity.description }}</p>
-                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ formatDate(activity.date) }}</p>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatCurrency(customer.total_revenue) }}</span>
               </div>
             </div>
           </div>
+
+          <!-- Recent Activities -->
+          <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+            <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Recent Activities</h3>
+            <div class="space-y-4 max-h-[400px] overflow-y-auto">
+              <div v-for="(activity, index) in recentActivities" :key="index" class="flex gap-3">
+                <div class="flex-shrink-0">
+                  <div :class="getActivityIconClass(activity.type)" class="h-8 w-8 rounded-full flex items-center justify-center">
+                    <svg v-if="activity.type === 'payment_in'" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <svg v-else-if="activity.type === 'payment_out'" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                    </svg>
+                    <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ activity.title }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ activity.description }}</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ formatDate(activity.date) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
     </div>
   </admin-layout>
 </template>
@@ -358,6 +431,8 @@ const pipeline = ref({
   cancelled: 0
 })
 
+const loading = ref(false)
+
 const chartRange = ref<any>(12)
 const isFullscreen = ref(false)
 const chartMonth = ref('')
@@ -377,6 +452,7 @@ const monthPickerConfig = {
 }
 
 const fetchDashboardData = async () => {
+  loading.value = true
   try {
     const response = await api.get('/crm/dashboard')
     const data = response.data
@@ -388,15 +464,21 @@ const fetchDashboardData = async () => {
     recentActivities.value = data.recent_activities
     pipeline.value = data.pipeline
 
-    await nextTick()
-    renderChart()
+    // Ensure chart renders after DOM is fully updated
+    setTimeout(() => renderChart(), 200)
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error fetching dashboard data')
+  } finally {
+    loading.value = false
   }
 }
 
 const renderChart = () => {
-  if (!chartContainer.value) return
+  if (!chartContainer.value) {
+    // Retry after a short delay if container not ready
+    setTimeout(() => renderChart(), 100)
+    return
+  }
 
   if (chart) {
     chart.destroy()
@@ -457,10 +539,10 @@ const renderChart = () => {
     ],
     chart: {
       type: 'line',
-      stacked: false,
+      stacked: true,
       height: isFullscreen.value ? 480 : 320,
-      toolbar: { show: false },
-      zoom: { enabled: false }
+      toolbar: { show: true },
+      zoom: { enabled: true }
     },
     dataLabels: { enabled: false },
     stroke: { width: [2, 2, 2], curve: 'smooth' },
@@ -519,11 +601,11 @@ const formatDate = (date: string) => {
   const now = new Date()
   const diff = now.getTime() - d.getTime()
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
+
   if (days === 0) return 'Today'
   if (days === 1) return 'Yesterday'
   if (days < 7) return `${days} days ago`
-  
+
   return d.toLocaleDateString()
 }
 
@@ -581,6 +663,18 @@ watch(chartMonth, () => {
   if (chartRange.value === 'week') renderChart()
 })
 
+watch(chartRange, () => {
+  renderChart()
+})
+
+watch(isFullscreen, () => {
+  nextTick(() => renderChart())
+})
+
+watch(() => revenueAnalytics.value, () => {
+  nextTick(() => renderChart())
+}, { deep: true })
+
 const handleRangeChange = () => {
   if (chartRange.value === 'week' && !chartMonth.value) {
     const now = new Date()
@@ -591,6 +685,5 @@ const handleRangeChange = () => {
 
 const toggleFullscreen = () => {
   isFullscreen.value = !isFullscreen.value
-  nextTick(() => renderChart())
 }
 </script>

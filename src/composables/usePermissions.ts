@@ -71,6 +71,7 @@ export function usePermissions() {
         roles,
         allowedResources,
         resourceActions,
+        loaded,
         hasPermission,
         hasAnyPermission,
         hasAllPermissions,

@@ -19,7 +19,7 @@
         !isExpanded && !isHovered ? 'lg:justify-center' : 'justify-start',
       ]"
     >
-      <router-link to="/">
+      <router-link to="/crm">
         <img
           v-if="isExpanded || isHovered || isMobileOpen"
           class="dark:hidden"
@@ -48,7 +48,62 @@
     <div
       class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar"
     >
-      <nav class="mb-6">
+      <!-- Loading Skeleton -->
+      <nav v-if="!loaded" class="mb-6">
+        <div class="flex flex-col gap-4">
+          <!-- Menu Group Skeleton -->
+          <div v-for="groupIndex in 3" :key="'skeleton-group-' + groupIndex" class="animate-pulse">
+            <div
+              :class="[
+                'mb-4 text-xs uppercase flex leading-[20px] text-gray-400',
+                !isExpanded && !isHovered
+                  ? 'lg:justify-center'
+                  : 'justify-start',
+              ]"
+            >
+              <div v-if="isExpanded || isHovered || isMobileOpen" class="h-4 bg-gray-200 rounded w-16 dark:bg-gray-700"></div>
+              <div v-else class="h-4 w-4 bg-gray-200 rounded dark:bg-gray-700"></div>
+            </div>
+            <ul class="flex flex-col gap-4">
+              <!-- Menu Item Skeletons -->
+              <li v-for="itemIndex in 4" :key="'skeleton-item-' + groupIndex + '-' + itemIndex">
+                <div
+                  :class="[
+                    'menu-item group w-full flex items-center gap-3 px-3 py-2 rounded-lg',
+                    !isExpanded && !isHovered
+                      ? 'lg:justify-center'
+                      : 'lg:justify-start',
+                  ]"
+                >
+                  <div class="h-5 w-5 bg-gray-200 rounded dark:bg-gray-700"></div>
+                  <div
+                    v-if="isExpanded || isHovered || isMobileOpen"
+                    class="h-4 bg-gray-200 rounded flex-1 dark:bg-gray-700"
+                    :class="itemIndex % 3 === 0 ? 'w-20' : itemIndex % 2 === 0 ? 'w-24' : 'w-16'"
+                  ></div>
+                  <!-- Submenu indicator for some items -->
+                  <div
+                    v-if="(itemIndex % 3 === 0) && (isExpanded || isHovered || isMobileOpen)"
+                    class="h-4 w-4 bg-gray-200 rounded dark:bg-gray-700 ml-auto"
+                  ></div>
+                </div>
+                <!-- Submenu skeleton for some items -->
+                <div
+                  v-if="(itemIndex % 3 === 0) && (isExpanded || isHovered || isMobileOpen)"
+                  class="mt-2 space-y-1 ml-9"
+                >
+                  <div v-for="subIndex in 2" :key="'skeleton-sub-' + groupIndex + '-' + itemIndex + '-' + subIndex" class="h-8 bg-gray-100 rounded px-3 py-2 dark:bg-gray-800">
+                    <div class="h-3 bg-gray-200 rounded w-16 dark:bg-gray-700"></div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Actual Navigation -->
+      <nav v-else class="mb-6">
         <div class="flex flex-col gap-4">
           <div v-for="(menuGroup, groupIndex) in filteredMenuGroups" :key="groupIndex">
             <h2
@@ -240,18 +295,36 @@ const route = useRoute();
 
 const { isExpanded, isMobileOpen, isHovered, openSubmenu } = useSidebar();
 
+const { can, roles, loaded } = usePermissions();
+
 const menuGroups = [
   {
     title: "Menu",
     items: [
       {
         icon: GridIcon,
-        name: "Dashboard",
-        subItems: [
-          { name: "Cash Flow", path: "/cash-flow", pro: false },
-          { name: "CRM", path: "/crm", pro: false },
-          { name: "Calendar", path: "/calendar", pro: false }
-        ],
+        name: "CRM",
+        path: "/crm",
+      },
+      {
+        icon: GridIcon,
+        name: "Cash Flow",
+        path: "/cash-flow",
+      },
+      {
+        icon: GridIcon,
+        name: "Calendar",
+        path: "/calendar",
+      },
+      {
+        icon: DocsIcon,
+        name: "Expenses",
+        path: "/expenses",
+      },
+      {
+        icon: DocsIcon,
+        name: "Expense Categories",
+        path: "/expense-categories",
       },
       {
         icon: UserGroupIcon,
@@ -350,7 +423,7 @@ const menuGroups = [
 const isActive = (path) => route.path === path;
 
 // Permission-aware filtering
-const { can, roles } = usePermissions();
+// const { can, roles } = usePermissions(); // Already declared above
 
 onMounted(() => {
   // Load permissions once when sidebar mounts
