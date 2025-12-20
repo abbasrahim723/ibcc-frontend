@@ -6,7 +6,7 @@
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Cities</h3>
 
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div v-if="!loading" class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- Country Filter -->
           <select
             v-model="selectedCountryId"
@@ -40,6 +40,13 @@
             class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
+
+        <!-- Skeleton Header -->
+        <div v-else class="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-28 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-40 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
       </div>
 
       <!-- Table -->
@@ -55,7 +62,7 @@
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+          <tbody v-if="!loading" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr v-for="city in cities" :key="city.id" :class="!city.is_active ? 'opacity-60' : ''">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                 {{ city.name }}
@@ -93,11 +100,32 @@
               </td>
             </tr>
           </tbody>
+
+          <!-- Skeleton Table Rows -->
+          <tbody v-else class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+            <tr v-for="n in 8" :key="n" class="animate-pulse">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-16 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
 
       <!-- Pagination -->
-      <div v-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
+      <div v-if="!loading && pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
         <div class="text-sm text-gray-700 dark:text-gray-400">
           Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} results
         </div>
@@ -116,6 +144,15 @@
           >
             Next
           </button>
+        </div>
+      </div>
+
+      <!-- Skeleton Pagination -->
+      <div v-else-if="loading" class="mt-4 flex items-center justify-between">
+        <div class="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="flex gap-2">
+          <div class="h-8 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-8 w-12 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
         </div>
       </div>
     </div>
@@ -160,6 +197,7 @@ const allStates = ref<State[]>([])
 const searchQuery = ref('')
 const selectedCountryId = ref('')
 const selectedStateId = ref('')
+const loading = ref(true)
 const canToggle = computed(() => can('cities', 'change_status'))
 
 const pagination = ref({
@@ -210,6 +248,7 @@ const fetchStates = async () => {
 }
 
 const fetchCities = async (page = 1) => {
+  loading.value = true
   try {
     const params = {
       page,
@@ -229,6 +268,8 @@ const fetchCities = async (page = 1) => {
     }
   } catch (error: any) {
     toast.error('Error fetching cities')
+  } finally {
+    loading.value = false
   }
 }
 

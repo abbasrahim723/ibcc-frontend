@@ -5,12 +5,15 @@
       @click.prevent="toggleDropdown"
     >
       <span class="overflow-hidden rounded-full h-11 w-11 border border-gray-200 dark:border-gray-700">
-        <img :src="userPhoto" alt="User" class="h-full w-full object-cover" />
+        <div v-if="loading" class="h-full w-full animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+        <img v-else :src="userPhoto" alt="User" class="h-full w-full object-cover" />
       </span>
 
       <div class="hidden flex-col items-start lg:flex text-left mr-1">
-        <span class="block font-medium text-theme-sm text-gray-700 dark:text-gray-200 leading-tight group-hover:text-brand-600 transition-colors">{{ userName }}</span>
-        <span v-if="userRole" class="block text-xs text-gray-500 dark:text-gray-400 font-normal capitalize mt-0.5">{{ userRole }}</span>
+        <span v-if="loading" class="block h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></span>
+        <span v-else class="block font-medium text-theme-sm text-gray-700 dark:text-gray-200 leading-tight group-hover:text-brand-600 transition-colors">{{ userName }}</span>
+        <span v-if="loading" class="block h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></span>
+        <span v-else-if="userRole" class="block text-xs text-gray-500 dark:text-gray-400 font-normal capitalize mt-0.5">{{ userRole }}</span>
       </div>
 
       <ChevronDownIcon :class="{ 'rotate-180': dropdownOpen }" class="text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200" />
@@ -22,10 +25,12 @@
       class="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
     >
       <div>
-        <span class="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
+        <span v-if="loading" class="block h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></span>
+        <span v-else class="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
           {{ user?.name || 'User' }}
         </span>
-        <span class="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
+        <span v-if="loading" class="block h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></span>
+        <span v-else class="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
           {{ user?.email || '' }}
         </span>
       </div>
@@ -72,6 +77,7 @@ const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
 
 const user = computed(() => authStore.user)
+const loading = computed(() => authStore.loading)
 const userName = computed(() => {
   if (authStore.user?.first_name && authStore.user?.last_name) {
     return `${authStore.user.first_name} ${authStore.user.last_name}`

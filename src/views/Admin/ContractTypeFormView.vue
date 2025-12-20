@@ -1,11 +1,60 @@
 <template>
   <admin-layout>
     <PageBreadcrumb :pageTitle="isEditMode ? 'Edit Contract Type' : 'Create Contract Type'" />
-    
-    <form @submit.prevent="saveContractType">
+
+    <!-- Loading Skeleton -->
+    <div v-if="pageLoading" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+      <div class="mb-6 h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+      <div class="space-y-4">
+        <!-- Name Field Skeleton -->
+        <div>
+          <div class="mb-1.5 h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Code Field Skeleton -->
+        <div>
+          <div class="mb-1.5 h-4 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="mt-1 h-3 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Description Field Skeleton -->
+        <div>
+          <div class="mb-1.5 h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-20 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Sort Order Field Skeleton -->
+        <div>
+          <div class="mb-1.5 h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="mt-1 h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Active Checkbox Skeleton -->
+        <div>
+          <div class="flex items-center">
+            <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mr-2"></div>
+            <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <div class="mt-1 h-3 w-72 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons Skeleton -->
+      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div class="h-10 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        <div class="h-10 w-40 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+      </div>
+    </div>
+
+    <!-- Actual Form -->
+    <form v-else @submit.prevent="saveContractType">
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
         <h3 class="mb-6 text-lg font-semibold text-gray-900 dark:text-white">Contract Type Information</h3>
-        
+
         <div class="space-y-4">
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Name *</label>
@@ -97,6 +146,8 @@ const toast = useToast()
 
 const isEditMode = computed(() => !!route.params.id)
 
+const pageLoading = ref(true)
+
 const form = ref({
   name: '',
   code: '',
@@ -107,11 +158,11 @@ const form = ref({
 
 const fetchContractType = async () => {
   if (!route.params.id) return
-  
+
   try {
     const res = await api.get(`/contract-types/${route.params.id}`)
     const contractType = res.data
-    
+
     form.value = {
       name: contractType.name || '',
       code: contractType.code || '',
@@ -134,16 +185,25 @@ const saveContractType = async () => {
       await api.post('/contract-types', form.value)
       toast.success('Contract type created successfully')
     }
-    
+
     router.push('/contract-types')
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error saving contract type')
   }
 }
 
-onMounted(() => {
-  if (isEditMode.value) {
-    fetchContractType()
+const loadData = async () => {
+  try {
+    pageLoading.value = true
+    if (isEditMode.value) {
+      await fetchContractType()
+    }
+  } finally {
+    pageLoading.value = false
   }
+}
+
+onMounted(() => {
+  loadData()
 })
 </script>

@@ -1,30 +1,133 @@
 <template>
   <admin-layout>
     <PageBreadcrumb :pageTitle="pageTitle" />
-    
+
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ isEditMode ? (type === 'labour' ? 'Edit Labour' : (type === 'supplier' ? 'Edit Supplier' : 'Edit Customer')) : (type === 'labour' ? 'Create New Labour' : (type === 'supplier' ? 'Create New Supplier' : 'Create New Customer')) }}
-        </h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ isEditMode ? `Update ${type} information` : `Add a new ${type} to the system` }}
-        </p>
+      <!-- Loading Skeleton -->
+      <div v-if="loading" class="space-y-6">
+        <!-- Header Skeleton -->
+        <div class="mb-6">
+          <div class="h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+          <div class="h-4 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Profile Photo Skeleton -->
+        <div class="mb-6 flex flex-col items-center sm:flex-row sm:items-start gap-6">
+          <div class="h-24 w-24 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+          <div class="flex-1">
+            <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+            <div class="h-3 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- Basic Information Skeleton -->
+        <div class="space-y-4">
+          <div class="h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-12">
+            <div class="sm:col-span-2">
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="sm:col-span-5">
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="sm:col-span-5">
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information Skeleton -->
+        <div class="space-y-4">
+          <div class="h-5 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Address Information Skeleton -->
+        <div class="space-y-4">
+          <div class="h-5 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documents Skeleton -->
+        <div class="space-y-4">
+          <div class="h-5 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+              <div class="text-center">
+                <div class="h-12 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mx-auto mb-4"></div>
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mx-auto mb-2"></div>
+                <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mx-auto"></div>
+              </div>
+            </div>
+            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+              <div class="text-center">
+                <div class="h-12 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mx-auto mb-4"></div>
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mx-auto mb-2"></div>
+                <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mx-auto"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button Skeleton -->
+        <div class="flex justify-end pt-6 border-t dark:border-gray-700">
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
       </div>
+
+      <!-- Actual Form -->
+      <div v-else>
 
       <form @submit.prevent="saveCustomer" class="space-y-6">
         <!-- Basic Information -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Basic Information</h4>
-          
+
           <!-- Profile Photo Upload -->
           <div class="mb-6 flex flex-col items-center sm:flex-row sm:items-start gap-6">
             <div class="relative">
               <div class="h-24 w-24 overflow-hidden rounded-full border-2 border-gray-200 dark:border-gray-700">
-                <img 
-                  v-if="photoPreview || customerForm.profile_photo_url" 
-                  :src="photoPreview || customerForm.profile_photo_url" 
-                  alt="Profile preview" 
+                <img
+                  v-if="photoPreview || customerForm.profile_photo_url"
+                  :src="photoPreview || customerForm.profile_photo_url"
+                  alt="Profile preview"
                   class="h-full w-full object-cover"
                 />
                 <div v-else class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-800">
@@ -33,7 +136,7 @@
                   </svg>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 @click="triggerFileInput"
                 class="absolute bottom-0 right-0 rounded-full bg-brand-600 p-1.5 text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
@@ -43,11 +146,11 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </button>
-              <input 
+              <input
                 ref="fileInput"
-                type="file" 
-                accept="image/*" 
-                class="hidden" 
+                type="file"
+                accept="image/*"
+                class="hidden"
                 @change="handleFileChange"
               />
             </div>
@@ -90,15 +193,15 @@
                 required
                 :class="[
                   'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-1',
-                  validationErrors.name 
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                  validationErrors.name
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                     : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700',
                   'dark:bg-gray-800 dark:text-white'
                 ]"
               />
               <p v-if="validationErrors.name" class="mt-1 text-xs text-red-600">{{ validationErrors.name }}</p>
             </div>
-            
+
             <!-- Email -->
             <div class="sm:col-span-5">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -110,8 +213,8 @@
                 @blur="checkEmailUniqueness"
                 :class="[
                   'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-1',
-                  validationErrors.email 
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                  validationErrors.email
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                     : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700',
                   'dark:bg-gray-800 dark:text-white'
                 ]"
@@ -158,7 +261,7 @@
         <!-- Address Information -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Address Information</h4>
-          
+
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <!-- Country hidden (always Pakistan) -->
             <input type="hidden" v-model="customerForm.country_id" />
@@ -264,7 +367,7 @@
         <!-- Document Uploads -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Documents (Optional)</h4>
-          
+
           <!-- CNIC Documents -->
           <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
             <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-4">CNIC Documents</h5>
@@ -313,7 +416,7 @@
         <!-- Contact Information -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Contact Information</h4>
-          
+
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone (Primary)</label>
@@ -322,7 +425,7 @@
                 placeholder="3001234567"
               />
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone (Secondary)</label>
               <PhoneInputPK
@@ -344,7 +447,7 @@
         <!-- Status -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Status</h4>
-          
+
           <div class="flex items-center">
             <input
               type="checkbox"
@@ -376,6 +479,7 @@
           </button>
         </div>
       </form>
+      </div>
     </div>
   </admin-layout>
 </template>
@@ -460,15 +564,15 @@ const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files[0]) {
     const file = target.files[0]
-    
+
     // Validate file size (2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Image size should be less than 2MB')
       return
     }
-    
+
     customerForm.value.profile_photo = file
-    
+
     // Create preview
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -544,7 +648,7 @@ const handleCountryChange = () => {
   states.value = []
   cities.value = []
   towns.value = []
-  
+
   if (customerForm.value.country_id) {
     fetchStates(Number(customerForm.value.country_id))
   }
@@ -555,7 +659,7 @@ const handleStateChange = () => {
   customerForm.value.town_id = ''
   cities.value = []
   towns.value = []
-  
+
   if (customerForm.value.state_id) {
     fetchCities(Number(customerForm.value.state_id))
   }
@@ -564,7 +668,7 @@ const handleStateChange = () => {
 const handleCityChange = () => {
   customerForm.value.town_id = ''
   towns.value = []
-  
+
   if (customerForm.value.city_id) {
     fetchTowns(Number(customerForm.value.city_id))
     // Auto-fill zip code if available in city
@@ -578,7 +682,7 @@ const handleCityChange = () => {
 const handleTownChange = () => {
   customerForm.value.phase_id = ''
   phases.value = []
-  
+
   if (customerForm.value.town_id) {
     fetchPhases(Number(customerForm.value.town_id))
     // Auto-fill zip code if available in town
@@ -592,7 +696,7 @@ const handleTownChange = () => {
 // Email uniqueness check
 const checkEmailUniqueness = async () => {
   const email = customerForm.value.email
-  
+
   // Skip if email is empty or unchanged in edit mode
   if (!email || (isEditMode.value && email === originalEmail.value)) {
     validationErrors.value.email = ''
@@ -602,18 +706,18 @@ const checkEmailUniqueness = async () => {
   try {
     checkingEmail.value = true
     validationErrors.value.email = ''
-    
+
     // Check if email exists
     const response = await api.get('/customers', {
       params: { search: email }
     })
-    
+
     // Check if any customer has this exact email (excluding current customer in edit mode)
-    const existingCustomer = response.data.data?.find((customer: any) => 
-      customer.email && customer.email.toLowerCase() === email.toLowerCase() && 
+    const existingCustomer = response.data.data?.find((customer: any) =>
+      customer.email && customer.email.toLowerCase() === email.toLowerCase() &&
       (!isEditMode.value || customer.id !== parseInt(customerId.value))
     )
-    
+
     if (existingCustomer) {
       validationErrors.value.email = 'This email is already registered'
     }
@@ -646,14 +750,14 @@ const handleUnlinkDocument = async (documentId: number) => {
 
 const fetchCustomer = async () => {
   if (!isEditMode.value) return
-  
+
   try {
     loading.value = true
     const response = await api.get(`/customers/${customerId.value}/details`)
     const customer = response.data.customer
-    
+
     originalEmail.value = customer.email
-    
+
     customerForm.value = {
       type: customer.type || 'customer',
       name_prefix: customer.name_prefix || '',
@@ -701,29 +805,29 @@ const fetchCustomer = async () => {
 const saveCustomer = async () => {
   // Clear previous validation errors
   validationErrors.value = {}
-  
+
   // Check for email validation errors
   if (validationErrors.value.email) {
     toast.error('Please fix validation errors before submitting')
     return
   }
-  
+
   try {
     loading.value = true
-    
+
     // Create FormData object for file upload
     const formData = new FormData()
     formData.append('type', isEditMode.value ? customerForm.value.type : type.value)
     formData.append('name', customerForm.value.name)
     if (customerForm.value.name_prefix) formData.append('name_prefix', customerForm.value.name_prefix)
-    
+
     if (customerForm.value.email) formData.append('email', customerForm.value.email)
     if (customerForm.value.gender) formData.append('gender', customerForm.value.gender)
     if (customerForm.value.phone_primary) formData.append('phone_primary', customerForm.value.phone_primary)
     if (customerForm.value.phone_secondary) formData.append('phone_secondary', customerForm.value.phone_secondary)
     if (customerForm.value.whatsapp_number) formData.append('whatsapp_number', customerForm.value.whatsapp_number)
     if (customerForm.value.cnic_number) formData.append('cnic_number', customerForm.value.cnic_number)
-    
+
     // Address fields
     if (customerForm.value.street_address) formData.append('street_address', customerForm.value.street_address)
     if (customerForm.value.house_number) formData.append('house_number', customerForm.value.house_number)
@@ -733,7 +837,7 @@ const saveCustomer = async () => {
     if (customerForm.value.city_id) formData.append('city_id', String(customerForm.value.city_id))
     if (customerForm.value.town_id) formData.append('town_id', String(customerForm.value.town_id))
     if (customerForm.value.phase_id) formData.append('phase_id', String(customerForm.value.phase_id))
-    
+
     // Construct full address for backward compatibility
     const fullAddress = [
       customerForm.value.house_number,
@@ -744,11 +848,11 @@ const saveCustomer = async () => {
       countries.value.find(c => c.id === customerForm.value.country_id)?.name,
       customerForm.value.zip_code
     ].filter(Boolean).join(', ')
-    
+
     formData.append('address', fullAddress)
 
     formData.append('is_active', customerForm.value.is_active ? '1' : '0')
-    
+
     // Handle profile photo
     if (customerForm.value.profile_photo) {
       formData.append('profile_photo', customerForm.value.profile_photo)
@@ -784,7 +888,7 @@ const saveCustomer = async () => {
       })
       toast.success(response.data.message)
     }
-    
+
     const targetRoute = type.value === 'labour' ? '/labours' : (type.value === 'supplier' ? '/suppliers' : '/customers')
     router.push(targetRoute)
   } catch (error: any) {
@@ -792,8 +896,8 @@ const saveCustomer = async () => {
     if (error.response?.data?.errors) {
       const backendErrors = error.response.data.errors
       Object.keys(backendErrors).forEach(key => {
-        validationErrors.value[key] = Array.isArray(backendErrors[key]) 
-          ? backendErrors[key][0] 
+        validationErrors.value[key] = Array.isArray(backendErrors[key])
+          ? backendErrors[key][0]
           : backendErrors[key]
       })
       toast.error('Please fix validation errors')

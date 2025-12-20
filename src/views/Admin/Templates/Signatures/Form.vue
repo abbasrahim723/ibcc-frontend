@@ -2,9 +2,55 @@
   <admin-layout>
     <PageBreadcrumb :pageTitle="pageTitle" />
 
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+    <!-- Loading Skeleton -->
+    <div v-if="pageLoading" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+      <div class="space-y-6">
+        <!-- Type Selection Tabs Skeleton -->
+        <div class="border-b border-gray-200 dark:border-gray-700">
+          <div class="-mb-px flex space-x-8">
+            <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- Content Area Skeleton -->
+        <div class="mt-4 space-y-4">
+          <!-- Label Skeleton -->
+          <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+          <!-- Large Content Area (for signature pad, upload, or font selection) -->
+          <div class="h-64 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+
+          <!-- Additional Content (font grid or preview) -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div v-for="n in 9" :key="n" class="h-20 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+
+          <!-- Preview Section -->
+          <div class="h-32 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Common Fields Skeleton -->
+        <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex items-center">
+            <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mr-2"></div>
+            <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- Action Buttons Skeleton -->
+        <div class="flex justify-end gap-4">
+          <div class="h-10 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actual Form -->
+    <div v-else class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <form @submit.prevent="saveSignature" class="space-y-6">
-        
+
         <!-- Type Selection Tabs -->
         <div class="border-b border-gray-200 dark:border-gray-700">
           <nav class="-mb-px flex space-x-8" aria-label="Tabs">
@@ -52,7 +98,7 @@
             class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
           />
           <p class="mt-1 text-xs text-gray-500">PNG, JPG or GIF (MAX. 2MB).</p>
-          
+
           <div v-if="previewUrl" class="mt-4">
             <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
             <img :src="previewUrl" class="max-h-40 rounded border border-gray-200 p-1" />
@@ -83,7 +129,7 @@
                 :class="selectedFont === font.value ? 'border-brand-500 ring-2 ring-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-gray-200 dark:border-gray-700'"
               >
                 <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ font.label }}</div>
-                <div 
+                <div
                   class="text-2xl"
                   :style="{ fontFamily: font.family }"
                 >
@@ -97,7 +143,7 @@
           <div v-if="typedName || userFullName" class="mt-6">
             <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Preview</label>
             <div class="border rounded-lg border-gray-300 dark:border-gray-600 p-8 bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-              <div 
+              <div
                 class="text-4xl"
                 :style="{ fontFamily: fonts.find(f => f.value === selectedFont)?.family }"
               >
@@ -159,6 +205,7 @@ const authStore = useAuthStore()
 const isEditing = computed(() => route.params.id !== undefined)
 const pageTitle = computed(() => isEditing.value ? 'Edit Signature' : 'Create Signature')
 const isSaving = ref(false)
+const pageLoading = ref(true)
 
 // Get user's full name
 const userFullName = computed(() => {
@@ -219,12 +266,12 @@ const fetchSignature = async (id: string) => {
     form.value.is_default = data.is_default
     form.value.status = data.status
     currentType.value = data.signature_type
-    
+
     if (data.signature_type === 'typed') {
       selectedFont.value = data.style || 'dancing-script'
     } else if (data.signature_type === 'uploaded') {
-       previewUrl.value = data.signature_data.startsWith('data:') 
-        ? data.signature_data 
+       previewUrl.value = data.signature_data.startsWith('data:')
+        ? data.signature_data
         : `http://ibcc-both.test/ibcc-app/public/storage/${data.signature_data}`
     }
   } catch (error) {
@@ -236,8 +283,8 @@ const fetchSignature = async (id: string) => {
 const saveSignature = async () => {
   const formData = new FormData()
   formData.append('owner_type', 'App\\Models\\User')
-  formData.append('owner_id', '1') 
-  
+  formData.append('owner_id', '1')
+
   formData.append('signature_type', currentType.value)
   formData.append('status', form.value.status ? '1' : '0')
   formData.append('is_default', form.value.is_default ? '1' : '0')
@@ -270,7 +317,7 @@ const saveSignature = async () => {
         canvas.height = 200
         ctx.fillStyle = '#ffffff'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
-        
+
         const selectedFontFamily = fonts.find(f => f.value === selectedFont.value)?.family || 'cursive'
         ctx.font = `64px ${selectedFontFamily}`
         ctx.fillStyle = '#000000'
@@ -304,15 +351,25 @@ const saveSignature = async () => {
   }
 }
 
+const loadData = async () => {
+  try {
+    pageLoading.value = true
+
+    // Ensure user is loaded
+    if (!authStore.user) {
+      await authStore.fetchUser()
+    }
+
+    if (isEditing.value) {
+      await fetchSignature(route.params.id as string)
+    }
+  } finally {
+    pageLoading.value = false
+  }
+}
+
 onMounted(async () => {
-  // Ensure user is loaded
-  if (!authStore.user) {
-    await authStore.fetchUser()
-  }
-  
-  if (isEditing.value) {
-    await fetchSignature(route.params.id as string)
-  }
+  await loadData()
 })
 </script>
 

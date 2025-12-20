@@ -2,7 +2,47 @@
   <admin-layout>
     <PageBreadcrumb :pageTitle="pageTitle" />
 
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+    <!-- Loading Skeleton -->
+    <div v-if="pageLoading" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+      <div class="space-y-6">
+        <!-- Title and Type Grid Skeleton -->
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <!-- Title Field Skeleton -->
+          <div>
+            <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+            <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+
+          <!-- Type Field Skeleton -->
+          <div>
+            <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+            <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- Editor Skeleton -->
+        <div>
+          <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+          <div class="h-96 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Status Checkbox Skeleton -->
+        <div class="flex items-center">
+          <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mr-2"></div>
+          <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Action Buttons Skeleton -->
+        <div class="flex justify-end gap-4">
+          <div class="h-10 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-20 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actual Form -->
+    <div v-else class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <form @submit.prevent="saveTemplate" class="space-y-6">
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
           <!-- Title -->
@@ -136,6 +176,7 @@ const toast = useToast()
 const isEditing = computed(() => route.params.id !== undefined)
 const pageTitle = computed(() => isEditing.value ? 'Edit Template' : 'Create Template')
 const isSaving = ref(false)
+const pageLoading = ref(true)
 const placeholders = ref<any[]>([])
 
 const form = ref({
@@ -157,10 +198,10 @@ const editorInit = computed(() => ({
   promotion: false,
   placeholder: 'Start writing your template...',
   content_style: 'body { font-family: Inter, sans-serif; font-size: 14px; }',
-  setup: (editor) => {
+  setup: (editor: any) => {
     editor.ui.registry.addMenuButton('placeholders', {
       text: 'Placeholders',
-      fetch: (callback) => {
+      fetch: (callback: any) => {
         const items = placeholders.value.map((p) => ({
           type: 'menuitem',
           text: `${p.key} (${p.model})`,
@@ -256,10 +297,19 @@ const saveTemplate = async () => {
   }
 }
 
-onMounted(async () => {
-  await fetchPlaceholders()
-  if (isEditing.value) {
-    await fetchTemplate(route.params.id as string)
+const loadData = async () => {
+  try {
+    pageLoading.value = true
+    await fetchPlaceholders()
+    if (isEditing.value) {
+      await fetchTemplate(route.params.id as string)
+    }
+  } finally {
+    pageLoading.value = false
   }
+}
+
+onMounted(async () => {
+  await loadData()
 })
 </script>

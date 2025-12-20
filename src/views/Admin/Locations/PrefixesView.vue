@@ -6,7 +6,7 @@
       <div class="mb-6 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Prefixes</h3>
 
-        <div class="flex items-center gap-4">
+        <div v-if="!loading" class="flex items-center gap-4">
           <!-- Search -->
           <input
             v-model="searchQuery"
@@ -25,6 +25,12 @@
             Add Prefix
           </button>
         </div>
+
+        <!-- Skeleton Header -->
+        <div v-else class="flex items-center gap-4">
+          <div class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-20 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
       </div>
 
       <!-- Table -->
@@ -38,7 +44,7 @@
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+          <tbody v-if="!loading" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr v-for="prefix in prefixes" :key="prefix.id" :class="!prefix.is_active ? 'opacity-60' : ''">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                 {{ prefix.name }}
@@ -100,11 +106,30 @@
               </td>
             </tr>
           </tbody>
+
+          <!-- Skeleton Table Rows -->
+          <tbody v-else class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+            <tr v-for="n in 8" :key="n" class="animate-pulse">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-16 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="flex gap-2 justify-end">
+                  <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
 
       <!-- Pagination -->
-      <div v-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
+      <div v-if="!loading && pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
         <div class="text-sm text-gray-700 dark:text-gray-400">
           Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} results
         </div>
@@ -123,6 +148,15 @@
           >
             Next
           </button>
+        </div>
+      </div>
+
+      <!-- Skeleton Pagination -->
+      <div v-else-if="loading" class="mt-4 flex items-center justify-between">
+        <div class="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="flex gap-2">
+          <div class="h-8 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-8 w-12 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
         </div>
       </div>
     </div>
@@ -193,6 +227,7 @@ const prefixToDelete = ref<Prefix | null>(null)
 const isDeleting = ref(false)
 const isEditMode = ref(false)
 const editingId = ref<number | null>(null)
+const loading = ref(true)
 const canCreate = computed(() => can('prefixes', 'create'))
 const canEdit = computed(() => can('prefixes', 'edit'))
 const canDelete = computed(() => can('prefixes', 'delete'))
@@ -213,6 +248,7 @@ const pagination = ref({
 })
 
 const fetchPrefixes = async (page = 1) => {
+  loading.value = true
   try {
     const params = {
       page,
@@ -230,6 +266,8 @@ const fetchPrefixes = async (page = 1) => {
     }
   } catch (error: any) {
     toast.error('Error fetching prefixes')
+  } finally {
+    loading.value = false
   }
 }
 

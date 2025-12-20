@@ -171,11 +171,17 @@ import { useAdminStore } from '@/stores/admin'
 
 const adminStore = useAdminStore()
 
-const users = ref([])
-const roles = ref([])
+const users = ref<any[]>([])
+const roles = ref<any[]>([])
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
-const form = ref({
+const form = ref<{
+  id: number | null;
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+}>({
   id: null,
   name: '',
   email: '',
@@ -212,7 +218,7 @@ const editUser = (user: any) => {
 const saveUser = async () => {
   try {
     if (showEditModal.value) {
-      await adminStore.updateUser(form.value.id, form.value)
+      await adminStore.updateUser(form.value.id!, form.value)
     } else {
       await adminStore.createUser(form.value)
     }

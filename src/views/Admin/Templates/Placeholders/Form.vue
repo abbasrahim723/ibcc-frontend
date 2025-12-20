@@ -2,7 +2,50 @@
   <admin-layout>
     <PageBreadcrumb :pageTitle="pageTitle" />
 
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+    <!-- Loading Skeleton -->
+    <div v-if="pageLoading" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+      <div class="space-y-6">
+        <!-- Placeholder Key Field Skeleton -->
+        <div>
+          <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+          <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-3 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mt-1"></div>
+        </div>
+
+        <!-- Model Searchable Select Skeleton -->
+        <div>
+          <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+          <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Attribute Searchable Select Skeleton -->
+        <div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+          <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Description Textarea Skeleton -->
+        <div>
+          <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+          <div class="h-20 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Status Checkbox Skeleton -->
+        <div class="flex items-center">
+          <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mr-2"></div>
+          <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Action Buttons Skeleton -->
+        <div class="flex justify-end gap-4">
+          <div class="h-10 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actual Form -->
+    <div v-else class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <form @submit.prevent="savePlaceholder" class="space-y-6">
         <!-- Key -->
         <div>
@@ -112,6 +155,7 @@ const checkDuplicateTimeout = ref<any>(null)
 const models = ref<any[]>([])
 const attributes = ref<any[]>([])
 const loadingAttributes = ref(false)
+const pageLoading = ref(true)
 
 const form = ref({
   key: '',
@@ -167,7 +211,7 @@ const onModelChange = () => {
   form.value.attribute = ''
   form.value.table = ''
   attributes.value = []
-  
+
   if (form.value.model) {
     fetchAttributes(form.value.model)
   }
@@ -210,7 +254,7 @@ const fetchPlaceholder = async (id: string) => {
       description: data.description || '',
       status: data.status
     }
-    
+
     if (data.model) {
       await fetchAttributes(data.model)
     }
@@ -222,7 +266,7 @@ const fetchPlaceholder = async (id: string) => {
 
 const savePlaceholder = async () => {
   console.log('Save placeholder called')
-  
+
   if (!form.value.key.startsWith('%') || !form.value.key.endsWith('%')) {
     toast.error('Key must start and end with %')
     return
@@ -235,7 +279,7 @@ const savePlaceholder = async () => {
 
   isSaving.value = true
   console.log('Starting save...', form.value)
-  
+
   try {
     let response
     if (isEditing.value) {
@@ -247,7 +291,7 @@ const savePlaceholder = async () => {
       console.log('Create response:', response)
       toast.success('Placeholder created successfully')
     }
-    
+
     console.log('About to redirect...')
     await router.push('/admin/templates/placeholders')
     console.log('Redirected')
@@ -266,11 +310,19 @@ const savePlaceholder = async () => {
   }
 }
 
-onMounted(async () => {
-  await fetchModels()
-  
-  if (isEditing.value) {
-    await fetchPlaceholder(route.params.id as string)
+const loadData = async () => {
+  try {
+    await fetchModels()
+
+    if (isEditing.value) {
+      await fetchPlaceholder(route.params.id as string)
+    }
+  } finally {
+    pageLoading.value = false
   }
+}
+
+onMounted(async () => {
+  loadData()
 })
 </script>

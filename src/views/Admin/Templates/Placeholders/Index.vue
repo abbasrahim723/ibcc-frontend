@@ -6,7 +6,7 @@
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Placeholders</h3>
 
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div v-if="!loading" class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- Model Filter -->
           <select
             v-model="modelFilter"
@@ -36,6 +36,13 @@
             Add Placeholder
           </router-link>
         </div>
+
+        <!-- Skeleton Header -->
+        <div v-else class="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
       </div>
 
       <!-- Table -->
@@ -51,7 +58,7 @@
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+          <tbody v-if="!loading" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr v-for="placeholder in filteredPlaceholders" :key="placeholder.id" :class="!placeholder.status ? 'opacity-60' : ''">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                 {{ placeholder.key }}
@@ -123,6 +130,34 @@
               </td>
             </tr>
           </tbody>
+
+          <!-- Skeleton Table Rows -->
+          <tbody v-else class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+            <tr v-for="n in 8" :key="n" class="animate-pulse">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-18 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-16 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="flex gap-2 justify-end">
+                  <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -167,17 +202,21 @@ const modelFilter = ref('')
 const showDeleteModal = ref(false)
 const placeholderToDelete = ref<Placeholder | null>(null)
 const isDeleting = ref(false)
+const loading = ref(true)
 const canCreate = computed(() => can('placeholders', 'create'))
 const canEdit = computed(() => can('placeholders', 'edit'))
 const canDelete = computed(() => can('placeholders', 'delete'))
 const canToggle = computed(() => can('placeholders', 'change_status'))
 
 const fetchPlaceholders = async () => {
+  loading.value = true
   try {
     const response = await api.get('/placeholders')
     placeholders.value = response.data
   } catch (error: any) {
     toast.error('Error fetching placeholders')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -203,7 +242,7 @@ const filteredPlaceholders = computed(() => {
   // Filter by search query
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(p => 
+    filtered = filtered.filter(p =>
       p.key.toLowerCase().includes(query) ||
       p.model.toLowerCase().includes(query) ||
       p.attribute.toLowerCase().includes(query) ||

@@ -1,4 +1,7 @@
 import './assets/main.css'
+import { registerSW } from 'virtual:pwa-register'
+
+registerSW({ immediate: true })
 // Import Swiper styles
 import 'swiper/css'
 import 'swiper/css/navigation'

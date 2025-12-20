@@ -36,12 +36,16 @@
             <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Manage Roles</h3>
             <div class="flex flex-wrap items-center gap-3">
               <input
+                v-if="!loadingRoles"
                 v-model="roleSearch"
                 type="text"
                 placeholder="Search roles..."
                 class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
+              <div v-else class="h-10 w-40 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+
               <select
+                v-if="!loadingRoles"
                 v-model="roleStatusFilter"
                 class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               >
@@ -49,12 +53,16 @@
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
+              <div v-else class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+
               <router-link
+                v-if="!loadingRoles"
                 to="/admin/roles/create"
                 class="flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
               >
                 Add Role
               </router-link>
+              <div v-else class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
             </div>
           </div>
         </div>
@@ -70,7 +78,31 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
-              <tr v-for="role in paginatedRoles" :key="role.id" :class="{ 'opacity-60': !role.is_active }">
+              <!-- Skeleton Rows -->
+              <tr v-if="loadingRoles" v-for="n in 8" :key="n" class="animate-pulse">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex gap-1">
+                    <div class="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div class="h-5 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div class="h-5 w-14 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="flex justify-end gap-2">
+                    <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Real Role Rows -->
+              <tr v-else v-for="role in paginatedRoles" :key="role.id" :class="{ 'opacity-60': !role.is_active }">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {{ role.name }}
                   <span v-if="!role.is_active" class="ml-2 text-xs text-gray-500">(Inactive)</span>
@@ -128,7 +160,14 @@
           </table>
         </div>
 
-        <div v-if="roleTotalPages > 1" class="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
+        <div v-if="loadingRoles" class="mt-4 flex items-center justify-between text-sm">
+          <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="flex gap-2">
+            <div class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+        <div v-else-if="roleTotalPages > 1" class="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
           <span>Page {{ rolePage }} of {{ roleTotalPages }}</span>
           <div class="flex gap-2">
             <button
@@ -156,12 +195,16 @@
             <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Manage Permissions</h3>
             <div class="flex flex-wrap items-center gap-3">
               <input
+                v-if="!loadingPermissions"
                 v-model="permissionSearch"
                 type="text"
                 placeholder="Search permissions..."
                 class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
+              <div v-else class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+
               <select
+                v-if="!loadingPermissions"
                 v-model="permissionStatusFilter"
                 class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               >
@@ -169,12 +212,16 @@
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
+              <div v-else class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+
               <button
+                v-if="!loadingPermissions"
                 @click="openPermissionModal()"
                 class="flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
               >
                 Add Permission
               </button>
+              <div v-else class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
             </div>
           </div>
         </div>
@@ -189,7 +236,24 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
-              <tr v-for="permission in paginatedPermissions" :key="permission.id" :class="{ 'opacity-60': !permission.is_active }">
+              <!-- Skeleton Rows -->
+              <tr v-if="loadingPermissions" v-for="n in 8" :key="n" class="animate-pulse">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="flex justify-end gap-2">
+                    <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Real Permission Rows -->
+              <tr v-else v-for="permission in paginatedPermissions" :key="permission.id" :class="{ 'opacity-60': !permission.is_active }">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {{ permission.name }}
                   <span v-if="!permission.is_active" class="ml-2 text-xs text-gray-500">(Inactive)</span>
@@ -225,7 +289,14 @@
           </table>
         </div>
 
-        <div v-if="permissionTotalPages > 1" class="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
+        <div v-if="loadingPermissions" class="mt-4 flex items-center justify-between text-sm">
+          <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="flex gap-2">
+            <div class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+        <div v-else-if="permissionTotalPages > 1" class="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
           <span>Page {{ permissionPage }} of {{ permissionTotalPages }}</span>
           <div class="flex gap-2">
             <button
@@ -305,12 +376,32 @@ import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 
+interface Permission {
+  id: number
+  name: string
+  guard_name: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  roles?: Role[]
+}
+
+interface Role {
+  id: number
+  name: string
+  guard_name: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  permissions: Permission[]
+}
+
 const toast = useToast()
 const currentPageTitle = ref('Roles & Permissions')
 const activeTab = ref('roles')
 
-const roles = ref([])
-const permissions = ref([])
+const roles = ref<Role[]>([])
+const permissions = ref<Permission[]>([])
 const roleSearch = ref('')
 const roleStatusFilter = ref('')
 const permissionSearch = ref('')
@@ -318,10 +409,12 @@ const permissionStatusFilter = ref('')
 const rolePage = ref(1)
 const permissionPage = ref(1)
 const perPage = 10
+const loadingRoles = ref(true)
+const loadingPermissions = ref(true)
 
 // Permission State
 const isPermissionModalOpen = ref(false)
-const editingPermission = ref(null)
+const editingPermission = ref<Permission | null>(null)
 const permissionForm = ref({
   name: ''
 })
@@ -375,22 +468,28 @@ const paginatedPermissions = computed(() => {
 
 // Fetch Data
 const fetchRoles = async () => {
+  loadingRoles.value = true
   try {
     const response = await api.get('/roles')
     roles.value = response.data
     rolePage.value = 1
   } catch (error) {
     console.error('Error fetching roles', error)
+  } finally {
+    loadingRoles.value = false
   }
 }
 
 const fetchPermissions = async () => {
+  loadingPermissions.value = true
   try {
     const response = await api.get('/permissions')
     permissions.value = response.data
     permissionPage.value = 1
   } catch (error) {
     console.error('Error fetching permissions', error)
+  } finally {
+    loadingPermissions.value = false
   }
 }
 
@@ -413,7 +512,7 @@ const deleteRole = (id: number) => {
 }
 
 // Permission Actions
-const openPermissionModal = (permission = null) => {
+const openPermissionModal = (permission: Permission | null = null) => {
   editingPermission.value = permission
   if (permission) {
     permissionForm.value = { name: permission.name }

@@ -5,13 +5,20 @@
     <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
       <!-- Header -->
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div v-if="loading">
+          <div class="h-6 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="mt-1 h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <div v-else>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Calendar</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">View all your events and activities</p>
         </div>
-        
+
         <!-- Event Type Filters -->
-        <div class="flex flex-wrap gap-2">
+        <div v-if="loading" class="flex flex-wrap gap-2">
+          <div v-for="n in 4" :key="n" class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <div v-else class="flex flex-wrap gap-2">
           <button
             v-for="filter in eventFilters"
             :key="filter.type"
@@ -30,7 +37,8 @@
       </div>
 
       <!-- Calendar -->
-      <FullCalendar ref="calendar" :options="calendarOptions" />
+      <div v-if="loading" class="h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+      <FullCalendar v-else ref="calendar" :options="calendarOptions" />
     </div>
 
     <!-- Event Detail Modal -->
@@ -211,6 +219,7 @@ const currentPageTitle = ref('Calendar')
 const calendar = ref<any>(null)
 const selectedEvent = ref<any>(null)
 const allEvents = ref<any[]>([])
+const loading = ref(true)
 
 const eventFilters = ref([
   { type: 'payment', label: 'Payments', icon: '💰', color: '#10B981', active: true },
@@ -252,11 +261,14 @@ const calendarOptions = computed(() => ({
 }))
 
 const fetchEvents = async () => {
+  loading.value = true
   try {
     const response = await api.get('/calendar/events')
     allEvents.value = response.data
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error fetching calendar events')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -284,12 +296,12 @@ const formatEventDate = (date: Date) => {
 
 const viewDetails = () => {
   if (!selectedEvent.value) return
-  
+
   const type = selectedEvent.value.extendedProps.type
   const id = selectedEvent.value.extendedProps.id
-  
+
   selectedEvent.value = null
-  
+
   if (type === 'payment') {
     router.push(`/payments/${id}/edit`)
   } else if (type === 'project' || type === 'milestone') {

@@ -1,8 +1,139 @@
 <template>
   <admin-layout>
     <PageBreadcrumb :pageTitle="pageTitle" />
-    
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+
+    <!-- Loading Skeleton -->
+    <div v-if="pageLoading" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+      <!-- Header Skeleton -->
+      <div class="mb-6">
+        <div class="h-6 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+        <div class="h-4 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+      </div>
+
+      <div class="space-y-6">
+        <!-- Basic Information Skeleton -->
+        <div class="space-y-4">
+          <div class="h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+          <!-- Profile Photo Upload Skeleton -->
+          <div class="mb-6 flex flex-col items-center sm:flex-row sm:items-start gap-6">
+            <div class="relative">
+              <div class="h-24 w-24 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              <div class="absolute bottom-0 right-0 h-6 w-6 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="flex-1 text-center sm:text-left">
+              <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+              <div class="h-3 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+
+          <!-- Name and Email Fields -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+
+          <!-- First and Last Name Fields -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div>
+            <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+            <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-3 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mt-1"></div>
+            <!-- Password Strength Indicator -->
+            <div class="mt-2">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 h-2 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-3 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information Skeleton -->
+        <div class="space-y-4">
+          <div class="h-5 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Professional Information Skeleton -->
+        <div class="space-y-4">
+          <div class="h-5 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+          <div>
+            <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+            <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+
+          <div>
+            <div class="h-4 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+            <div class="h-20 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- Roles & Permissions Skeleton -->
+        <div class="space-y-4">
+          <div class="h-5 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+          <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <div class="space-y-3">
+              <div v-for="n in 3" :key="n" class="flex items-start">
+                <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mt-1 mr-3"></div>
+                <div class="flex-1">
+                  <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                  <div class="h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Skeleton -->
+        <div class="space-y-4">
+          <div class="h-5 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+          <div class="flex items-center">
+            <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mr-2"></div>
+            <div class="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- Form Actions Skeleton -->
+        <div class="flex justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div class="h-10 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actual Form -->
+    <div v-else class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
           {{ isEditMode ? 'Edit User' : 'Create New User' }}
@@ -16,15 +147,15 @@
         <!-- Basic Information -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Basic Information</h4>
-          
+
           <!-- Profile Photo Upload -->
           <div class="mb-6 flex flex-col items-center sm:flex-row sm:items-start gap-6">
             <div class="relative">
               <div class="h-24 w-24 overflow-hidden rounded-full border-2 border-gray-200 dark:border-gray-700">
-                <img 
-                  v-if="photoPreview || userForm.profile_photo_url" 
-                  :src="photoPreview || userForm.profile_photo_url" 
-                  alt="Profile preview" 
+                <img
+                  v-if="photoPreview || userForm.profile_photo_url"
+                  :src="photoPreview || userForm.profile_photo_url"
+                  alt="Profile preview"
                   class="h-full w-full object-cover"
                 />
                 <div v-else class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-800">
@@ -33,7 +164,7 @@
                   </svg>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 @click="triggerFileInput"
                 class="absolute bottom-0 right-0 rounded-full bg-brand-600 p-1.5 text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
@@ -43,11 +174,11 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </button>
-              <input 
+              <input
                 ref="fileInput"
-                type="file" 
-                accept="image/*" 
-                class="hidden" 
+                type="file"
+                accept="image/*"
+                class="hidden"
                 @change="handleFileChange"
               />
             </div>
@@ -70,15 +201,15 @@
                 required
                 :class="[
                   'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-1',
-                  validationErrors.name 
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                  validationErrors.name
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                     : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700',
                   'dark:bg-gray-800 dark:text-white'
                 ]"
               />
               <p v-if="validationErrors.name" class="mt-1 text-xs text-red-600">{{ validationErrors.name }}</p>
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email <span class="text-red-500">*</span>
@@ -90,8 +221,8 @@
                 @blur="checkEmailUniqueness"
                 :class="[
                   'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-1',
-                  validationErrors.email 
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                  validationErrors.email
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                     : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700',
                   'dark:bg-gray-800 dark:text-white'
                 ]"
@@ -110,7 +241,7 @@
                 class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
               <input
@@ -133,8 +264,8 @@
               @input="validatePassword"
               :class="[
                 'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-1',
-                validationErrors.password 
-                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                validationErrors.password
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                   : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700',
                 'dark:bg-gray-800 dark:text-white'
               ]"
@@ -144,12 +275,12 @@
               Must be at least 8 characters long and include uppercase, lowercase, number, and special character
             </p>
             <p v-if="validationErrors.password" class="mt-1 text-xs text-red-600">{{ validationErrors.password }}</p>
-            
+
             <!-- Password Strength Indicator -->
             <div v-if="userForm.password && passwordStrength" class="mt-2">
               <div class="flex items-center gap-2">
                 <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
-                  <div 
+                  <div
                     :class="[
                       'h-full transition-all duration-300',
                       passwordStrength.score === 1 ? 'w-1/4 bg-red-500' : '',
@@ -159,7 +290,7 @@
                     ]"
                   ></div>
                 </div>
-                <span 
+                <span
                   :class="[
                     'text-xs font-medium',
                     passwordStrength.score === 1 ? 'text-red-600' : '',
@@ -178,7 +309,7 @@
         <!-- Contact Information -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Contact Information</h4>
-          
+
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
@@ -188,7 +319,7 @@
                 class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
               <input
@@ -203,7 +334,7 @@
         <!-- Professional Information -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Professional Information</h4>
-          
+
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
             <input
@@ -226,7 +357,7 @@
         <!-- Roles & Permissions -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Roles & Permissions</h4>
-          
+
           <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
             <div class="space-y-3">
               <label v-for="role in availableRoles" :key="role.id" class="flex items-start">
@@ -253,7 +384,7 @@
         <!-- Status -->
         <div class="space-y-4">
           <h4 class="text-md font-medium text-gray-900 dark:text-white">Status</h4>
-          
+
           <div class="flex items-center">
             <input
               type="checkbox"
@@ -307,12 +438,13 @@ const pageTitle = computed(() => isEditMode.value ? 'Edit User' : 'Create User')
 
 const loading = ref(false)
 const checkingEmail = ref(false)
-const availableRoles = ref([])
+const availableRoles = ref<any[]>([])
 const originalEmail = ref('')
 const validationErrors = ref<Record<string, string>>({})
 const passwordStrength = ref<{score: number, label: string} | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const photoPreview = ref<string | null>(null)
+const pageLoading = ref(true)
 
 const userForm = ref({
   name: '',
@@ -338,15 +470,15 @@ const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files[0]) {
     const file = target.files[0]
-    
+
     // Validate file size (2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Image size should be less than 2MB')
       return
     }
-    
+
     userForm.value.profile_photo = file
-    
+
     // Create preview
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -359,7 +491,7 @@ const handleFileChange = (event: Event) => {
 // Password strength validation
 const validatePassword = () => {
   const password = userForm.value.password
-  
+
   if (!password) {
     passwordStrength.value = null
     validationErrors.value.password = ''
@@ -404,7 +536,7 @@ const validatePassword = () => {
 // Email uniqueness check
 const checkEmailUniqueness = async () => {
   const email = userForm.value.email
-  
+
   // Skip if email is empty or unchanged in edit mode
   if (!email || (isEditMode.value && email === originalEmail.value)) {
     validationErrors.value.email = ''
@@ -414,18 +546,18 @@ const checkEmailUniqueness = async () => {
   try {
     checkingEmail.value = true
     validationErrors.value.email = ''
-    
+
     // Check if email exists
     const response = await api.get('/users', {
       params: { search: email }
     })
-    
+
     // Check if any user has this exact email (excluding current user in edit mode)
-    const existingUser = response.data.data?.find((user: any) => 
-      user.email.toLowerCase() === email.toLowerCase() && 
+    const existingUser = response.data.data?.find((user: any) =>
+      user.email.toLowerCase() === email.toLowerCase() &&
       (!isEditMode.value || user.id !== parseInt(userId.value))
     )
-    
+
     if (existingUser) {
       validationErrors.value.email = 'This email is already registered'
     }
@@ -448,14 +580,14 @@ const fetchRoles = async () => {
 
 const fetchUser = async () => {
   if (!isEditMode.value) return
-  
+
   try {
     loading.value = true
     const response = await api.get(`/users/${userId.value}`)
     const user = response.data
-    
+
     originalEmail.value = user.email
-    
+
     userForm.value = {
       name: user.name,
       first_name: user.first_name || '',
@@ -482,7 +614,7 @@ const fetchUser = async () => {
 const saveUser = async () => {
   // Clear previous validation errors
   validationErrors.value = {}
-  
+
   // Validate password if provided
   if (userForm.value.password) {
     validatePassword()
@@ -491,21 +623,21 @@ const saveUser = async () => {
       return
     }
   }
-  
+
   // Check for email validation errors
   if (validationErrors.value.email) {
     toast.error('Please fix validation errors before submitting')
     return
   }
-  
+
   try {
     loading.value = true
-    
+
     // Create FormData object for file upload
     const formData = new FormData()
     formData.append('name', userForm.value.name)
     formData.append('email', userForm.value.email)
-    
+
     if (userForm.value.first_name) formData.append('first_name', userForm.value.first_name)
     if (userForm.value.last_name) formData.append('last_name', userForm.value.last_name)
     if (userForm.value.phone) formData.append('phone', userForm.value.phone)
@@ -513,19 +645,19 @@ const saveUser = async () => {
     if (userForm.value.location) formData.append('location', userForm.value.location)
     if (userForm.value.bio) formData.append('bio', userForm.value.bio)
     formData.append('is_active', userForm.value.is_active ? '1' : '0')
-    
+
     // Handle roles array
     if (userForm.value.roles && userForm.value.roles.length > 0) {
       userForm.value.roles.forEach(role => {
         formData.append('roles[]', role)
       })
     }
-    
+
     // Handle password
     if (userForm.value.password) {
       formData.append('password', userForm.value.password)
     }
-    
+
     // Handle profile photo
     if (userForm.value.profile_photo) {
       formData.append('profile_photo', userForm.value.profile_photo)
@@ -548,15 +680,15 @@ const saveUser = async () => {
       })
       toast.success(response.data.message)
     }
-    
+
     router.push('/users')
   } catch (error: any) {
     // Handle validation errors from backend
     if (error.response?.data?.errors) {
       const backendErrors = error.response.data.errors
       Object.keys(backendErrors).forEach(key => {
-        validationErrors.value[key] = Array.isArray(backendErrors[key]) 
-          ? backendErrors[key][0] 
+        validationErrors.value[key] = Array.isArray(backendErrors[key])
+          ? backendErrors[key][0]
           : backendErrors[key]
       })
       toast.error('Please fix validation errors')
@@ -576,7 +708,7 @@ const fetchCurrentUser = async () => {
   try {
     const response = await api.get('/profile')
     const currentUser = response.data.user || response.data
-    
+
     if (isEditMode.value && Number(currentUser.id) === Number(userId.value)) {
       toast.error('Please use the Profile page to edit your own account')
       router.push('/users')
@@ -586,9 +718,19 @@ const fetchCurrentUser = async () => {
   }
 }
 
+const loadData = async () => {
+  try {
+    await Promise.all([
+      fetchRoles(),
+      fetchUser(),
+      fetchCurrentUser()
+    ])
+  } finally {
+    pageLoading.value = false
+  }
+}
+
 onMounted(() => {
-  fetchRoles()
-  fetchUser()
-  fetchCurrentUser()
+  loadData()
 })
 </script>

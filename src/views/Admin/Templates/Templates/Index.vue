@@ -27,6 +27,18 @@
         </div>
       </div>
 
+      <!-- Skeleton Header -->
+      <div v-if="loading" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="h-6 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <!-- Skeleton Search -->
+          <div class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <!-- Skeleton Add Button -->
+          <div v-if="canCreate" class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
       <!-- Table -->
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -38,7 +50,28 @@
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+          <tbody v-if="loading" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+            <!-- Skeleton Table Rows -->
+            <tr v-for="n in 5" :key="n" class="animate-pulse">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tbody v-else class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr v-for="template in filteredTemplates" :key="template.id" :class="!template.status ? 'opacity-60' : ''">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                 {{ template.title }}
@@ -146,17 +179,21 @@ const searchQuery = ref('')
 const showDeleteModal = ref(false)
 const templateToDelete = ref<Template | null>(null)
 const isDeleting = ref(false)
+const loading = ref(true)
 const canCreate = computed(() => can('templates', 'create'))
 const canEdit = computed(() => can('templates', 'edit'))
 const canDelete = computed(() => can('templates', 'delete'))
 const canToggle = computed(() => can('templates', 'change_status'))
 
 const fetchTemplates = async () => {
+  loading.value = true
   try {
     const response = await api.get('/templates')
     templates.value = response.data
   } catch (error: any) {
     toast.error('Error fetching templates')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -168,7 +205,7 @@ const handleSearch = () => {
 const filteredTemplates = computed(() => {
   if (!searchQuery.value) return templates.value
   const query = searchQuery.value.toLowerCase()
-  return templates.value.filter(t => 
+  return templates.value.filter(t =>
     t.title.toLowerCase().includes(query) ||
     t.type.toLowerCase().includes(query)
   )

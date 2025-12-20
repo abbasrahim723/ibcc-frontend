@@ -3,12 +3,175 @@
     <PageBreadcrumb :pageTitle="pageTitle" />
 
     <div class="mx-auto w-full max-w-6xl">
-      <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <!-- Loading Skeleton -->
+      <div v-if="pageLoading" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <!-- Basic Information Section Skeleton -->
+        <div class="space-y-6">
+          <div>
+            <div class="h-6 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-4"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Project -->
+              <div class="md:col-span-2">
+                <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+
+              <!-- Direction -->
+              <div>
+                <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+
+              <!-- Payer Type -->
+              <div>
+                <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+
+              <!-- Payer -->
+              <div class="md:col-span-2">
+                <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+
+              <!-- Title -->
+              <div class="md:col-span-2">
+                <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+
+              <!-- Amount & Currency -->
+              <div>
+                <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+
+              <div>
+                <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+
+              <!-- Payment Method -->
+              <div class="md:col-span-2">
+                <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+
+              <!-- Notes -->
+              <div class="md:col-span-2">
+                <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-20 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Schedule Configuration Section Skeleton -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <div class="h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-4"></div>
+            <div class="space-y-4">
+              <!-- Schedule Type -->
+              <div>
+                <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="flex gap-4">
+                  <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+
+              <!-- Start Date -->
+              <div>
+                <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+
+              <!-- Recurring Options -->
+              <div class="space-y-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <!-- Frequency -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                    <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                  </div>
+
+                  <div>
+                    <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                    <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mt-1"></div>
+                  </div>
+                </div>
+
+                <!-- Day of Week -->
+                <div>
+                  <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                  <div class="flex flex-wrap gap-2">
+                    <div v-for="n in 7" :key="n" class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </div>
+                </div>
+
+                <!-- Day of Month -->
+                <div>
+                  <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                  <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-3 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mt-1"></div>
+                </div>
+
+                <!-- End Condition -->
+                <div>
+                  <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                  <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                      <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                      <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                      <div class="h-11 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                      <div class="h-4 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                      <div class="h-8 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                      <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notification Channels -->
+              <div>
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="flex flex-wrap gap-3">
+                  <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview Section Skeleton -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <div class="h-6 w-44 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-4"></div>
+            <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div v-for="n in 6" :key="n" class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="h-3 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mt-3"></div>
+            </div>
+          </div>
+
+          <!-- Actions Skeleton -->
+          <div class="flex items-center justify-end gap-3 border-t border-gray-200 dark:border-gray-700 pt-6">
+            <div class="h-10 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actual Form -->
+      <div v-else class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <form @submit.prevent="handleSubmit" class="space-y-6">
           <!-- Basic Information Section -->
           <div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h3>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- Project -->
               <div class="md:col-span-2">
@@ -151,7 +314,7 @@
           <!-- Schedule Configuration Section -->
           <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Schedule Configuration</h3>
-            
+
             <div class="space-y-4">
               <!-- Schedule Type -->
               <div>
@@ -286,7 +449,7 @@
                         @change="updatePreview"
                       />
                     </label>
-                    
+
                     <label class="flex items-center cursor-pointer">
                       <input
                         v-model="endCondition"
@@ -374,10 +537,10 @@
             </button>
             <button
               type="submit"
-              :disabled="loading"
+              :disabled="scheduleLoading"
               class="px-4 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800 disabled:opacity-50"
             >
-              {{ loading ? 'Saving...' : (isEdit ? 'Update Schedule' : 'Create Schedule') }}
+              {{ scheduleLoading ? 'Saving...' : (isEdit ? 'Update Schedule' : 'Create Schedule') }}
             </button>
           </div>
         </form>
@@ -402,7 +565,7 @@ import { formatAmount } from '@/utils/currency'
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
-const { createSchedule, updateSchedule, getSchedule, previewConfiguration, loading } = usePaymentSchedule()
+const { createSchedule, updateSchedule, getSchedule, previewConfiguration, loading: scheduleLoading } = usePaymentSchedule()
 
 const isEdit = computed(() => !!route.params.id)
 const pageTitle = computed(() => isEdit.value ? 'Edit Payment Schedule' : 'Create Payment Schedule')
@@ -411,6 +574,7 @@ const projects = ref<any[]>([])
 const customers = ref<any[]>([])
 const previewDates = ref<string[]>([])
 const endCondition = ref<'date' | 'occurrences'>('occurrences')
+const pageLoading = ref(true)
 
 const activeCustomers = computed(() => customers.value.filter((c: any) => c.status === 'active'))
 const supplierOptions = computed(() => activeCustomers.value.filter((c: any) => (c.type || c.customer_type) === 'supplier'))
@@ -434,23 +598,23 @@ const weekDays = [
 ]
 
 const form = ref({
-  project_id: null,
-  payer_id: null,
+  project_id: null as number | null,
+  payer_id: null as number | null,
   payer_type: 'customer',
   amount: 0,
   currency: 'PKR',
   method: '',
-  direction: 'incoming',
+  direction: 'incoming' as 'incoming' | 'outgoing',
   title: '',
   notes: '',
-  schedule_type: 'recurring',
-  frequency: 'monthly',
+  schedule_type: 'recurring' as 'one_time' | 'recurring',
+  frequency: 'monthly' as 'daily' | 'weekly' | 'bi_weekly' | 'monthly' | 'quarterly' | 'yearly' | null,
   interval: 1,
   day_of_week: [] as string[],
-  day_of_month: null,
+  day_of_month: null as number | null,
   start_date: '',
   end_date: '',
-  max_occurrences: 10,
+  max_occurrences: 10 as number | null,
   notification_channels: ['in_app'] as string[]
 })
 
@@ -465,6 +629,8 @@ const loadData = async () => {
     customers.value = (customersRes.data.data || customersRes.data || []).filter((c: any) => c.status === 'active')
   } catch (error) {
     console.error('Failed to load data:', error)
+  } finally {
+    pageLoading.value = false
   }
 }
 
@@ -473,7 +639,7 @@ const loadSchedule = async () => {
 
   try {
     const schedule = await getSchedule(Number(route.params.id))
-    
+
     form.value = {
       project_id: schedule.project_id,
       payer_id: schedule.payer_id,
@@ -485,7 +651,7 @@ const loadSchedule = async () => {
       title: schedule.title || '',
       notes: schedule.notes || '',
       schedule_type: schedule.schedule_type,
-      frequency: schedule.frequency || '',
+      frequency: schedule.frequency || null,
       interval: schedule.interval,
       day_of_week: schedule.day_of_week || [],
       day_of_month: schedule.day_of_month,
@@ -504,6 +670,8 @@ const loadSchedule = async () => {
   } catch (error) {
     console.error('Failed to load schedule:', error)
     router.push('/scheduled-payments')
+  } finally {
+    pageLoading.value = false
   }
 }
 
@@ -536,7 +704,7 @@ const updatePreview = async () => {
 const handleSubmit = async () => {
   // Clear end condition fields based on selection
   const submitData = { ...form.value }
-  
+
   if (form.value.schedule_type === 'recurring') {
     if (endCondition.value === 'date') {
       submitData.max_occurrences = null
@@ -551,7 +719,7 @@ const handleSubmit = async () => {
     } else {
       await createSchedule(submitData)
     }
-    
+
     router.push('/scheduled-payments')
   } catch (error) {
     console.error('Failed to save schedule:', error)
@@ -576,7 +744,7 @@ const currencySymbol = computed(() => {
 // Reset recurrence-specific fields when toggling schedule type
 watch(() => form.value.schedule_type, (type) => {
   if (type === 'one_time') {
-    form.value.frequency = ''
+    form.value.frequency = null
     form.value.interval = 1
     form.value.day_of_week = []
     form.value.day_of_month = null

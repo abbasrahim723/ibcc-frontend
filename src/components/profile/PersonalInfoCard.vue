@@ -8,6 +8,7 @@ const authStore = useAuthStore()
 const toast = useToast()
 const user = computed(() => authStore.user || {})
 const socialLinks = computed(() => authStore.preferences?.social_links || {})
+const loading = computed(() => authStore.loading)
 const isProfileInfoModal = ref(false)
 const isLoading = ref(false)
 
@@ -84,17 +85,32 @@ const saveProfile = async () => {
           </h4>
 
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-            <div>
+            <!-- First Name -->
+            <div v-if="loading">
+              <div class="mb-2 h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">First Name</p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.first_name || 'N/A' }}</p>
             </div>
 
-            <div>
+            <!-- Last Name -->
+            <div v-if="loading">
+              <div class="mb-2 h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Last Name</p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.last_name || 'N/A' }}</p>
             </div>
 
-            <div>
+            <!-- Email -->
+            <div v-if="loading">
+              <div class="mb-2 h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Email address
               </p>
@@ -103,12 +119,22 @@ const saveProfile = async () => {
               </p>
             </div>
 
-            <div>
+            <!-- Phone -->
+            <div v-if="loading">
+              <div class="mb-2 h-3 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Phone</p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.phone || 'N/A' }}</p>
             </div>
 
-            <div>
+            <!-- Bio -->
+            <div v-if="loading">
+              <div class="mb-2 h-3 w-6 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Bio</p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.bio || 'N/A' }}</p>
             </div>

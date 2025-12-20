@@ -4,8 +4,16 @@
 
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Categories</h3>
-        <div class="flex gap-2">
+        <div v-if="loading">
+          <div class="h-6 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <h3 v-else class="text-lg font-semibold text-gray-900 dark:text-white">Categories</h3>
+        <div v-if="loading" class="flex gap-2">
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-14 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <div v-else class="flex gap-2">
           <input v-model="newCategory.name" type="text" placeholder="Name" class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
           <input v-model="newCategory.color" type="color" class="h-10 w-14 rounded-lg border border-gray-300 dark:border-gray-700" />
           <button @click="createCategory" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">Add</button>
@@ -23,7 +31,24 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-            <tr v-for="cat in categories" :key="cat.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+            <tr v-if="loading" v-for="n in 5" :key="n" class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+              <td class="px-4 py-3">
+                <div class="h-8 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="h-10 w-14 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="h-6 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="h-6 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+            </tr>
+            <tr v-else-if="categories.length === 0">
+              <td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">No categories yet.</td>
+            </tr>
+            <tr v-else v-for="cat in categories" :key="cat.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
               <td class="px-4 py-3 text-sm text-gray-900 dark:text-white">
                 <input v-model="cat.name" @blur="updateCategory(cat)" class="w-full rounded-md border border-gray-200 px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
               </td>
@@ -39,9 +64,6 @@
               <td class="px-4 py-3 text-right">
                 <button @click="deleteCategory(cat.id)" class="text-sm text-red-600 hover:underline">Delete</button>
               </td>
-            </tr>
-            <tr v-if="categories.length === 0">
-              <td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">No categories yet.</td>
             </tr>
           </tbody>
         </table>
@@ -60,10 +82,18 @@ import { useToast } from '@/composables/useToast'
 const toast = useToast()
 const categories = ref<any[]>([])
 const newCategory = ref({ name: '', color: '#3b82f6' })
+const loading = ref(true)
 
 const fetchCategories = async () => {
-  const res = await api.get('/expense-categories')
-  categories.value = res.data?.data ?? res.data ?? []
+  loading.value = true
+  try {
+    const res = await api.get('/expense-categories')
+    categories.value = res.data?.data ?? res.data ?? []
+  } catch (e: any) {
+    toast.error(e.response?.data?.message || 'Failed to fetch categories')
+  } finally {
+    loading.value = false
+  }
 }
 
 const createCategory = async () => {

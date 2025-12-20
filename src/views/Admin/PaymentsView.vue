@@ -6,26 +6,50 @@
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
         <div class="flex flex-col gap-3">
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">{{ currentPageTitle }}</h3>
+            <div v-if="loading" class="flex items-center gap-3">
+              <div class="h-6 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
               <div class="flex items-center gap-2 rounded-lg border border-gray-200 px-2 py-1 dark:border-gray-700">
+                <div class="h-8 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-8 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+            <div v-else class="flex items-center gap-3">
+              <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">{{ currentPageTitle }}</h3>
+              <div class="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800">
                 <button
-                  class="px-3 py-1 text-sm font-medium rounded-md"
-                  :class="viewMode === 'list' ? 'bg-brand-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'"
                   @click="setViewMode('list')"
+                  :class="[
+                    'rounded-md p-1.5 transition-colors',
+                    viewMode === 'list'
+                      ? 'bg-white text-brand-600 shadow-sm dark:bg-gray-700 dark:text-brand-400'
+                      : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                  ]"
+                  title="List View"
                 >
-                  List
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
                 </button>
                 <button
-                  class="px-3 py-1 text-sm font-medium rounded-md"
-                  :class="viewMode === 'kanban' ? 'bg-brand-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'"
                   @click="setViewMode('kanban')"
+                  :class="[
+                    'rounded-md p-1.5 transition-colors',
+                    viewMode === 'kanban'
+                      ? 'bg-white text-brand-600 shadow-sm dark:bg-gray-700 dark:text-brand-400'
+                      : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                  ]"
+                  title="Kanban View"
                 >
-                  Kanban
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h6M4 12h6M4 18h6M14 6h6M14 12h6M14 18h6" />
+                  </svg>
                 </button>
               </div>
             </div>
-            <div v-if="can('payments', 'create')">
+            <div v-if="loading">
+              <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else-if="can('payments', 'create')">
               <button
                 @click="router.push(expensesOnly ? '/payments/create?expense=1' : '/payments/create')"
                 class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
@@ -41,7 +65,9 @@
           </div>
 
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 items-center">
+            <div v-if="loading" class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
             <ProjectSelect
+              v-else
               v-model="filters.project_id"
               :projects="projects"
               placeholder="All Projects"
@@ -50,8 +76,9 @@
               class="w-full"
             />
 
+            <div v-if="loading && !expensesOnly" class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
             <CustomerSelect
-              v-if="!expensesOnly"
+              v-else-if="!expensesOnly"
               v-model="filters.customer_id"
               :customers="customers"
               placeholder="All Payers"
@@ -60,7 +87,9 @@
               class="w-full"
             />
 
+            <div v-if="loading" class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
             <StatusSelect
+              v-else
               v-model="filters.status"
               :statuses="['scheduled','draft','pending', 'completed', 'failed', 'cancelled', 'rejected']"
               placeholder="All Status"
@@ -68,7 +97,9 @@
               class="w-full"
             />
 
+            <div v-if="loading" class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
             <DateRangePicker
+              v-else
               v-model="filters.date_range"
               @change="handleSearch"
               class="w-full"
@@ -89,7 +120,9 @@
             </div>
 
             <div class="col-span-1 sm:col-span-2 lg:col-span-5">
+               <div v-if="loading" class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
                <input
+                v-else
                 v-model="searchQuery"
                 @input="handleSearch"
                 type="text"
@@ -116,7 +149,50 @@
                   <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[120px]">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+              <tbody v-if="loading" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+                <tr v-for="n in 8" :key="n" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                  <td class="px-4 py-4">
+                    <div class="h-4 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="h-10 w-10 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                      <div class="flex-1">
+                        <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                        <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td v-if="!expensesOnly" class="px-4 py-4">
+                    <div class="flex items-center gap-2">
+                      <div class="h-8 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                      <div class="flex-1">
+                        <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                        <div class="h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </td>
+                  <td v-if="!expensesOnly" class="px-4 py-4">
+                    <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </td>
+                  <td v-if="!expensesOnly" class="px-4 py-4">
+                    <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                  </td>
+                  <td class="px-4 py-4 text-right">
+                    <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </td>
+                </tr>
+              </tbody>
+              <tbody v-else class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
                 <tr v-for="payment in payments" :key="payment.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                   <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
                     {{ payment.id }}
@@ -306,7 +382,38 @@
           </div>
         </div>
 
-        <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div v-else>
+          <div v-if="loading" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div
+              v-for="n in 5"
+              :key="n"
+              class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900/40 p-4"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="h-5 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="space-y-3">
+                <div v-for="m in 3" :key="m" class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 shadow-sm">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <div class="h-9 w-9 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700"></div>
+                      <div>
+                        <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                        <div class="h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                        <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                      </div>
+                    </div>
+                    <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                  </div>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <div class="h-8 w-12 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-8 w-14 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div
             v-for="col in kanbanColumns"
             :key="col.key"
@@ -415,9 +522,17 @@
             </div>
           </div>
         </div>
+        </div>
 
         <!-- Pagination -->
-        <div v-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
+        <div v-if="loading" class="mt-4 flex items-center justify-between">
+          <div class="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="flex gap-2">
+            <div class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+        <div v-else-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
           <div class="text-sm text-gray-700 dark:text-gray-400">Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} results</div>
           <div class="flex gap-2">
             <button @click="changePage(pagination.current_page - 1)" :disabled="pagination.current_page === 1" class="rounded-lg border border-gray-300 px-3 py-1 text-sm disabled:opacity-50 dark:border-gray-700">Previous</button>
@@ -439,7 +554,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, defineProps, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
@@ -453,6 +568,7 @@ import { useToast } from '@/composables/useToast'
 import { formatAmount } from '@/utils/currency'
 import { useAuthStore } from '@/stores/auth'
 import { usePermissions } from '@/composables/usePermissions'
+import { useViewPreferences } from '@/composables/useViewPreferences'
 
 const props = defineProps({
   expensesOnly: { type: Boolean, default: false }
@@ -477,12 +593,14 @@ const activeStatusDropdown = ref<number | null>(null)
 const projects = ref<any[]>([])
 const customers = ref<any[]>([])
 const searchQuery = ref('')
+const loading = ref(true)
 const filters = ref({
   project_id: '',
   customer_id: '',
   status: '',
   date_range: [] as string[],
-  show_expenses_only: ''
+  show_expenses_only: '',
+  category_id: ''
 })
 const viewMode = ref<'list' | 'kanban'>('list')
 const groupedPayments = computed(() => {
@@ -530,6 +648,7 @@ const closeStatusDropdown = () => {
 }
 
 const fetchPayments = async (page = 1) => {
+  loading.value = true
   try {
     const params: any = {
       page,
@@ -576,6 +695,8 @@ const fetchPayments = async (page = 1) => {
     }
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error fetching payments')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -722,24 +843,24 @@ const makeAbsoluteUrl = (path: string | undefined) => {
   return `${base}${relative}`
 }
 
+const { getViewMode, setViewMode: saveViewMode } = useViewPreferences()
+
 onMounted(() => {
-  const prefKey = props.expensesOnly ? 'expenses_view_mode' : 'payments_view_mode'
-  const saved = localStorage.getItem(prefKey)
-  viewMode.value = saved === 'kanban' ? 'kanban' : 'list'
+  const viewKey = props.expensesOnly ? 'expenses' : 'payments'
+  viewMode.value = getViewMode(viewKey, 'list') as 'list' | 'kanban'
   loadAll(1)
 })
 
 watch(() => props.expensesOnly, () => {
-  const prefKey = props.expensesOnly ? 'expenses_view_mode' : 'payments_view_mode'
-  const saved = localStorage.getItem(prefKey)
-  viewMode.value = saved === 'kanban' ? 'kanban' : 'list'
+  const viewKey = props.expensesOnly ? 'expenses' : 'payments'
+  viewMode.value = getViewMode(viewKey, 'list') as 'list' | 'kanban'
   loadAll(1)
 })
 
 const setViewMode = (mode: 'list' | 'kanban') => {
   viewMode.value = mode
-  const prefKey = props.expensesOnly ? 'expenses_view_mode' : 'payments_view_mode'
-  localStorage.setItem(prefKey, mode)
+  const viewKey = props.expensesOnly ? 'expenses' : 'payments'
+  saveViewMode(viewKey, mode)
 }
 
 // expose to template

@@ -750,7 +750,6 @@ const fetchResource = async (url: string, key: keyof typeof results.value, enabl
 
 
 const formatCurrency = (value: any) => formatAmount(value, 'PKR', { compact: true })
-}
 
 
 

@@ -12,8 +12,82 @@
         Manage your account preferences and settings
       </p>
 
+      <!-- Skeleton Loading -->
+      <div v-if="loading" class="space-y-6">
+        <!-- Skeleton Theme Mode -->
+        <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+          <div class="h-5 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-4"></div>
+          <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div v-for="n in 3" :key="n" class="p-4 border border-gray-300 rounded-lg dark:border-gray-700">
+              <div class="flex items-center">
+                <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mr-3"></div>
+                <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Currency -->
+        <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+          <div class="h-5 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-4"></div>
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Skeleton Date & Time -->
+        <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+          <div class="h-5 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-4"></div>
+          <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Notifications -->
+        <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+          <div class="h-5 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-4"></div>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                <div class="h-3 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="h-6 w-11 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="h-4 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                <div class="h-3 w-44 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="h-6 w-11 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="h-4 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                <div class="h-3 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="h-6 w-11 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Save Button -->
+        <div class="flex justify-end">
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
       <!-- Preferences Form -->
-      <form @submit.prevent="savePreferences" class="space-y-6">
+      <form v-if="!loading" @submit.prevent="savePreferences" class="space-y-6">
         <!-- Theme Mode -->
         <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
           <h4 class="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">
@@ -382,7 +456,7 @@
 
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { useTheme } from '@/components/layout/ThemeProvider.vue'
@@ -394,6 +468,7 @@ const authStore = useAuthStore()
 const toast = useToast()
 const { theme } = useTheme()
 const currentPageTitle = ref('Account Settings')
+const loading = computed(() => isLoadingPreferences.value)
 
 const form = ref({
   theme_mode: 'system',
@@ -455,12 +530,12 @@ watch(() => form.value.two_factor_enabled, async (newValue, oldValue) => {
   if (isLoadingPreferences.value) {
     return
   }
-  
+
   // Skip if we're toggling programmatically to prevent infinite loop
   if (isTogglingProgrammatically.value) {
     return
   }
-  
+
   // Only trigger if value actually changed and not initial load
   if (oldValue !== undefined && newValue !== oldValue) {
     if (newValue) {
@@ -559,10 +634,10 @@ const verify2FAEnable = async () => {
     await api.post('/auth/2fa/verify-enable', {
       otp_code: otpCode.value
     })
-    
+
     toast.success('2FA enabled successfully!')
     closeOTPModal()
-    
+
     // Update preferences
     await authStore.fetchPreferences()
     if (authStore.preferences) {
@@ -585,7 +660,7 @@ const disable2FA = async () => {
   try {
     await api.post('/auth/2fa/disable')
     toast.success('2FA disabled successfully')
-    
+
     // Update preferences
     await authStore.fetchPreferences()
     if (authStore.preferences) {

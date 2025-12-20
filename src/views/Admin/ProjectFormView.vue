@@ -2,7 +2,212 @@
   <admin-layout>
     <PageBreadcrumb :pageTitle="isEditMode ? 'Edit Project' : 'Create Project'" />
 
-    <form @submit.prevent="saveProject" class="space-y-6">
+    <!-- Loading Skeleton -->
+    <div v-if="loading" class="space-y-6">
+      <!-- Basic Information Skeleton -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+        <div class="mb-4 h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <div class="mb-1.5 h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <div class="md:col-span-2">
+            <div class="mb-1.5 h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-20 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <div>
+            <div class="mb-1.5 h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <div>
+            <div class="mb-1.5 h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <div>
+            <div class="mb-1.5 h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <div>
+            <div class="mb-1.5 h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Details Skeleton -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+        <div class="mb-4 h-6 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
+      <!-- Construction Details Skeleton -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+        <div class="mb-4 h-6 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
+      <!-- Contract & Financial Skeleton -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+        <div class="mb-4 h-6 w-44 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="md:col-span-2 h-6 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="md:col-span-2 h-2 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
+      <!-- Timeline Skeleton -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+        <div class="mb-4 h-6 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
+      <!-- Team Assignment Skeleton -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+        <div class="mb-4 h-6 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
+      <!-- Permits & Utilities Skeleton -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+        <div class="mb-4 h-6 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <div>
+          <div class="mb-3 h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-4 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents Skeleton -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+        <div class="mb-6 h-6 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+        <!-- Thumbnail Skeleton -->
+        <div class="mb-8">
+          <div class="mb-3 h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-900/30 p-6">
+            <div class="flex items-center justify-center gap-4">
+              <div class="text-center flex-1">
+                <div class="mx-auto mb-2 h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="h-24 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+          <div class="mt-2 h-3 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Images Skeleton -->
+        <div class="mb-8">
+          <div class="mb-3 h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-900/30 p-6 text-center">
+            <div class="mx-auto mb-2 h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-3 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+            <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="mt-2 h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- Documents Upload Skeleton -->
+        <div class="mb-4">
+          <div class="mb-3 h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-900/30 p-6 text-center">
+            <div class="mx-auto mb-2 h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-3 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+            <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="mt-2 h-3 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- Additional Notes Skeleton -->
+        <div>
+          <div class="mb-1.5 h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-20 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Active Status Skeleton -->
+        <div class="mt-4">
+          <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons Skeleton -->
+      <div class="flex justify-end gap-3">
+        <div class="h-10 w-20 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+      </div>
+    </div>
+
+    <form v-else @submit.prevent="saveProject" class="space-y-6">
       <!-- Basic Information -->
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
         <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h3>
@@ -563,6 +768,7 @@ const cities = ref<any[]>([])
 const towns = ref<any[]>([])
 
 const isProjectModalOpen = ref(false)
+const loading = ref(true)
 
 // Custom Customer Dropdown State - REMOVED (Replaced by CustomerSelect component)
 
@@ -895,6 +1101,8 @@ const fetchProject = async () => {
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error fetching project')
     router.push('/projects')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -904,7 +1112,7 @@ const saveProject = async () => {
 
     const normalizedForm: Record<string, any> = { ...form.value }
     ;['start_date', 'end_date', 'planned_completion_date', 'actual_completion_date', 'permit_issue_date', 'permit_expiry_date'].forEach((field) => {
-      normalizedForm[field] = normalizeDateValue(form.value[field])
+      normalizedForm[field] = normalizeDateValue((form.value as any)[field])
     })
 
     // Normalize boolean fields to values backend expects
@@ -967,11 +1175,20 @@ const saveProject = async () => {
   }
 }
 
+const loadInitialData = async () => {
+  try {
+    await Promise.all([
+      fetchContractTypes(),
+      fetchCountries(),
+      fetchUsers()
+    ])
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(() => {
-  // fetchCustomers() // Handled by CustomerSelect
-  fetchContractTypes()
-  fetchCountries()
-  fetchUsers()
+  loadInitialData()
 
   if (isEditMode.value) {
     fetchProject()

@@ -9,12 +9,14 @@
         <div class="flex items-center gap-4">
           <!-- Search -->
           <input
+            v-if="!loading"
             v-model="searchQuery"
             @input="handleSearch"
             type="text"
             placeholder="Search countries..."
             class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
+          <div v-else class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
         </div>
       </div>
 
@@ -31,7 +33,24 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-            <tr v-for="country in countries" :key="country.id" :class="!country.is_active ? 'opacity-60' : ''">
+            <!-- Skeleton Rows -->
+            <tr v-if="loading" v-for="n in 8" :key="n" class="animate-pulse">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </td>
+              <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </td>
+              <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </td>
+              <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+              </td>
+            </tr>
+
+            <!-- Real Country Rows -->
+            <tr v-else v-for="country in countries" :key="country.id" :class="!country.is_active ? 'opacity-60' : ''">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                 {{ country.name }}
               </td>
@@ -55,7 +74,14 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
+      <div v-if="loading" class="mt-4 flex items-center justify-between">
+        <div class="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="flex gap-2">
+          <div class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+      <div v-else-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
         <div class="text-sm text-gray-700 dark:text-gray-400">
           Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} results
         </div>
@@ -141,6 +167,7 @@ const searchQuery = ref('Pakistan')
 const showModal = ref(false)
 const isEditMode = ref(false)
 const editingId = ref<number | null>(null)
+const loading = ref(true)
 
 const form = ref({
   name: '',
@@ -162,6 +189,7 @@ const pagination = ref({
 })
 
 const fetchCountries = async (page = 1) => {
+  loading.value = true
   try {
     const params = {
       page,
@@ -179,6 +207,8 @@ const fetchCountries = async (page = 1) => {
     }
   } catch (error: any) {
     toast.error('Error fetching countries')
+  } finally {
+    loading.value = false
   }
 }
 

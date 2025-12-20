@@ -7,7 +7,8 @@ export const useAuthStore = defineStore('auth', {
         user: null as any,
         preferences: null as any,
         token: localStorage.getItem('token') || null,
-        isAuthenticated: !!localStorage.getItem('token')
+        isAuthenticated: !!localStorage.getItem('token'),
+        loading: false
     }),
     actions: {
         async login(credentials: any) {
@@ -38,6 +39,7 @@ export const useAuthStore = defineStore('auth', {
             router.push('/signin');
         },
         async fetchUser() {
+            this.loading = true;
             try {
                 const response = await api.get('/user');
                 this.user = response.data;
@@ -46,6 +48,8 @@ export const useAuthStore = defineStore('auth', {
                 this.token = null;
                 this.isAuthenticated = false;
                 localStorage.removeItem('token');
+            } finally {
+                this.loading = false;
             }
         },
         async updateProfile(data: any) {

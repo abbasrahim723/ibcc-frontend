@@ -578,7 +578,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
@@ -588,6 +588,7 @@ import StatusSelect from '@/components/forms/StatusSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
+import { useViewPreferences } from '@/composables/useViewPreferences'
 import { formatAmount } from '@/utils/currency'
 import {
   ClockIcon,
@@ -602,12 +603,13 @@ import {
 const router = useRouter()
 const toast = useToast()
 const { can } = usePermissions()
+const { getViewMode, setViewMode: saveViewPreference } = useViewPreferences()
 const currentPageTitle = ref('Projects')
 const projects = ref<any[]>([])
 const customers = ref<any[]>([])
 const towns = ref<any[]>([])
 const searchQuery = ref('')
-const viewMode = ref<'list' | 'kanban'>('list')
+const viewMode = ref<'list' | 'kanban'>(getViewMode('projects', 'list') as 'list' | 'kanban')
 const loading = ref(false)
 const loadingCustomers = ref(false)
 const loadingTowns = ref(false)
@@ -876,6 +878,11 @@ onMounted(() => {
   fetchCustomers()
   fetchTowns()
   window.addEventListener('click', closeDropdowns)
+})
+
+// Persist view mode changes to backend
+watch(viewMode, (newMode) => {
+  saveViewPreference('projects', newMode)
 })
 
 onUnmounted(() => {

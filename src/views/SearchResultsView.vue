@@ -74,8 +74,107 @@
       </div>
 
       <div v-else>
-        <div v-if="loading" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">Searching...</div>
+        <!-- Skeleton Loading State -->
+        <div v-if="loading" class="space-y-8">
+          <!-- Skeleton Customers Section -->
+          <section v-if="canCustomers && filters.customers">
+            <header class="mb-3 flex items-center justify-between">
+              <div class="h-5 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </header>
+            <div class="space-y-2">
+              <div v-for="n in 3" :key="n" class="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                  <div class="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="flex-1">
+                    <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                    <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                  <div class="h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                  <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+            </div>
+          </section>
 
+          <!-- Skeleton Projects Section -->
+          <section v-if="canProjects && filters.projects">
+            <header class="mb-3 flex items-center justify-between">
+              <div class="h-5 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </header>
+            <div class="grid gap-3 md:grid-cols-2">
+              <div v-for="n in 4" :key="n" class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                <div class="flex items-start gap-3">
+                  <div class="h-16 w-24 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="flex-1">
+                    <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                    <div class="h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                    <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                    <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                    <div class="flex items-center gap-2">
+                      <div class="h-5 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                      <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                      <div class="h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Skeleton Payments Section -->
+          <section v-if="canPayments && filters.payments">
+            <header class="mb-3 flex items-center justify-between">
+              <div class="h-5 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </header>
+            <div class="space-y-2">
+              <div v-for="n in 3" :key="n" class="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 dark:border-gray-700">
+                <div class="flex-1">
+                  <div class="h-4 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                  <div class="h-3 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                  <div class="flex items-center gap-2">
+                    <div class="h-5 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </div>
+                </div>
+                <div class="h-3 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Skeleton Documents Section -->
+          <section v-if="canDocuments && filters.documents">
+            <header class="mb-3 flex items-center justify-between">
+              <div class="h-5 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </header>
+            <div class="space-y-2">
+              <div v-for="n in 3" :key="n" class="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 dark:border-gray-700">
+                <div class="flex items-start gap-3">
+                  <div class="h-12 w-12 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="flex-1">
+                    <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                    <div class="h-3 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                    <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                    <div class="h-3 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                    <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Actual Results -->
         <div v-else class="space-y-8">
           <section v-if="canCustomers">
             <header class="mb-3 flex items-center justify-between">

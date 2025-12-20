@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Handle API requests - proxy to Laravel public folder
+  # This assumes Laravel is in public_html/ibcc-app/
+  RewriteRule ^api/(.*)$ ibcc-app/public/index.php [L]
+
+  # Vue Router SPA support
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>

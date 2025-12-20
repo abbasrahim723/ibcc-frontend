@@ -9,16 +9,18 @@
         <div class="flex items-center gap-4 w-full sm:w-auto">
           <!-- Search -->
           <input
+            v-if="!loading"
             v-model="searchQuery"
             @input="handleSearch"
             type="text"
             placeholder="Search users..."
             class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white flex-1 sm:flex-initial"
           />
+          <div v-else class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700 flex-1 sm:flex-initial"></div>
 
           <!-- Add User Button -->
           <button
-            v-if="can('users', 'create')"
+            v-if="!loading && can('users', 'create')"
             @click="router.push('/users/create')"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:focus:ring-brand-800"
           >
@@ -29,6 +31,7 @@
               <span class="hidden md:inline">Add User</span>
             </span>
           </button>
+          <div v-else-if="loading" class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
         </div>
       </div>
 
@@ -46,11 +49,44 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-            <tr v-for="user in users" :key="user.id" :class="!user.is_active ? 'opacity-60' : ''">
+            <!-- Skeleton Rows -->
+            <tr v-if="loading" v-for="n in 8" :key="n" class="animate-pulse">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="ml-4">
+                    <div class="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                    <div class="h-3 w-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </div>
+              </td>
+              <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+              </td>
+              <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-20 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+              </td>
+              <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
+                <div class="flex gap-1">
+                  <div class="h-5 w-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                  <div class="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="flex justify-end gap-2">
+                  <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Real User Rows -->
+            <tr v-else v-for="user in users" :key="user.id" :class="!user.is_active ? 'opacity-60' : ''">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="h-10 w-10 flex-shrink-0">
-                    <img v-if="user.avatar_url" :src="user.avatar_url" :alt="user.name" class="h-10 w-10 rounded-full" />
+                    <img v-if="user.profile_photo_url" :src="user.profile_photo_url" :alt="user.name" class="h-10 w-10 rounded-full" />
                     <div v-else class="h-10 w-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-semibold">
                       {{ user.name.charAt(0).toUpperCase() }}
                     </div>
@@ -99,8 +135,8 @@
                   @click="can('users', 'edit') ? approveUser(user.id) : toast.error('You do not have permission to approve users')"
                   :class="[
                     'inline-flex items-center justify-center rounded-md p-2 mr-2 transition-colors',
-                    can('users', 'edit') 
-                      ? 'text-green-600 hover:bg-green-50 hover:text-green-800 dark:text-green-400 dark:hover:bg-white/5 dark:hover:text-green-200' 
+                    can('users', 'edit')
+                      ? 'text-green-600 hover:bg-green-50 hover:text-green-800 dark:text-green-400 dark:hover:bg-white/5 dark:hover:text-green-200'
                       : 'text-green-600/50 cursor-not-allowed dark:text-green-400/50'
                   ]"
                   title="Approve User"
@@ -110,19 +146,19 @@
                   </svg>
                   <span class="sr-only">Approve</span>
                 </button>
-                
+
                 <button
                   @click="
-                    isCurrentUser(user.id) ? null : 
+                    isCurrentUser(user.id) ? null :
                     (can('users', 'edit') ? router.push(`/users/${user.id}/edit`) : toast.error('You do not have permission to edit users'))
                   "
                   :disabled="isCurrentUser(user.id)"
                   :class="[
                     'inline-flex items-center justify-center rounded-md p-2 mr-2 transition-colors',
-                    isCurrentUser(user.id) 
+                    isCurrentUser(user.id)
                       ? 'text-gray-300 opacity-50 cursor-not-allowed dark:text-gray-600'
-                      : (can('users', 'edit') 
-                          ? 'text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200' 
+                      : (can('users', 'edit')
+                          ? 'text-brand-600 hover:bg-brand-50 hover:text-brand-800 dark:text-brand-400 dark:hover:bg-white/5 dark:hover:text-brand-200'
                           : 'text-brand-600/50 cursor-not-allowed dark:text-brand-400/50')
                   ]"
                   :title="isCurrentUser(user.id) ? 'Use your profile page to edit your own account' : (!can('users', 'edit') ? 'You do not have permission to edit users' : 'Edit')"
@@ -132,7 +168,7 @@
                 </button>
                 <button
                   @click="
-                    isCurrentUser(user.id) ? null : 
+                    isCurrentUser(user.id) ? null :
                     (can('users', 'delete') ? toggleUserStatus(user.id) : toast.error('You do not have permission to change user status'))
                   "
                   :disabled="isCurrentUser(user.id)"
@@ -156,7 +192,14 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
+      <div v-if="loading" class="mt-4 flex items-center justify-between">
+        <div class="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="flex gap-2">
+          <div class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+      <div v-else-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
         <div class="text-sm text-gray-700 dark:text-gray-400">
           Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} results
         </div>
@@ -209,6 +252,7 @@ const currentPageTitle = ref('Users')
 const currentUser = ref<any>(null)
 const users = ref<any[]>([])
 const searchQuery = ref('')
+const loading = ref(true)
 
 const pagination = ref({
   current_page: 1,
@@ -247,6 +291,7 @@ const fetchCurrentUser = async () => {
 }
 
 const fetchUsers = async (page = 1) => {
+  loading.value = true
   try {
     const params = {
       page,
@@ -264,6 +309,8 @@ const fetchUsers = async (page = 1) => {
     }
   } catch (error: any) {
     toast.error(error.response?.data?.message || 'Error fetching users')
+  } finally {
+    loading.value = false
   }
 }
 

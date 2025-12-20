@@ -1,12 +1,12 @@
 <template>
   <admin-layout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
-    
+
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex items-center justify-between gap-4">
         <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Contract Types Management</h3>
-        
-        <div class="flex flex-1 lg:flex-initial items-center gap-4">
+
+        <div v-if="!loading" class="flex flex-1 lg:flex-initial items-center gap-4">
           <input
             v-model="searchQuery"
             @input="handleSearch"
@@ -14,7 +14,7 @@
             placeholder="Search contract types..."
             class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
-          
+
           <button
             v-if="canCreate"
             @click="handleCreate"
@@ -27,6 +27,12 @@
               <span class="hidden md:inline">Add Contract Type</span>
             </span>
           </button>
+        </div>
+
+        <!-- Skeleton Header -->
+        <div v-else class="flex flex-1 lg:flex-initial items-center gap-4">
+          <div class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
         </div>
       </div>
 
@@ -41,7 +47,7 @@
               <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+          <tbody v-if="!loading" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr v-for="type in contractTypes" :key="type.id">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900 dark:text-white">{{ type.name }}</div>
@@ -96,6 +102,30 @@
               <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">No contract types found</td>
             </tr>
           </tbody>
+
+          <!-- Skeleton Table Rows -->
+          <tbody v-else class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+            <tr v-for="n in 8" :key="n" class="animate-pulse">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-12 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-16 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="flex gap-2 justify-end">
+                  <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -127,17 +157,21 @@ const { can } = usePermissions()
 const currentPageTitle = ref('Contract Types')
 const contractTypes = ref<ContractType[]>([])
 const searchQuery = ref('')
+const loading = ref(true)
 const canCreate = computed(() => can('contract_types', 'create'))
 const canEdit = computed(() => can('contract_types', 'edit'))
 const canToggle = computed(() => can('contract_types', 'change_status'))
 
 const fetchContractTypes = async () => {
+  loading.value = true
   try {
     const params = { search: searchQuery.value || undefined }
     const res = await api.get('/contract-types', { params })
     contractTypes.value = res.data
   } catch (e: any) {
     toast.error(e.response?.data?.message || 'Error fetching contract types')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -166,7 +200,7 @@ const toggleActive = async (type: ContractType) => {
   }
 
   const action = type.is_active ? 'deactivate' : 'activate'
-  
+
   try {
     const res = await api.put(`/contract-types/${type.id}`, {
       ...type,

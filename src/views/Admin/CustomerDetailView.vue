@@ -9,8 +9,105 @@
       ]"
     />
 
-    <div v-if="loading" class="flex justify-center py-10">
-      <div class="h-10 w-10 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+    <div v-if="loading" class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <!-- Left Column: Profile Card Skeleton -->
+      <div class="xl:col-span-1">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+          <div class="flex flex-col items-center">
+            <!-- Profile Photo Skeleton -->
+            <div class="relative mb-4 h-32 w-32 animate-pulse overflow-hidden rounded-full border-4 border-white bg-gray-200 shadow-lg dark:border-gray-700 dark:bg-gray-700"></div>
+
+            <!-- Name Skeleton -->
+            <div class="mb-1 h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+            <!-- Email Skeleton -->
+            <div class="mb-6 h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+
+            <!-- Contact Info Skeletons -->
+            <div class="w-full space-y-4">
+              <!-- Phone Skeleton -->
+              <div class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <div class="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div class="flex-1">
+                  <div class="mb-1 h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+
+              <!-- WhatsApp Skeleton -->
+              <div class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <div class="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div class="flex-1">
+                  <div class="mb-1 h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+
+              <!-- CNIC Skeleton -->
+              <div class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <div class="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div class="flex-1">
+                  <div class="mb-1 h-3 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+
+              <!-- Address Skeleton -->
+              <div class="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <div class="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div class="flex-1">
+                  <div class="mb-1 h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Tabs and Content Skeleton -->
+      <div class="xl:col-span-2">
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+          <!-- Tabs Skeleton -->
+          <div class="border-b border-gray-200 px-6 dark:border-gray-700">
+            <div class="flex space-x-8 py-4">
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-18 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-14 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+
+          <!-- Tab Content Skeleton -->
+          <div class="p-6">
+            <!-- Header Skeleton -->
+            <div class="mb-6 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-6 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+
+            <!-- Documents Grid Skeleton -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div v-for="n in 6" :key="n" class="flex flex-col rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                <!-- Document Preview Skeleton -->
+                <div class="flex h-32 items-center justify-center rounded-t-lg bg-gray-50 dark:bg-gray-900">
+                  <div class="h-12 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+
+                <!-- Document Info Skeleton -->
+                <div class="p-4">
+                  <div class="mb-2 h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="mb-1 h-3 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-3 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-else-if="customer" class="grid grid-cols-1 gap-6 xl:grid-cols-3">

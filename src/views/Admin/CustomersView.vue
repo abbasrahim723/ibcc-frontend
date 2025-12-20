@@ -4,9 +4,18 @@
 
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <h3 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">{{ currentPageTitle }}</h3>
+        <div v-if="loading">
+          <div class="h-6 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <h3 v-else class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">{{ currentPageTitle }}</h3>
 
-        <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:flex-wrap lg:items-center lg:gap-4">
+        <div v-if="loading" class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:flex-wrap lg:items-center lg:gap-4">
+          <div class="h-10 w-full lg:w-56 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-full lg:w-40 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-full lg:flex-1 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-full lg:w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <div v-else class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:flex-wrap lg:items-center lg:gap-4">
           <!-- Date Range -->
           <DateRangePicker
             v-model="dateRange"
@@ -67,7 +76,46 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-            <tr v-for="customer in customers" :key="customer.id" :class="!customer.is_active ? 'opacity-60' : ''">
+            <tr v-if="loading" v-for="n in 8" :key="n" class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="ml-4">
+                    <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                    <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                <div class="h-3 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-6 w-6 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-6 w-14 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="inline-flex gap-2">
+                  <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </td>
+            </tr>
+            <tr v-else-if="customers.length === 0">
+              <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                No customers found
+              </td>
+            </tr>
+            <tr v-else v-for="customer in customers" :key="customer.id" :class="!customer.is_active ? 'opacity-60' : ''">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="h-10 w-10 flex-shrink-0">
@@ -128,8 +176,8 @@
                   v-if="can('payments', 'create')"
                   @click="router.push({
                     path: '/payments/create',
-                    query: { 
-                      payer_id: customer.id, 
+                    query: {
+                      payer_id: customer.id,
                       type: type, // 'labour' or 'customer'
                       direction: (type === 'labour' || type === 'supplier') ? 'outgoing' : 'incoming'
                     }
@@ -169,7 +217,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2m-4-9l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                 </button>
-                
+
                 <!-- Deactivate/Activate Button -->
                 <button
                   @click="handleToggleStatus(customer)"
@@ -190,7 +238,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
-                
+
                 <!-- Delete Button -->
                 <button
                   @click="handleDeleteCustomer(customer)"
@@ -218,7 +266,14 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
+      <div v-if="loading" class="mt-4 flex items-center justify-between">
+        <div class="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="flex gap-2">
+          <div class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+      <div v-else-if="pagination.total > pagination.per_page" class="mt-4 flex items-center justify-between">
         <div class="text-sm text-gray-700 dark:text-gray-400">
           Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} results
         </div>
@@ -295,6 +350,7 @@ const customers = ref<Customer[]>([])
 const searchQuery = ref('')
 const dateRange = ref<string[] | string>([])
 const statusFilter = ref('')
+const loading = ref(true)
 
 const pagination = ref({
   current_page: 1,
@@ -313,6 +369,7 @@ const confirmModalButtonText = ref('Confirm')
 const pendingAction = ref<{ type: 'toggle' | 'delete', id: number, status?: boolean } | null>(null)
 
 const fetchCustomers = async (page = 1) => {
+  loading.value = true
   try {
     const params: any = {
       page,
@@ -323,7 +380,7 @@ const fetchCustomers = async (page = 1) => {
       params.is_active = statusFilter.value === 'active' ? 1 : 0
       params.status = statusFilter.value
     }
-    
+
     params.type = type.value
 
     const dr = dateRange.value
@@ -347,6 +404,8 @@ const fetchCustomers = async (page = 1) => {
     }
   } catch (error: any) {
     toast.error(error.response?.data?.message || 'Error fetching customers')
+  } finally {
+    loading.value = false
   }
 }
 

@@ -7,6 +7,7 @@ import Modal from './Modal.vue'
 const authStore = useAuthStore()
 const toast = useToast()
 const user = computed(() => authStore.user || {})
+const loading = computed(() => authStore.loading)
 const isProfileAddressModal = ref(false)
 const isLoading = ref(false)
 
@@ -62,26 +63,46 @@ const saveProfile = async () => {
           <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">Address</h4>
 
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-            <div>
+            <!-- Country -->
+            <div v-if="loading">
+              <div class="mb-2 h-3 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Country</p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.country || 'N/A' }}</p>
             </div>
 
-            <div>
+            <!-- City/State -->
+            <div v-if="loading">
+              <div class="mb-2 h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">City/State</p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">
                 {{ user?.city || 'N/A' }}
               </p>
             </div>
 
-            <div>
+            <!-- Postal Code -->
+            <div v-if="loading">
+              <div class="mb-2 h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Postal Code
               </p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.postal_code || 'N/A' }}</p>
             </div>
 
-            <div>
+            <!-- TAX ID -->
+            <div v-if="loading">
+              <div class="mb-2 h-3 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-18 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div v-else>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">TAX ID</p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.tax_id || 'N/A' }}</p>
             </div>

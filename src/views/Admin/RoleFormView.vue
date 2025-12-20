@@ -2,7 +2,49 @@
   <admin-layout>
     <PageBreadcrumb :pageTitle="pageTitle" />
 
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+    <!-- Loading Skeleton -->
+    <div v-if="pageLoading" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+      <!-- Header Skeleton -->
+      <div class="mb-6">
+        <div class="h-6 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+      </div>
+
+      <div class="space-y-6">
+        <!-- Role Name Field Skeleton -->
+        <div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1.5"></div>
+          <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Active Checkbox Skeleton -->
+        <div class="flex items-center">
+          <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mr-2"></div>
+          <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+
+        <!-- Permissions Section Skeleton -->
+        <div>
+          <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+          <div class="max-h-80 overflow-y-auto rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <div v-for="n in 12" :key="n" class="flex items-center">
+                <div class="h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mr-2"></div>
+                <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons Skeleton -->
+        <div class="flex justify-end gap-3 pt-4">
+          <div class="h-10 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <div class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actual Form -->
+    <div v-else class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div class="mb-6">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
           {{ pageTitle }}
@@ -102,6 +144,7 @@ const form = ref({
 
 const permissions = ref<Permission[]>([])
 const submitting = ref(false)
+const pageLoading = ref(true)
 const isEdit = computed(() => Boolean(route.params.id))
 const pageTitle = computed(() => (isEdit.value ? 'Edit Role' : 'Create Role'))
 
@@ -151,10 +194,18 @@ const saveRole = async () => {
   }
 }
 
-onMounted(async () => {
-  await fetchPermissions()
-  if (isEdit.value && typeof route.params.id === 'string') {
-    await fetchRole(route.params.id)
+const loadData = async () => {
+  try {
+    await fetchPermissions()
+    if (isEdit.value && typeof route.params.id === 'string') {
+      await fetchRole(route.params.id)
+    }
+  } finally {
+    pageLoading.value = false
   }
+}
+
+onMounted(async () => {
+  loadData()
 })
 </script>

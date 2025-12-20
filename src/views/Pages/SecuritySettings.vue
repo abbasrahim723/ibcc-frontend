@@ -3,7 +3,64 @@
     <PageBreadcrumb :pageTitle="currentPageTitle" />
 
     <div class="space-y-6">
-      <!-- Email Change Section -->
+      <!-- Skeleton Loading -->
+      <div v-if="loading" class="space-y-6">
+        <!-- Skeleton Email Change Section -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+          <div class="h-6 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+          <div class="h-4 w-80 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-6"></div>
+          <div class="space-y-4">
+            <div>
+              <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="flex justify-end">
+              <div class="h-10 w-40 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Password Change Section -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+          <div class="h-6 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+          <div class="h-4 w-72 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-6"></div>
+          <div class="space-y-4">
+            <div>
+              <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-11 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="flex justify-end">
+              <div class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Biometric Authentication Section -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <div class="h-6 w-44 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-4 w-52 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+          <div class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
+      <!-- Actual Content -->
+      <div v-if="!loading">
       <div
         class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6"
       >
@@ -204,6 +261,7 @@
           <span>{{ bioLoading ? 'Setting up…' : 'Setup Biometric Login' }}</span>
         </button>
       </div>
+      </div>
     </div>
   </admin-layout>
 </template>
@@ -221,6 +279,7 @@ import api from '@/utils/axios'
 const authStore = useAuthStore()
 const toast = useToast()
 const currentPageTitle = ref('Security Settings')
+const loading = computed(() => authStore.loading)
 
 const user = computed(() => authStore.user)
 const isWebAuthnSupported = computed(() => !!(window.PublicKeyCredential && typeof window.PublicKeyCredential === 'function'))
@@ -249,10 +308,10 @@ const verifyEmailOtp = async (code: string) => {
   emailOtpError.value = false
   try {
     await emailOtp.verifyOTP(user.value?.email || '', code, 'email_change')
-    
+
     // Update email
     await api.put('/profile/email', { email: newEmail.value })
-    
+
     toast.success('Email updated successfully!')
     emailOtpSent.value = false
     newEmail.value = ''
@@ -314,14 +373,14 @@ const verifyPasswordOtp = async (code: string) => {
   passwordOtpError.value = false
   try {
     await passwordOtp.verifyOTP(user.value?.email || '', code, 'password_change')
-    
+
     // Update password
     await api.put('/profile/password', {
       current_password: passwordForm.value.current_password,
       password: passwordForm.value.new_password,
       password_confirmation: passwordForm.value.confirm_password,
     })
-    
+
     toast.success('Password updated successfully!')
     passwordOtpSent.value = false
     passwordForm.value = {

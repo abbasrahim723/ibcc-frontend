@@ -8,31 +8,38 @@
 
         <div class="flex flex-wrap items-center gap-4">
           <!-- View Mode Toggle -->
-          <div class="flex items-center rounded-lg border border-gray-300 bg-white p-1 dark:border-gray-700 dark:bg-gray-800">
+          <div v-if="!loading" class="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800">
             <button
-              @click="viewMode = 'table'"
+              @click="setViewMode('table')"
               :class="[
-                'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                'rounded-md p-1.5 transition-colors',
                 viewMode === 'table'
-                  ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400'
+                  ? 'bg-white text-brand-600 shadow-sm dark:bg-gray-700 dark:text-brand-400'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               ]"
+              title="Table View"
             >
-              Table
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
             <button
-              @click="viewMode = 'timeline'"
+              @click="setViewMode('timeline')"
               :class="[
-                'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                'rounded-md p-1.5 transition-colors',
                 viewMode === 'timeline'
-                  ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400'
+                  ? 'bg-white text-brand-600 shadow-sm dark:bg-gray-700 dark:text-brand-400'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               ]"
+              title="Timeline View"
             >
-              Timeline
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </button>
-          </div>          <!-- User Filter (super-admin only) -->
-          <div v-if="isSuperAdmin" class="relative">
+          </div>
+          <div v-else class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>          <!-- User Filter (super-admin only) -->
+          <div v-if="!loading && isSuperAdmin" class="relative">
             <button
               type="button"
               @click="isUserDropdownOpen = !isUserDropdownOpen"
@@ -98,9 +105,10 @@
             </div>
             <div v-if="isUserDropdownOpen" class="fixed inset-0 z-10" @click="isUserDropdownOpen = false"></div>
           </div>
+          <div v-else-if="loading && isSuperAdmin" class="h-11 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
           <!-- Date Range -->
-          <div class="flex items-center gap-2">
+          <div v-if="!loading" class="flex items-center gap-2">
             <flat-pickr
               v-model="filters.start_date"
               :config="dateConfig"
@@ -117,9 +125,15 @@
               placeholder="End date"
             />
           </div>
+          <div v-else class="flex items-center gap-2">
+            <div class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            <span class="text-gray-500 dark:text-gray-400">-</span>
+            <div class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
 
           <!-- Action Filter -->
           <select
+            v-if="!loading"
             v-model="filters.action"
             @change="handleFilter"
             class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -129,11 +143,102 @@
               {{ action.charAt(0).toUpperCase() + action.slice(1) }}
             </option>
           </select>
+          <div v-else class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="flex items-center justify-center py-12">
+      <!-- Table View -->
+      <div v-if="loading && viewMode === 'table'" class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Action</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Description</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Date</th>
+              <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Details</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+            <tr v-for="n in 8" :key="n" class="animate-pulse">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="ml-3">
+                    <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-1"></div>
+                    <div class="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded mb-1"></div>
+                <div class="h-3 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded ml-auto"></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination Skeleton -->
+        <div class="mt-4 flex items-center justify-between">
+          <div class="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="flex gap-2">
+            <div class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline View -->
+      <div v-else-if="loading && viewMode === 'timeline'" class="relative">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          <div v-for="n in 6" :key="n" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800 animate-pulse">
+            <!-- Header -->
+            <div class="mb-3 flex items-start justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div>
+                  <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-1"></div>
+                  <div class="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              </div>
+              <div class="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+            </div>
+
+            <!-- Description -->
+            <div class="h-5 w-40 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+
+            <!-- Metadata -->
+            <div class="mb-3 flex items-center gap-3">
+              <div class="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div class="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+
+            <!-- Changes section -->
+            <div class="mt-4 rounded-md bg-gray-50 p-3 dark:bg-gray-900/50">
+              <div class="mb-2 h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div class="space-y-2">
+                <div class="flex items-start gap-2">
+                  <div class="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div class="h-3 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div class="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State (fallback) -->
+      <div v-else-if="loading" class="flex items-center justify-center py-12">
         <div class="flex flex-col items-center gap-3">
           <div class="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-brand-600 dark:border-gray-700 dark:border-t-brand-400"></div>
           <p class="text-sm text-gray-500 dark:text-gray-400">Loading activity logs...</p>
@@ -399,6 +504,7 @@ import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useDateTimeFormat } from '@/composables/useDateTimeFormat'
 import { usePermissions } from '@/composables/usePermissions'
+import { useViewPreferences } from '@/composables/useViewPreferences'
 import flatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 
@@ -408,12 +514,20 @@ const authStore = useAuthStore()
 const { permissions } = usePermissions()
 const { formatDateTime } = useDateTimeFormat()
 
+const { getViewMode, setViewMode: saveViewPreference } = useViewPreferences()
+
 const currentPageTitle = ref('Activity Logs')
 const logs = ref<any[]>([])
 const users = ref<any[]>([])
 const showModal = ref(false)
 const selectedLog = ref<any>(null)
-const viewMode = ref<'table' | 'timeline'>('timeline') // Default to timeline
+const viewMode = ref<'table' | 'timeline'>(getViewMode('activities', 'timeline') as 'table' | 'timeline')
+
+// Function to set view mode and persist to backend
+const setViewMode = (mode: 'table' | 'timeline') => {
+  viewMode.value = mode
+  saveViewPreference('activities', mode)
+}
 const loading = ref(false)
 const loadingMore = ref(false)
 const scrollTrigger = ref<HTMLElement | null>(null)

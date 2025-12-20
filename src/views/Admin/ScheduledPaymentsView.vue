@@ -7,7 +7,7 @@
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Scheduled Payments</h3>
-          
+
           <button
             v-if="can('scheduled_payments', 'create')"
             @click="router.push('/scheduled-payments/create')"
@@ -23,7 +23,10 @@
         </div>
 
         <!-- Filters Row -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+        <div v-if="loadingFilters" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          <div v-for="n in 7" :key="n" class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+        <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <ProjectSelect
             v-model="filters.project_id"
             :projects="projects"
@@ -122,8 +125,90 @@
       </div>
 
       <!-- Kanban Board -->
-      <div v-if="loading" class="flex justify-center py-10">
-        <div class="inline-block h-10 w-10 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"></div>
+      <div v-if="loading" class="grid grid-cols-1 gap-6 w-full" :style="{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }">
+        <!-- Skeleton Column 1 -->
+        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900/50 min-h-[70vh]">
+          <div class="mb-4 flex items-center justify-between">
+            <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-5 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <div class="space-y-3">
+            <div v-for="n in 3" :key="n" class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                  <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="h-5 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="flex gap-2">
+                <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-8 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Column 2 -->
+        <div class="rounded-xl border border-gray-200 bg-yellow-50 p-4 dark:border-gray-800 dark:bg-yellow-900/10 min-h-[70vh]">
+          <div class="mb-4 flex items-center justify-between">
+            <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-5 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <div class="space-y-3">
+            <div v-for="n in 2" :key="n" class="rounded-lg border border-yellow-200 bg-white p-4 shadow-sm dark:border-yellow-900/30 dark:bg-gray-800">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                  <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="h-6 w-16 animate-pulse rounded-full bg-yellow-200 dark:bg-yellow-700"></div>
+              </div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="h-5 w-18 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-4 w-14 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="flex gap-2">
+                <div class="h-8 w-16 animate-pulse rounded bg-green-200 dark:bg-green-700"></div>
+                <div class="h-8 w-16 animate-pulse rounded bg-red-200 dark:bg-red-700"></div>
+                <div class="h-8 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Column 3 -->
+        <div class="rounded-xl border border-gray-200 bg-green-50 p-4 dark:border-gray-800 dark:bg-green-900/10 min-h-[70vh]">
+          <div class="mb-4 flex items-center justify-between">
+            <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-5 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <div class="space-y-3">
+            <div v-for="n in 4" :key="n" class="rounded-lg border border-green-200 bg-white p-4 shadow-sm dark:border-green-900/30 dark:bg-gray-800">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <div class="h-4 w-30 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+                  <div class="h-3 w-22 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="h-6 w-16 animate-pulse rounded-full bg-green-200 dark:bg-green-700"></div>
+              </div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="h-5 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="flex gap-2">
+                <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-8 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div
         v-else
@@ -140,7 +225,7 @@
               </span>
             </h4>
           </div>
-          
+
           <div class="space-y-3 h-[60vh] overflow-y-auto">
             <ScheduleCard
               v-for="schedule in upcomingSchedules"
@@ -167,7 +252,7 @@
               </span>
             </h4>
           </div>
-          
+
           <div class="space-y-3 h-[60vh] overflow-y-auto">
             <ScheduleCard
               v-for="schedule in dueSchedules"
@@ -195,7 +280,7 @@
               </span>
             </h4>
           </div>
-          
+
           <div class="space-y-3 h-[60vh] overflow-y-auto">
             <ScheduleCard
               v-for="schedule in mergedActiveEnded"
@@ -218,11 +303,94 @@
 
     <!-- Generated Payments Lanes -->
     <div class="space-y-4 mt-10">
-      <div class="flex items-center justify-between">
+      <div v-if="loading" class="flex items-center justify-between">
+        <div class="h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="h-4 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+      </div>
+      <div v-else class="flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Generated Payments</h3>
         <p class="text-sm text-gray-500">Drag payments to Approve or Reject, or use action buttons.</p>
       </div>
       <div
+        v-if="loading"
+        class="grid gap-4 w-full"
+        :style="{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }"
+      >
+        <!-- Skeleton Pending Review Lane -->
+        <div class="rounded-xl border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900/30 dark:bg-yellow-900/10">
+          <div class="mb-3 flex items-center justify-between">
+            <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-5 w-8 animate-pulse rounded-full bg-white/80"></div>
+          </div>
+          <div class="space-y-3">
+            <div v-for="n in 2" :key="n" class="rounded-lg border border-yellow-200 bg-white p-3 shadow-sm dark:border-yellow-900/30 dark:bg-gray-900">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1">
+                  <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                  <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="h-5 w-16 animate-pulse rounded-full bg-yellow-200 dark:bg-yellow-700"></div>
+              </div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="h-6 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="flex gap-2">
+                <div class="h-8 w-16 animate-pulse rounded bg-green-200 dark:bg-green-700"></div>
+                <div class="h-8 w-16 animate-pulse rounded bg-red-200 dark:bg-red-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Approved Lane -->
+        <div class="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900/30 dark:bg-green-900/10">
+          <div class="mb-3 flex items-center justify-between">
+            <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-5 w-8 animate-pulse rounded-full bg-white/80"></div>
+          </div>
+          <div class="space-y-3">
+            <div v-for="n in 3" :key="n" class="rounded-lg border border-green-200 bg-white p-3 shadow-sm dark:border-green-900/30 dark:bg-gray-900">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1">
+                  <div class="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                  <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="h-5 w-16 animate-pulse rounded-full bg-green-200 dark:bg-green-700"></div>
+              </div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="h-6 w-18 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-3 w-14 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Rejected Lane -->
+        <div class="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-900/10">
+          <div class="mb-3 flex items-center justify-between">
+            <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-5 w-8 animate-pulse rounded-full bg-white/80"></div>
+          </div>
+          <div class="space-y-3">
+            <div v-for="n in 1" :key="n" class="rounded-lg border border-red-200 bg-white p-3 shadow-sm dark:border-red-900/30 dark:bg-gray-900">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1">
+                  <div class="h-4 w-30 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                  <div class="h-3 w-22 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="h-5 w-16 animate-pulse rounded-full bg-red-200 dark:bg-red-700"></div>
+              </div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="h-6 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        v-else
         class="grid gap-4 w-full"
         :style="{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }"
       >
@@ -419,6 +587,7 @@ const showPreviewModal = ref(false)
 const selectedSchedule = ref<any>(null)
 const draggingPayment = ref<any>(null)
 const searchDebounce = ref<any>(null)
+const loadingFilters = ref(true)
 
 const filters = ref({
   project_id: '',
@@ -496,7 +665,7 @@ const handleFilterChange = () => {
 
 const loadSchedules = async () => {
   try {
-    await fetchSchedules(filters.value)
+    await fetchSchedules(filters.value as any)
   } catch (error) {
     console.error('Failed to load schedules:', error)
   }
@@ -535,6 +704,8 @@ const loadUsers = async () => {
     users.value = res.data.data || res.data
   } catch (error) {
     console.error('Failed to load users:', error)
+  } finally {
+    loadingFilters.value = false
   }
 }
 

@@ -30,10 +30,38 @@
       </div>
 
       <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-        <div v-if="loading" class="p-6 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+        <!-- Skeleton Loading State -->
+        <ul v-if="loading" class="divide-y divide-gray-100 dark:divide-gray-800">
+          <li
+            v-for="n in 6"
+            :key="'skeleton-' + n"
+            class="flex items-center gap-4 px-4 py-3"
+          >
+            <!-- Avatar Skeleton -->
+            <div class="relative">
+              <div class="h-12 w-12 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              <div class="absolute -right-0.5 -top-0.5 h-3 w-3 animate-pulse rounded-full bg-gray-300 dark:bg-gray-600"></div>
+            </div>
+            <!-- Content Skeleton -->
+            <div class="flex-1 space-y-2">
+              <div class="flex items-center gap-2">
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="flex items-center gap-2">
+                <div class="h-5 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-3 w-10 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <!-- Empty State -->
         <div v-else-if="items.length === 0" class="p-6 text-center text-gray-500 dark:text-gray-400">
           No notifications
         </div>
+        <!-- Notification List -->
         <ul v-else class="divide-y divide-gray-100 dark:divide-gray-800">
           <li
             v-for="notification in items"

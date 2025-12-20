@@ -61,8 +61,62 @@
         </div>
       </div>
 
+      <!-- Skeleton Header -->
+      <div v-if="loading" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-3">
+          <div class="h-6 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div v-if="isSuperAdmin" class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="h-4 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      </div>
+
       <!-- Grid of Signatures -->
-      <div v-if="signatures.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div v-if="loading" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Skeleton Signature Cards -->
+        <div v-for="n in 6" :key="n" class="flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <!-- Skeleton Default Badge -->
+          <div class="absolute right-2 top-2 h-5 w-12 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+
+          <!-- Skeleton Preview -->
+          <div class="mb-4 flex h-32 items-center justify-center rounded-lg bg-gray-50 p-2 dark:bg-gray-900">
+            <div class="h-16 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+
+          <!-- Skeleton Info -->
+          <div class="mb-4 flex-1">
+            <div class="flex items-center justify-between mb-2">
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-5 w-12 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+
+          <!-- Skeleton Actions -->
+          <div class="flex items-center justify-end gap-2">
+            <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else-if="signatures.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div
           v-for="signature in signatures"
           :key="signature.id"
@@ -145,7 +199,7 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else class="flex flex-col items-center justify-center py-12 text-center">
+      <div v-else-if="!loading && signatures.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
         <div class="mb-4 rounded-full bg-gray-100 p-4 dark:bg-gray-800">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -204,6 +258,7 @@ const showDeleteModal = ref(false)
 const signatureToDelete = ref<Signature | null>(null)
 const isDeleting = ref(false)
 const users = ref<any[]>([])
+const loading = ref(true)
 const filters = ref({
   owner_id: '',
   signature_type: '',
@@ -219,6 +274,7 @@ const isSuperAdmin = computed(() => {
 const canToggle = computed(() => permissions.value?.includes('signatures.change_status') || isSuperAdmin.value)
 
 const fetchSignatures = async () => {
+  loading.value = true
   try {
     const params: Record<string, any> = {}
     if (isSuperAdmin.value) {
@@ -231,6 +287,8 @@ const fetchSignatures = async () => {
     signatures.value = response.data
   } catch (error: any) {
     toast.error('Error fetching signatures')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -239,12 +297,12 @@ const getSignatureUrl = (signature: Signature) => {
   if (signature.signature_data.startsWith('data:image')) {
     return signature.signature_data
   }
-  
+
   // For uploaded files, use the same pattern as project thumbnails
   if (signature.signature_type === 'uploaded') {
     return `http://ibcc-both.test/ibcc-app/public/storage/${signature.signature_data}`
   }
-  
+
   return signature.signature_data
 }
 

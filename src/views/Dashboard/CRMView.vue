@@ -380,9 +380,29 @@ import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import ApexCharts from 'apexcharts'
 import FlatPickr from 'vue-flatpickr-component'
-import monthSelectPlugin from 'flatpickr/dist/plugins/monthSelect'
+import monthSelectPlugin from 'flatpickr/dist/plugins/monthSelect/index.js'
 import 'flatpickr/dist/plugins/monthSelect/style.css'
 import { formatAmount } from '@/utils/currency'
+
+interface MonthlyData {
+  month: string
+  revenue: string
+}
+
+interface RevenueAnalytics {
+  monthly: MonthlyData[]
+  monthly_outgoing: MonthlyData[]
+  monthly_incoming: MonthlyData[]
+  monthly_forecast: MonthlyData[]
+  yearly_profit: number
+  target: number
+}
+
+interface EstimatedData {
+  incoming_completed_month: number
+  incoming_pending_month: number
+  target: number
+}
 
 const toast = useToast()
 const currentPageTitle = ref('CRM Dashboard')
@@ -408,17 +428,19 @@ const stats = ref({
   }
 })
 
-const revenueAnalytics = ref({
+const revenueAnalytics = ref<RevenueAnalytics>({
   monthly: [],
   monthly_outgoing: [],
   monthly_incoming: [],
+  monthly_forecast: [],
   yearly_profit: 0,
   target: 90
 })
 
-const estimated = ref({
+const estimated = ref<EstimatedData>({
   incoming_completed_month: 0,
-  incoming_pending_month: 0
+  incoming_pending_month: 0,
+  target: 0
 })
 
 const topCustomers = ref<any[]>([])
@@ -442,7 +464,7 @@ const monthPickerConfig = {
   dateFormat: 'Y-m',
   allowInput: true,
   plugins: [
-    new monthSelectPlugin({
+    new (monthSelectPlugin as any)({
       shorthand: true,
       dateFormat: 'Y-m',
       altFormat: 'F Y',

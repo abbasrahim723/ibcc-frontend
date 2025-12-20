@@ -3,23 +3,64 @@
     <PageBreadcrumb :pageTitle="pageTitle" />
 
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div class="mb-6 flex items-center justify-between">
-        <div class="space-y-2">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Attach Documents</h3>
-          <div class="flex items-center gap-3">
-            <div v-if="targetVisual?.avatar" class="h-10 w-10 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              <img :src="targetVisual.avatar" alt="" class="h-full w-full object-cover" />
-            </div>
-            <div v-else class="h-10 w-10 flex items-center justify-center rounded-full bg-brand-100 text-brand-700 font-semibold uppercase">
-              {{ targetVisual?.initials || '?' }}
-            </div>
-            <div>
-              <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ targetVisual?.title || targetLabel }}</div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">{{ targetVisual?.subtitle || '' }}</div>
+      <!-- Loading Skeleton -->
+      <div v-if="loading" class="space-y-6">
+        <!-- Header Skeleton -->
+        <div class="mb-6 flex items-center justify-between">
+          <div class="space-y-2">
+            <div class="h-6 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              <div>
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-1"></div>
+                <div class="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Form Skeleton -->
+        <div class="space-y-4">
+          <!-- Model and ID fields -->
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+
+          <!-- Category and Description fields -->
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <div class="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div>
+              <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+
+          <!-- File Upload Area -->
+          <div>
+            <div class="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
+            <div class="h-24 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex justify-end gap-3">
+            <div class="h-10 w-20 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        </div>
       </div>
+
+      <!-- Actual Content -->
+      <div v-else>
 
       <form @submit.prevent="submit">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -123,6 +164,7 @@
           </button>
         </div>
       </form>
+      </div>
     </div>
   </admin-layout>
 </template>
@@ -152,6 +194,7 @@ const target = ref<any>(null)
 const files = ref<{ file: File; previewUrl?: string; previewsAsImage: boolean }[]>([])
 const fileInput = ref<HTMLInputElement | null>(null)
 const submitting = ref(false)
+const loading = ref(true)
 
 const categoryOptions = [
   { value: 'thumbnail', label: 'Thumbnail', icon: '🖼️' },
@@ -283,6 +326,8 @@ const fetchTarget = async () => {
     target.value = res.data?.data || res.data
   } catch (e) {
     // ignore
+  } finally {
+    loading.value = false
   }
 }
 
