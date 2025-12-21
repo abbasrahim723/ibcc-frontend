@@ -22,26 +22,21 @@
       <router-link to="/crm">
         <img
           v-if="isExpanded || isHovered || isMobileOpen"
-          class="dark:hidden"
+          class="dark:hidden h-10 w-auto"
           src="/images/logo/logo.svg"
           alt="Logo"
-          width="250"
-          height="40"
         />
         <img
           v-if="isExpanded || isHovered || isMobileOpen"
-          class="hidden dark:block"
+          class="hidden dark:block h-10 w-auto"
           src="/images/logo/logo-dark.svg"
           alt="Logo"
-          width="250"
-          height="40"
         />
         <img
           v-else
           src="/images/logo/logo-icon.svg"
           alt="Logo"
-          width="100"
-          height="100"
+          class="h-10 w-auto"
         />
       </router-link>
     </div>
