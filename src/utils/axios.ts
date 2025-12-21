@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+// updated route
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
     headers: {
