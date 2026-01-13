@@ -171,14 +171,9 @@
                 class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               >
                 <option value="">None</option>
-                <option value="Mr">Mr</option>
-                <option value="Mrs">Mrs</option>
-                <option value="Ms">Ms</option>
-                <option value="Dr">Dr</option>
-                <option value="Prof">Prof</option>
-                <option value="Engr">Engr</option>
-                <option value="Col">Col</option>
-                <option value="Major">Major</option>
+                <option v-for="prefix in prefixes" :key="prefix.id" :value="prefix.name">
+                  {{ prefix.name }}
+                </option>
               </select>
             </div>
 
@@ -640,6 +635,18 @@ const fetchPhases = async (townId: number) => {
   }
 }
 
+const fetchPrefixes = async () => {
+  loadingPrefixes.value = true
+  try {
+    const response = await api.get('/prefixes', { params: { active_only: true, all: true } })
+    prefixes.value = response.data
+  } catch (error) {
+    console.error('Error fetching prefixes', error)
+  } finally {
+    loadingPrefixes.value = false
+  }
+}
+
 // Handle Location Changes
 const handleCountryChange = () => {
   customerForm.value.state_id = ''
@@ -915,7 +922,12 @@ const goBack = () => {
 }
 
 onMounted(async () => {
-  await fetchCountries()
-  await fetchCustomer()
+  await Promise.all([
+    fetchCountries(),
+    fetchPrefixes()
+  ])
+  if (isEditMode.value) {
+    await fetchCustomer()
+  }
 })
 </script>
