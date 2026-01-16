@@ -65,18 +65,12 @@
             <label for="type" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
               Template Type <span class="text-red-500">*</span>
             </label>
-            <select
+            <GenericSelect
               v-model="form.type"
-              id="type"
-              class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
-              required
-            >
-              <option value="" disabled>Select a type</option>
-              <option value="contract">Contract</option>
-              <option value="initial_quote">Initial Quote</option>
-              <option value="estimate">Estimate</option>
-              <option value="payment_reminder">Payment Reminder</option>
-            </select>
+              :options="typeOptions"
+              placeholder="Select a type"
+              class="w-full"
+            />
           </div>
         </div>
 
@@ -166,6 +160,7 @@ import 'tinymce/skins/ui/oxide/content.css'
 import 'tinymce/skins/content/default/content.css'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 
@@ -185,6 +180,13 @@ const form = ref({
   content: '',
   status: true
 })
+
+const typeOptions = [
+  { value: 'contract', label: 'Contract' },
+  { value: 'initial_quote', label: 'Initial Quote' },
+  { value: 'estimate', label: 'Estimate' },
+  { value: 'payment_reminder', label: 'Payment Reminder' }
+]
 
 const editorInit = computed(() => ({
   height: 480,

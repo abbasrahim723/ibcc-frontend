@@ -44,15 +44,13 @@
               />
               <div v-else class="h-10 w-40 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
-              <select
+              <GenericSelect
                 v-if="!loadingRoles"
                 v-model="roleStatusFilter"
-                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+                :options="statusOptions"
+                placeholder="All Statuses"
+                class="w-[160px]"
+              />
               <div v-else class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
               <router-link
@@ -203,15 +201,13 @@
               />
               <div v-else class="h-10 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
-              <select
+              <GenericSelect
                 v-if="!loadingPermissions"
                 v-model="permissionStatusFilter"
-                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+                :options="statusOptions"
+                placeholder="All Statuses"
+                class="w-[160px]"
+              />
               <div v-else class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
               <button
@@ -373,6 +369,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import Modal from '@/components/profile/Modal.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 
@@ -409,6 +406,11 @@ const permissionStatusFilter = ref('')
 const rolePage = ref(1)
 const permissionPage = ref(1)
 const perPage = 10
+const statusOptions = [
+  { value: '', label: 'All Statuses' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' }
+]
 const loadingRoles = ref(true)
 const loadingPermissions = ref(true)
 

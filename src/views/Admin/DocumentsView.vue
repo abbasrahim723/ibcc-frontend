@@ -85,23 +85,22 @@
           </div>
 
           <!-- Category Filter -->
-          <select
+          <GenericSelect
             v-model="selectedCategory"
+            :options="categoryOptions"
+            placeholder="📂 All Categories"
+            class="w-full sm:w-[180px]"
             @change="fetchDocuments(1)"
-            class="w-full sm:w-auto rounded-lg border border-gray-300 bg-transparent py-2.5 pl-3 pr-8 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:text-white dark:bg-gray-800"
-          >
-            <option value="">📂 All Categories</option>
-            <option v-for="cat in categories" :key="cat.value" :value="cat.value">{{ cat.label }}</option>
-          </select>
+          />
 
            <!-- Model Filter -->
-          <select
+          <GenericSelect
             v-model="selectedModel"
+            :options="modelOptions"
+            placeholder="📂 All Models"
+            class="w-full sm:w-[250px]"
             @change="fetchDocuments(1)"
-             class="w-full sm:w-auto rounded-lg border border-gray-300 bg-transparent py-2.5 pl-3 pr-8 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:text-white dark:bg-gray-800"
-          >
-            <option v-for="m in models" :key="m.value" :value="m.value">{{ m.label }}</option>
-          </select>
+          />
         </div>
       </div>
 
@@ -627,11 +626,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
@@ -674,7 +674,7 @@ const setViewMode = (mode: 'table' | 'grid') => {
   saveViewPreference('documents', mode)
 }
 
-const categories = [
+const categoryOptions = [
   { label: '📷 Thumbnail', value: 'thumbnail' },
   { label: '🖼️ Image', value: 'image' },
   { label: '📄 Document', value: 'document' },
@@ -686,7 +686,7 @@ const categories = [
   { label: '💳 Payment Attachment', value: 'payment' },
   { label: '📦 Other', value: 'other' }
 ]
-const models = [
+const modelOptions = [
   { label: '📂 All Models', value: '' },
   { label: '👤 Customers / Labours / Suppliers', value: 'App\\Models\\Customer' },
   { label: '🏗️ Projects', value: 'App\\Models\\Project' },

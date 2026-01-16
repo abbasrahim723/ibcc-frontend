@@ -8,16 +8,14 @@
 
         <div v-if="!loading" class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- Country Filter -->
-          <select
+          <GenericSelect
             v-model="selectedCountryId"
+            :options="countryOptions"
+            placeholder="All Countries"
+            searchable
+            class="w-[200px]"
             @change="handleCountryChange"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Countries</option>
-            <option v-for="country in countries" :key="country.id" :value="country.id">
-              {{ country.name }}
-            </option>
-          </select>
+          />
 
           <!-- Search -->
           <input
@@ -144,6 +142,7 @@ import { ref, onMounted, computed } from 'vue'
 import { RotateCcw, ShieldAlert } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
@@ -170,6 +169,11 @@ const searchQuery = ref('')
 const selectedCountryId = ref('')
 const loading = ref(true)
 const canToggle = computed(() => can('states', 'change_status'))
+
+const countryOptions = computed(() => [
+  { value: '', label: 'All Countries' },
+  ...countries.value.map(c => ({ value: c.id.toString(), label: c.name }))
+])
 
 const pagination = ref({
   current_page: 1,

@@ -8,40 +8,36 @@
 
         <div v-if="!loading" class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- State Filter -->
-          <select
+          <GenericSelect
             v-model="selectedStateId"
+            :options="stateOptions"
+            placeholder="All States"
+            searchable
+            class="w-[180px]"
             @change="handleStateChange"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All States</option>
-            <option v-for="state in states" :key="state.id" :value="state.id">
-              {{ state.name }}
-            </option>
-          </select>
+          />
 
           <!-- City Filter -->
-          <select
+          <GenericSelect
             v-model="selectedCityId"
+            :options="cityOptions"
+            placeholder="All Cities"
+            searchable
+            class="w-[180px]"
+            :disabled="!selectedStateId"
             @change="handleCityChange"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Cities</option>
-            <option v-for="city in filteredCities" :key="city.id" :value="city.id">
-              {{ city.name }}
-            </option>
-          </select>
+          />
 
           <!-- Town Filter -->
-          <select
+          <GenericSelect
             v-model="selectedTownId"
+            :options="townOptions"
+            placeholder="All Towns"
+            searchable
+            class="w-[180px]"
+            :disabled="!selectedCityId"
             @change="handleTownChange"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Towns</option>
-            <option v-for="town in filteredTowns" :key="town.id" :value="town.id">
-              {{ town.name }}
-            </option>
-          </select>
+          />
 
           <!-- Search -->
           <input
@@ -230,6 +226,7 @@ import { RotateCcw, ShieldAlert, SquarePen, Trash2 } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
@@ -305,6 +302,21 @@ const filteredTowns = computed(() => {
   if (!selectedCityId.value) return []
   return allTowns.value.filter(t => t.city_id === Number(selectedCityId.value))
 })
+
+const stateOptions = computed(() => [
+  { value: '', label: 'All States' },
+  ...states.value.map(s => ({ value: s.id.toString(), label: s.name }))
+])
+
+const cityOptions = computed(() => [
+  { value: '', label: 'All Cities' },
+  ...filteredCities.value.map(c => ({ value: c.id.toString(), label: c.name }))
+])
+
+const townOptions = computed(() => [
+  { value: '', label: 'All Towns' },
+  ...filteredTowns.value.map(t => ({ value: t.id.toString(), label: t.name }))
+])
 
 const fetchStates = async () => {
   try {

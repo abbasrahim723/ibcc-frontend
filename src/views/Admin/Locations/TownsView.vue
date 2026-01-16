@@ -8,28 +8,25 @@
 
         <div v-if="!loading" class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- State Filter -->
-          <select
+          <GenericSelect
             v-model="selectedStateId"
+            :options="stateOptions"
+            placeholder="All States"
+            searchable
+            class="w-full sm:w-[180px]"
             @change="handleStateChange"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All States</option>
-            <option v-for="state in states" :key="state.id" :value="state.id">
-              {{ state.name }}
-            </option>
-          </select>
+          />
 
           <!-- City Filter -->
-          <select
+          <GenericSelect
             v-model="selectedCityId"
+            :options="cityOptions"
+            placeholder="All Cities"
+            searchable
+            class="w-full sm:w-[180px]"
+            :disabled="!selectedStateId"
             @change="handleCityChange"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Cities</option>
-            <option v-for="city in filteredCities" :key="city.id" :value="city.id">
-              {{ city.name }}
-            </option>
-          </select>
+          />
 
           <!-- Search -->
           <input
@@ -224,6 +221,7 @@ import { RotateCcw, ShieldAlert, SquarePen, Trash2 } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
@@ -273,6 +271,20 @@ const pagination = ref({
   total: 0,
   from: 0,
   to: 0,
+})
+
+const stateOptions = computed(() => {
+  return [
+    { value: '', label: 'All States' },
+    ...states.value.map(s => ({ value: s.id.toString(), label: s.name }))
+  ]
+})
+
+const cityOptions = computed(() => {
+  return [
+    { value: '', label: 'All Cities' },
+    ...filteredCities.value.map(c => ({ value: c.id.toString(), label: c.name }))
+  ]
 })
 
 const filteredCities = computed(() => {

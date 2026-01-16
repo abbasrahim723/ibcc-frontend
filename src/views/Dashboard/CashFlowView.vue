@@ -109,12 +109,13 @@
           />
 
            <!-- Type/Category Filter -->
-          <select v-model="filters.type" class="w-full rounded-lg border border-gray-300 bg-transparent py-2.5 px-3 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:text-white dark:bg-gray-800">
-            <option value="all">🔄 All Types</option>
-            <option value="incoming">⬇️ Incoming Only</option>
-            <option value="outgoing">⬆️ Outgoing Only</option>
-            <option value="expense">💸 Expenses Only</option>
-          </select>
+          <GenericSelect
+            v-model="filters.type"
+            :options="typeOptions"
+            placeholder="🔄 All Types"
+            class="w-full"
+            @change="fetchAnalytics"
+          />
         </div>
 
         <!-- Filtered Stats Cards -->
@@ -244,6 +245,7 @@ import { formatAmount } from '@/utils/currency'
 import DateRangePicker from '@/components/forms/DateRangePicker.vue'
 import ProjectSelect from '@/components/forms/ProjectSelect.vue'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 
 const toast = useToast()
 const chartContainer = ref<HTMLElement | null>(null)
@@ -270,6 +272,13 @@ const filters = reactive({
   type: 'all', // all, incoming, outgoing, expense
   is_expense: false
 })
+
+const typeOptions = [
+  { value: 'all', label: '🔄 All Types' },
+  { value: 'incoming', label: '⬇️ Incoming Only' },
+  { value: 'outgoing', label: '⬆️ Outgoing Only' },
+  { value: 'expense', label: '💸 Expenses Only' }
+]
 
 // Filtered Stats (from analytics endpoint)
 const filteredStats = ref({

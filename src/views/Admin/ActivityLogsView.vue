@@ -39,73 +39,25 @@
             </button>
           </div>
           <div v-else class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>          <!-- User Filter (super-admin only) -->
-          <div v-if="!loading && isSuperAdmin" class="relative">
-            <button
-              type="button"
-              @click="isUserDropdownOpen = !isUserDropdownOpen"
-              class="flex h-11 items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 sm:px-4 text-left text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            >
-              <span v-if="selectedUser" class="flex items-center gap-2 overflow-hidden">
-                <img v-if="getUserPhoto(selectedUser)" :src="getUserPhoto(selectedUser)" class="h-6 w-6 rounded-full object-cover flex-shrink-0" />
-                <span v-else class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700 flex-shrink-0">
-                  {{ selectedUser.name?.charAt(0) || 'U' }}
-                </span>
-                <div class="truncate">
-                  <div class="font-medium truncate">{{ getUserDisplay(selectedUser) }}</div>
-                  <div class="text-xs text-gray-500 truncate">{{ getUserRole(selectedUser) || 'Role' }}</div>
-                </div>
-              </span>
-              <span v-else class="text-gray-500">All Users</span>
-              <svg class="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+          <GenericSelect
+            v-if="!loading && isSuperAdmin"
+            v-model="filters.user_id"
+            :options="userOptions"
+            placeholder="All Users"
+            searchable
+            class="w-full sm:w-[220px]"
+            @change="handleFilter"
+          />
 
-            <div
-              v-if="isUserDropdownOpen"
-              class="absolute z-30 mt-1 max-h-64 w-64 overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-            >
-              <div class="px-3 py-2 sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                <input
-                  v-model="userSearch"
-                  type="text"
-                  class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="Search users..."
-                  @click.stop
-                />
-              </div>
-              <div
-                class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
-                @click="selectUserFilter(null)"
-              >
-                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">All</div>
-                <div>
-                  <div class="font-medium text-gray-900 dark:text-white">All Users</div>
-                  <div class="text-xs text-gray-500">Show every user</div>
-                </div>
-              </div>
-              <div
-                v-for="user in filteredUsers"
-                :key="user.id"
-                @click="selectUserFilter(user)"
-                class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                <img v-if="getUserPhoto(user)" :src="getUserPhoto(user)" class="h-8 w-8 rounded-full object-cover" />
-                <span v-else class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">
-                  {{ user.name?.charAt(0) || 'U' }}
-                </span>
-                <div>
-                  <div class="font-medium text-gray-900 dark:text-white">{{ getUserDisplay(user) }}</div>
-                  <div class="text-xs text-gray-500">{{ getUserRole(user) || 'Role' }}</div>
-                </div>
-              </div>
-              <div v-if="filteredUsers.length === 0" class="px-3 py-2 text-sm text-gray-500 text-center">
-                No users found
-              </div>
-            </div>
-            <div v-if="isUserDropdownOpen" class="fixed inset-0 z-10" @click="isUserDropdownOpen = false"></div>
-          </div>
-          <div v-else-if="loading && isSuperAdmin" class="h-11 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          <!-- Action Filter -->
+          <GenericSelect
+            v-if="!loading"
+            v-model="filters.action"
+            :options="formattedActionOptions"
+            placeholder="All Actions"
+            class="w-full sm:w-[160px]"
+            @change="handleFilter"
+          />
 
           <!-- Date Range -->
           <div v-if="!loading" class="flex items-center gap-2">
@@ -113,7 +65,7 @@
               v-model="filters.start_date"
               :config="dateConfig"
               @on-change="handleFilter"
-              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white h-11"
               placeholder="Start date"
             />
             <span class="text-gray-500 dark:text-gray-400">-</span>
@@ -121,29 +73,15 @@
               v-model="filters.end_date"
               :config="dateConfig"
               @on-change="handleFilter"
-              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white h-11"
               placeholder="End date"
             />
           </div>
           <div v-else class="flex items-center gap-2">
-            <div class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-11 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
             <span class="text-gray-500 dark:text-gray-400">-</span>
-            <div class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-11 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
           </div>
-
-          <!-- Action Filter -->
-          <select
-            v-if="!loading"
-            v-model="filters.action"
-            @change="handleFilter"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Actions</option>
-            <option v-for="action in actionOptions" :key="action" :value="action">
-              {{ action.charAt(0).toUpperCase() + action.slice(1) }}
-            </option>
-          </select>
-          <div v-else class="h-10 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
         </div>
       </div>
 
@@ -506,6 +444,7 @@ import { useDateTimeFormat } from '@/composables/useDateTimeFormat'
 import { usePermissions } from '@/composables/usePermissions'
 import { useViewPreferences } from '@/composables/useViewPreferences'
 import flatPickr from 'vue-flatpickr-component'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import 'flatpickr/dist/flatpickr.css'
 
 const route = useRoute()
@@ -575,9 +514,25 @@ const dateConfig = {
   altFormat: 'd/m/Y',
 }
 
-const actionOptions = computed(() =>
-  Array.from(new Set(availableActions.value)).filter(Boolean).sort()
+const formattedActionOptions = computed(() =>
+  availableActions.value
+    .filter(Boolean)
+    .sort()
+    .map(action => ({
+      value: action,
+      label: action.charAt(0).toUpperCase() + action.slice(1)
+    }))
 )
+
+const userOptions = computed(() => [
+  { value: '', label: 'All Users' },
+  ...users.value.map(user => ({
+    value: user.id.toString(),
+    label: getUserDisplay(user),
+    avatar: getUserPhoto(user),
+    subLabel: getUserRole(user) || 'Role'
+  }))
+])
 
 const pagination = ref({
   current_page: 1,

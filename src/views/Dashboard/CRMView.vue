@@ -201,13 +201,13 @@
               <p class="text-sm text-gray-500 dark:text-gray-400">Revenue trends over time</p>
             </div>
             <div class="flex items-center gap-3">
-              <select v-model="chartRange" @change="handleRangeChange" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-                <option :value="12">Last 12 months (monthly)</option>
-                <option :value="6">Last 6 months (monthly)</option>
-                <option :value="3">Last 3 months (monthly)</option>
-                <option :value="1">Last month (monthly)</option>
-                <option value="week">Selected month (weekly)</option>
-              </select>
+              <GenericSelect
+                v-model="chartRange"
+                :options="rangeOptions"
+                placeholder="Select range"
+                class="w-[200px]"
+                @change="handleRangeChange"
+              />
               <FlatPickr
                 v-if="chartRange === 'week'"
                 v-model="chartMonth"
@@ -380,6 +380,7 @@ import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import ApexCharts from 'apexcharts'
 import FlatPickr from 'vue-flatpickr-component'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import monthSelectPlugin from 'flatpickr/dist/plugins/monthSelect/index.js'
 import 'flatpickr/dist/plugins/monthSelect/style.css'
 import { formatAmount } from '@/utils/currency'
@@ -456,6 +457,13 @@ const pipeline = ref({
 const loading = ref(false)
 
 const chartRange = ref<any>(12)
+const rangeOptions = [
+  { value: 12, label: 'Last 12 months (monthly)' },
+  { value: 6, label: 'Last 6 months (monthly)' },
+  { value: 3, label: 'Last 3 months (monthly)' },
+  { value: 1, label: 'Last month (monthly)' },
+  { value: 'week', label: 'Selected month (weekly)' }
+]
 const isFullscreen = ref(false)
 const chartMonth = ref('')
 const monthPickerConfig = {

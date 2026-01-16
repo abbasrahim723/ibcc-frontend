@@ -8,15 +8,13 @@
 
         <div v-if="!loading" class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- Model Filter -->
-          <select
+          <GenericSelect
             v-model="modelFilter"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Models</option>
-            <option v-for="model in uniqueModels" :key="model" :value="model">
-              {{ model }}
-            </option>
-          </select>
+            :options="modelOptions"
+            placeholder="All Models"
+            searchable
+            class="w-[200px]"
+          />
 
           <!-- Search -->
           <input
@@ -180,6 +178,7 @@ import { SquarePen, RotateCcw, Trash2, ShieldAlert } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
@@ -229,6 +228,11 @@ const uniqueModels = computed(() => {
   const models = placeholders.value.map(p => p.model)
   return [...new Set(models)].sort()
 })
+
+const modelOptions = computed(() => [
+  { value: '', label: 'All Models' },
+  ...uniqueModels.value.map(m => ({ value: m, label: m }))
+])
 
 // Computed for filtering
 const filteredPlaceholders = computed(() => {

@@ -8,28 +8,25 @@
 
         <div v-if="!loading" class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <!-- Country Filter -->
-          <select
+          <GenericSelect
             v-model="selectedCountryId"
+            :options="countryOptions"
+            placeholder="All Countries"
+            searchable
+            class="w-[180px]"
             @change="handleCountryChange"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Countries</option>
-            <option v-for="country in countries" :key="country.id" :value="country.id">
-              {{ country.name }}
-            </option>
-          </select>
+          />
 
           <!-- State Filter -->
-          <select
+          <GenericSelect
             v-model="selectedStateId"
+            :options="stateOptions"
+            placeholder="All States"
+            searchable
+            class="w-[180px]"
+            :disabled="!selectedCountryId"
             @change="handleStateChange"
-            class="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All States</option>
-            <option v-for="state in filteredStates" :key="state.id" :value="state.id">
-              {{ state.name }}
-            </option>
-          </select>
+          />
 
           <!-- Search -->
           <input
@@ -164,6 +161,7 @@ import { ref, onMounted, computed } from 'vue'
 import { RotateCcw, ShieldAlert } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
@@ -213,6 +211,16 @@ const filteredStates = computed(() => {
   if (!selectedCountryId.value) return []
   return allStates.value.filter(s => s.country_id === Number(selectedCountryId.value))
 })
+
+const countryOptions = computed(() => [
+  { value: '', label: 'All Countries' },
+  ...countries.value.map(c => ({ value: c.id.toString(), label: c.name }))
+])
+
+const stateOptions = computed(() => [
+  { value: '', label: 'All States' },
+  ...filteredStates.value.map(s => ({ value: s.id.toString(), label: s.name }))
+])
 
 const fetchCountries = async () => {
   try {
