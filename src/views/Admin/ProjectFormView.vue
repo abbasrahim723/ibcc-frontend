@@ -245,38 +245,30 @@
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Project Type</label>
-            <select v-model="form.project_type" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select type</option>
-              <option value="residential">Residential</option>
-              <option value="commercial">Commercial</option>
-              <option value="industrial">Industrial</option>
-              <option value="infrastructure">Infrastructure</option>
-            </select>
+            <GenericSelect
+              v-model="form.project_type"
+              :options="projectTypeOptions"
+              placeholder="Select project type"
+            />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Building Type</label>
-            <select v-model="form.building_type" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select building type</option>
-              <option value="House">House</option>
-              <option value="Plaza">Plaza</option>
-              <option value="Apartment">Apartment</option>
-              <option value="Commercial">Commercial</option>
-              <option value="Industrial">Industrial</option>
-              <option value="Farmhouse">Farmhouse</option>
-              <option value="Other">Other</option>
-            </select>
+            <GenericSelect
+              v-model="form.building_type"
+              :options="buildingTypeOptions"
+              placeholder="Select building type"
+              searchable
+            />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Status</label>
-            <select v-model="form.status" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="planning">Planning</option>
-              <option value="in_progress">In Progress</option>
-              <option value="on_hold">On Hold</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+            <GenericSelect
+              v-model="form.status"
+              :options="statusOptions"
+              placeholder="Select status"
+            />
           </div>
         </div>
       </div>
@@ -301,34 +293,53 @@
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">State/Province</label>
-            <select v-model="form.state_id" @change="onStateChange" :disabled="!form.country_id" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select state</option>
-              <option v-for="state in states" :key="state.id" :value="state.id">{{ state.name }}</option>
-            </select>
+            <GenericSelect
+              v-model="form.state_id"
+              :options="stateOptions"
+              :disabled="!form.country_id"
+              :loading="loadingStates"
+              placeholder="Select state"
+              searchable
+              @change="onStateChange"
+            />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">City</label>
-            <select v-model="form.city_id" @change="onCityChange" :disabled="!form.state_id" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select city</option>
-              <option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option>
-            </select>
+            <GenericSelect
+              v-model="form.city_id"
+              :options="cityOptions"
+              :disabled="!form.state_id"
+              :loading="loadingCities"
+              placeholder="Select city"
+              searchable
+              @change="onCityChange"
+            />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Town/Area</label>
-            <select v-model="form.town_id" @change="onTownChange" :disabled="!form.city_id" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select town</option>
-              <option v-for="town in towns" :key="town.id" :value="town.id">{{ town.name }}</option>
-            </select>
+            <GenericSelect
+              v-model="form.town_id"
+              :options="townOptions"
+              :disabled="!form.city_id"
+              :loading="loadingTowns"
+              placeholder="Select town"
+              searchable
+              @change="onTownChange"
+            />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Phase / Sector</label>
-            <select v-model="form.phase_id" :disabled="!form.town_id" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select phase/sector</option>
-              <option v-for="phase in phases" :key="phase.id" :value="phase.id">{{ phase.name }}</option>
-            </select>
+            <GenericSelect
+              v-model="form.phase_id"
+              :options="phaseOptions"
+              :disabled="!form.town_id"
+              :loading="loadingPhases"
+              placeholder="Select phase/sector"
+              searchable
+            />
           </div>
 
           <div>
@@ -385,24 +396,20 @@
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Foundation Type</label>
-            <select v-model="form.foundation_type" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select type</option>
-              <option value="shallow">Shallow Foundation</option>
-              <option value="deep">Deep Foundation</option>
-              <option value="pile">Pile Foundation</option>
-              <option value="raft">Raft Foundation</option>
-            </select>
+            <GenericSelect
+              v-model="form.foundation_type"
+              :options="foundationTypeOptions"
+              placeholder="Select foundation type"
+            />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Structure Type</label>
-            <select v-model="form.structure_type" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select type</option>
-              <option value="rcc">RCC (Reinforced Concrete)</option>
-              <option value="steel_frame">Steel Frame</option>
-              <option value="load_bearing">Load Bearing</option>
-              <option value="composite">Composite</option>
-            </select>
+            <GenericSelect
+              v-model="form.structure_type"
+              :options="structureTypeOptions"
+              placeholder="Select structure type"
+            />
           </div>
         </div>
       </div>
@@ -414,10 +421,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Contract Type</label>
-            <select v-model="form.contract_type_id" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select contract type</option>
-              <option v-for="type in contractTypes" :key="type.id" :value="type.id">{{ type.name }}</option>
-            </select>
+            <GenericSelect
+              v-model="form.contract_type_id"
+              :options="contractTypeOptions"
+              placeholder="Select contract type"
+              searchable
+            />
           </div>
 
           <div>
@@ -497,18 +506,22 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Project Manager</label>
-            <select v-model="form.project_manager_id" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select project manager</option>
-              <option v-for="user in projectManagers" :key="user.id" :value="user.id">{{ user.name }}</option>
-            </select>
+            <GenericSelect
+              v-model="form.project_manager_id"
+              :options="projectManagerOptions"
+              placeholder="Select project manager"
+              searchable
+            />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Site Engineer</label>
-            <select v-model="form.site_engineer_id" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select site engineer</option>
-              <option v-for="user in siteEngineers" :key="user.id" :value="user.id">{{ user.name }}</option>
-            </select>
+            <GenericSelect
+              v-model="form.site_engineer_id"
+              :options="siteEngineerOptions"
+              placeholder="Select site engineer"
+              searchable
+            />
           </div>
         </div>
       </div>
@@ -749,6 +762,7 @@ import { useRouter, useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import DatePicker from '@/components/forms/DatePicker.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
@@ -849,9 +863,54 @@ const imageFiles = ref<File[]>([])
 const uploadedDocuments = ref<{ file: File, category?: string, description?: string }[]>([])
 const errors = ref<Record<string, string[]>>({})
 
+// Loading states for dropdowns
+const loadingStates = ref(false)
+const loadingCities = ref(false)
+const loadingTowns = ref(false)
+const loadingPhases = ref(false)
+
+const projectTypeOptions = [
+  { value: 'residential', label: 'Residential' },
+  { value: 'commercial', label: 'Commercial' },
+  { value: 'industrial', label: 'Industrial' },
+  { value: 'infrastructure', label: 'Infrastructure' },
+]
+
 const buildingTypes = [
   'House', 'Plaza', 'Apartment', 'Commercial', 'Industrial', 'Farmhouse', 'Other'
 ]
+const buildingTypeOptions = buildingTypes.map(t => ({ value: t, label: t }))
+
+const statusOptions = [
+  { value: 'planning', label: 'Planning' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'on_hold', label: 'On Hold' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
+
+const foundationTypeOptions = [
+  { value: 'shallow', label: 'Shallow Foundation' },
+  { value: 'deep', label: 'Deep Foundation' },
+  { value: 'pile', label: 'Pile Foundation' },
+  { value: 'raft', label: 'Raft Foundation' },
+]
+
+const structureTypeOptions = [
+  { value: 'rcc', label: 'RCC (Reinforced Concrete)' },
+  { value: 'steel_frame', label: 'Steel Frame' },
+  { value: 'load_bearing', label: 'Load Bearing' },
+  { value: 'composite', label: 'Composite' },
+]
+
+const contractTypeOptions = computed(() => contractTypes.value.map(t => ({ value: t.id, label: t.name })))
+const projectManagerOptions = computed(() => projectManagers.value.map(u => ({ value: u.id, label: u.name })))
+const siteEngineerOptions = computed(() => siteEngineers.value.map(u => ({ value: u.id, label: u.name })))
+
+const stateOptions = computed(() => states.value.map(s => ({ value: s.id, label: s.name })))
+const cityOptions = computed(() => cities.value.map(c => ({ value: c.id, label: c.name })))
+const townOptions = computed(() => towns.value.map(t => ({ value: t.id, label: t.name })))
+const phaseOptions = computed(() => phases.value.map(p => ({ value: p.id, label: p.name })))
 
 const documentCategories = [
   'Blueprint', 'Planning', 'Site Picture', 'Permit', 'Contract', 'Invoice', 'Other'
@@ -952,11 +1011,14 @@ const onCountryChange = async () => {
   form.value.town_id = null
 
   if (form.value.country_id) {
+    loadingStates.value = true
     try {
       const res = await api.get('/states', { params: { country_id: form.value.country_id, active_only: true, all: true } })
       states.value = res.data
     } catch (e) {
       console.error(e)
+    } finally {
+      loadingStates.value = false
     }
   }
 }
@@ -968,11 +1030,14 @@ const onStateChange = async () => {
   form.value.town_id = null
 
   if (form.value.state_id) {
+    loadingCities.value = true
     try {
       const res = await api.get('/cities', { params: { state_id: form.value.state_id, active_only: true, all: true } })
       cities.value = res.data
     } catch (e) {
       console.error(e)
+    } finally {
+      loadingCities.value = false
     }
   }
 }
@@ -984,11 +1049,14 @@ const onCityChange = async () => {
   form.value.phase_id = null
 
   if (form.value.city_id) {
+    loadingTowns.value = true
     try {
       const res = await api.get('/towns', { params: { city_id: form.value.city_id, active_only: true, all: true } })
       towns.value = res.data
     } catch (e) {
       console.error(e)
+    } finally {
+      loadingTowns.value = false
     }
   }
 }
@@ -998,11 +1066,14 @@ const onTownChange = async () => {
   form.value.phase_id = null
 
   if (form.value.town_id) {
+    loadingPhases.value = true
     try {
       const res = await api.get('/phases', { params: { town_id: form.value.town_id, active_only: true, all: true } })
       phases.value = res.data
     } catch (e) {
       console.error(e)
+    } finally {
+      loadingPhases.value = false
     }
   }
 }

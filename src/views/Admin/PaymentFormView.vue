@@ -140,10 +140,13 @@
           <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4" v-if="form.is_expense">
             <div>
               <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Expense Category</label>
-              <select v-model="form.category_id" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" required>
-                <option value="">Select category</option>
-                <option v-for="cat in expenseCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-              </select>
+              <GenericSelect
+                v-model="form.category_id"
+                :options="categoryOptions"
+                placeholder="Select category"
+                searchable
+                required
+              />
             </div>
           </div>
 
@@ -179,14 +182,11 @@
           <!-- Payment Method -->
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Payment Method</label>
-            <select v-model="form.method" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Select method</option>
-              <option value="Cash">💵 Cash</option>
-              <option value="Cheque">🧾 Cheque</option>
-              <option value="Bank Transfer">🏦 Bank Transfer</option>
-              <option value="Online">🌐 Online</option>
-              <option value="Other">✨ Other</option>
-            </select>
+            <GenericSelect
+              v-model="form.method"
+              :options="methodOptions"
+              placeholder="Select method"
+            />
           </div>
 
           <!-- Reference -->
@@ -401,6 +401,7 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import { formatAmount } from '@/utils/currency'
 
 const route = useRoute()
@@ -480,6 +481,16 @@ const currencySymbol = computed(() => {
 
 const selectedReceivedUser = computed(() => users.value.find(u => u.id === form.value.received_by))
 const selectedApprovedUser = computed(() => users.value.find(u => u.id === form.value.approved_by))
+
+const methodOptions = [
+  { value: 'Cash', label: '💵 Cash' },
+  { value: 'Cheque', label: '🧾 Cheque' },
+  { value: 'Bank Transfer', label: '🏦 Bank Transfer' },
+  { value: 'Online', label: '🌐 Online' },
+  { value: 'Other', label: '✨ Other' },
+]
+
+const categoryOptions = computed(() => expenseCategories.value.map(c => ({ value: c.id, label: c.name })))
 
 const selectProject = (project: any) => {
   form.value.project_id = project ? project.id : null

@@ -56,11 +56,15 @@
 
         <!-- Filters row -->
         <div class="flex flex-wrap items-center gap-3">
-          <select v-model="filters.town_id" @change="handleSearch" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" :disabled="loadingTowns">
-            <option value="">All Towns</option>
-            <option v-if="loadingTowns" value="" disabled>Loading...</option>
-            <option v-else v-for="town in towns" :key="town.id" :value="town.id">{{ town.name }}</option>
-          </select>
+          <GenericSelect
+            v-model="filters.town_id"
+            :options="townOptions"
+            placeholder="All Towns"
+            :loading="loadingTowns"
+            searchable
+            class="w-[180px]"
+            @change="handleSearch"
+          />
 
           <CustomerSelect
             v-model="filters.customer_id"
@@ -584,6 +588,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import Modal from '@/components/profile/Modal.vue'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import StatusSelect from '@/components/forms/StatusSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
@@ -733,6 +738,8 @@ const fetchTowns = async () => {
     loadingTowns.value = false
   }
 }
+
+const townOptions = computed(() => towns.value.map(t => ({ value: t.id, label: t.name })))
 
 const handleSearch = () => fetchProjects(1)
 const changePage = (page: number) => fetchProjects(page)

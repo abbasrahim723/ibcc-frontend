@@ -166,15 +166,12 @@
             <!-- Name Prefix -->
             <div class="sm:col-span-2">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prefix</label>
-              <select
+              <GenericSelect
                 v-model="customerForm.name_prefix"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="">None</option>
-                <option v-for="prefix in prefixes" :key="prefix.id" :value="prefix.name">
-                  {{ prefix.name }}
-                </option>
-              </select>
+                :options="prefixOptions"
+                placeholder="None"
+                :loading="loadingPrefixes"
+              />
             </div>
 
             <!-- Name -->
@@ -223,21 +220,11 @@
             <!-- Gender -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gender</label>
-              <select
+              <GenericSelect
                 v-model="customerForm.gender"
-                :class="[
-                  'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-1',
-                  validationErrors.gender
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700',
-                  'dark:bg-gray-800 dark:text-white'
-                ]"
-              >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
+                :options="genderOptions"
+                placeholder="Select Gender"
+              />
               <p v-if="validationErrors.gender" class="mt-1 text-xs text-red-600">{{ validationErrors.gender }}</p>
             </div>
 
@@ -264,66 +251,53 @@
             <!-- State -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">State / Province</label>
-              <select
+              <GenericSelect
                 v-model="customerForm.state_id"
+                :options="stateOptions"
                 @change="handleStateChange"
                 :disabled="!customerForm.country_id"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-900"
-              >
-                <option value="">Select State</option>
-                <option v-for="state in states" :key="state.id" :value="state.id">
-                  {{ state.name }}
-                </option>
-              </select>
+                placeholder="Select State"
+                :loading="loadingStates"
+              />
             </div>
 
             <!-- City -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
-              <select
+              <GenericSelect
                 v-model="customerForm.city_id"
+                :options="cityOptions"
                 @change="handleCityChange"
                 :disabled="!customerForm.state_id"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-900"
-              >
-                <option value="">Select City</option>
-                <option v-for="city in cities" :key="city.id" :value="city.id">
-                  {{ city.name }}
-                </option>
-              </select>
+                placeholder="Select City"
+                :loading="loadingCities"
+              />
             </div>
 
             <!-- Town -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Town</label>
-              <select
+              <GenericSelect
                 v-model="customerForm.town_id"
+                :options="townOptions"
                 @change="handleTownChange"
                 :disabled="!customerForm.city_id"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-900"
-              >
-                <option value="">Select Town</option>
-                <option v-for="town in towns" :key="town.id" :value="town.id">
-                  {{ town.name }}
-                </option>
-              </select>
+                placeholder="Select Town"
+                :loading="loadingTowns"
+              />
             </div>
 
             <!-- Phase / Sector -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phase / Sector</label>
               <div class="relative">
-                <select
+                <GenericSelect
                   v-model="customerForm.phase_id"
-                  :disabled="!customerForm.town_id || loadingPhases"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-900"
-                >
-                  <option value="">Select Phase</option>
-                  <option v-for="phase in phases" :key="phase.id" :value="phase.id">
-                    {{ phase.name }}
-                  </option>
-                </select>
-                <LoadingSpinner v-if="loadingPhases" size="sm" class="absolute right-8 top-2.5" />
+                  :options="phaseOptions"
+                  :disabled="!customerForm.town_id"
+                  placeholder="Select Phase"
+                  :loading="loadingPhases"
+                />
               </div>
             </div>
 
@@ -490,6 +464,7 @@ import CnicInput from '@/components/common/CnicInput.vue'
 import DocumentUploader from '@/components/common/DocumentUploader.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -520,6 +495,18 @@ const loadingStates = ref(false)
 const loadingCities = ref(false)
 const loadingTowns = ref(false)
 const loadingPhases = ref(false)
+
+// Options Formatters
+const prefixOptions = computed(() => prefixes.value.map(p => ({ value: p.name, label: p.name })))
+const genderOptions = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'other', label: 'Other' }
+]
+const stateOptions = computed(() => states.value.map(s => ({ value: s.id, label: s.name })))
+const cityOptions = computed(() => cities.value.map(c => ({ value: c.id, label: c.name })))
+const townOptions = computed(() => towns.value.map(t => ({ value: t.id, label: t.name })))
+const phaseOptions = computed(() => phases.value.map(p => ({ value: p.id, label: p.name })))
 
 const customerForm = ref({
   type: 'customer',

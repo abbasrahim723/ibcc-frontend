@@ -133,16 +133,12 @@
             <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Role
             </label>
-            <select
+            <GenericSelect
               v-model="form.role"
+              :options="roleOptions"
+              placeholder="Select a role"
               required
-              class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-            >
-              <option value="">Select a role</option>
-              <option v-for="role in roles" :key="role.id" :value="role.name">
-                {{ role.name }}
-              </option>
-            </select>
+            />
           </div>
           <div class="flex justify-end gap-3 mt-6">
             <button
@@ -166,13 +162,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAdminStore } from '@/stores/admin'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 
 const adminStore = useAdminStore()
 
 const users = ref<any[]>([])
 const roles = ref<any[]>([])
+const roleOptions = computed(() => roles.value.map(r => ({ value: r.name, label: r.name })))
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const form = ref<{

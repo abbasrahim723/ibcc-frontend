@@ -36,16 +36,12 @@
             class="w-full"
           />
 
-          <select
+          <GenericSelect
             v-model="filters.payer_type"
+            :options="payerTypeOptions"
+            placeholder="All Payer Types"
             @change="handlePayerTypeChange"
-            class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Payer Types</option>
-            <option value="customer">Customer</option>
-            <option value="supplier">Supplier</option>
-            <option value="user">Labour/Staff</option>
-          </select>
+          />
 
           <CustomerSelect
             v-if="filters.payer_type === 'customer' || !filters.payer_type"
@@ -56,63 +52,43 @@
             @change="handleFilterChange"
             class="w-full"
           />
-          <select
+          <GenericSelect
             v-else-if="filters.payer_type === 'supplier'"
             v-model="filters.payer_id"
+            :options="supplierOptions"
+            placeholder="All Suppliers"
+            searchable
             @change="handleFilterChange"
-            class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Suppliers</option>
-            <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
-              {{ supplier.name }}
-            </option>
-          </select>
-          <select
+          />
+          <GenericSelect
             v-else
             v-model="filters.payer_id"
+            :options="userOptions"
+            placeholder="All Labour/Staff"
+            searchable
             @change="handleFilterChange"
-            class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Labour/Staff</option>
-            <option v-for="user in users" :key="user.id" :value="user.id">
-              {{ user.name }}
-            </option>
-          </select>
+          />
 
-          <select
+          <GenericSelect
             v-model="filters.direction"
+            :options="directionOptions"
+            placeholder="All Directions"
             @change="handleFilterChange"
-            class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Directions</option>
-            <option value="incoming">Incoming</option>
-            <option value="outgoing">Outgoing</option>
-          </select>
+          />
 
-          <select
+          <GenericSelect
             v-model="filters.frequency"
+            :options="frequencyOptions"
+            placeholder="All Frequencies"
             @change="handleFilterChange"
-            class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Frequencies</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="bi_weekly">Bi-Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="quarterly">Quarterly</option>
-            <option value="yearly">Yearly</option>
-          </select>
+          />
 
-          <select
+          <GenericSelect
             v-model="filters.status"
+            :options="statusOptions"
+            placeholder="All Statuses"
             @change="handleFilterChange"
-            class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">All Statuses</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="due">Due</option>
-            <option value="ended">Ended</option>
-          </select>
+          />
 
           <input
             v-model="filters.search"
@@ -566,6 +542,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ProjectSelect from '@/components/forms/ProjectSelect.vue'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import ScheduleCard from '@/components/schedules/ScheduleCard.vue'
 import { usePaymentSchedule } from '@/composables/usePaymentSchedule'
 import { usePermissions } from '@/composables/usePermissions'
@@ -579,6 +556,36 @@ const { can } = usePermissions()
 const { schedules, loading, fetchSchedules, deleteSchedule, toggleActive, quickApprovePayment, rejectPayment } = usePaymentSchedule()
 
 const pageTitle = ref('Scheduled Payments')
+
+const payerTypeOptions = [
+  { value: 'customer', label: 'Customer' },
+  { value: 'supplier', label: 'Supplier' },
+  { value: 'user', label: 'Labour/Staff' }
+]
+
+const directionOptions = [
+  { value: 'incoming', label: 'Incoming' },
+  { value: 'outgoing', label: 'Outgoing' }
+]
+
+const frequencyOptions = [
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'bi_weekly', label: 'Bi-Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'yearly', label: 'Yearly' }
+]
+
+const statusOptions = [
+  { value: 'upcoming', label: 'Upcoming' },
+  { value: 'due', label: 'Due' },
+  { value: 'ended', label: 'Ended' }
+]
+
+const supplierOptions = computed(() => suppliers.value.map(s => ({ value: s.id, label: s.name })))
+const userOptions = computed(() => users.value.map(u => ({ value: u.id, label: u.name })))
+
 const projects = ref<any[]>([])
 const customers = ref<any[]>([])
 const suppliers = ref<any[]>([])

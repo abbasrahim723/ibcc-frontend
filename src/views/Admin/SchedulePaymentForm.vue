@@ -192,15 +192,12 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Direction <span class="text-red-500">*</span>
                 </label>
-                <select
+                <GenericSelect
                   v-model="form.direction"
+                  :options="directionOptions"
+                  placeholder="Select Direction"
                   required
-                  class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                >
-                  <option value="">Select Direction</option>
-                  <option value="incoming">Incoming (Receive Payment)</option>
-                  <option value="outgoing">Outgoing (Make Payment)</option>
-                </select>
+                />
               </div>
 
               <!-- Payer Type -->
@@ -208,17 +205,13 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Payer Type <span class="text-red-500">*</span>
                 </label>
-                <select
+                <GenericSelect
                   v-model="form.payer_type"
+                  :options="payerTypeOptions"
+                  placeholder="Select Type"
                   required
                   @change="form.payer_id = null"
-                  class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                >
-                  <option value="">Select Type</option>
-                  <option value="customer">Customer</option>
-                  <option value="supplier">Supplier</option>
-                  <option value="user">Labour/Staff</option>
-                </select>
+                />
               </div>
 
               <!-- Payer -->
@@ -283,17 +276,11 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Payment Method
                 </label>
-                <select
+                <GenericSelect
                   v-model="form.method"
-                  class="h-11 w-full rounded-lg border border-gray-300 px-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                >
-                  <option value="">Select Method</option>
-                  <option value="cash">💵 Cash</option>
-                  <option value="bank_transfer">🏦 Bank Transfer</option>
-                  <option value="cheque">🧾 Cheque</option>
-                  <option value="online">🌐 Online Payment</option>
-                  <option value="other">✨ Other</option>
-                </select>
+                  :options="methodOptions"
+                  placeholder="Select Method"
+                />
               </div>
 
               <!-- Notes -->
@@ -359,20 +346,13 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Frequency <span class="text-red-500">*</span>
                     </label>
-                    <select
+                    <GenericSelect
                       v-model="form.frequency"
+                      :options="frequencyOptions"
+                      placeholder="Select Frequency"
                       required
                       @change="updatePreview"
-                      class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    >
-                      <option value="">Select Frequency</option>
-                      <option value="daily">Daily</option>
-                      <option value="weekly">Weekly</option>
-                      <option value="bi_weekly">Bi-Weekly</option>
-                      <option value="monthly">Monthly</option>
-                      <option value="quarterly">Quarterly</option>
-                      <option value="yearly">Yearly</option>
-                    </select>
+                    />
                   </div>
 
                   <div>
@@ -556,6 +536,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ProjectSelect from '@/components/forms/ProjectSelect.vue'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import DatePicker from '@/components/forms/DatePicker.vue'
 import { usePaymentSchedule } from '@/composables/usePaymentSchedule'
 import { useToast } from '@/composables/useToast'
@@ -595,6 +576,34 @@ const weekDays = [
   { label: 'Fri', value: 'friday' },
   { label: 'Sat', value: 'saturday' },
   { label: 'Sun', value: 'sunday' }
+]
+
+const directionOptions = [
+  { value: 'incoming', label: 'Incoming (Receive Payment)' },
+  { value: 'outgoing', label: 'Outgoing (Make Payment)' }
+]
+
+const payerTypeOptions = [
+  { value: 'customer', label: 'Customer' },
+  { value: 'supplier', label: 'Supplier' },
+  { value: 'user', label: 'Labour/Staff' }
+]
+
+const methodOptions = [
+  { value: 'cash', label: '💵 Cash' },
+  { value: 'bank_transfer', label: '🏦 Bank Transfer' },
+  { value: 'cheque', label: '🧾 Cheque' },
+  { value: 'online', label: '🌐 Online Payment' },
+  { value: 'other', label: '✨ Other' }
+]
+
+const frequencyOptions = [
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'bi_weekly', label: 'Bi-Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'yearly', label: 'Yearly' }
 ]
 
 const form = ref({

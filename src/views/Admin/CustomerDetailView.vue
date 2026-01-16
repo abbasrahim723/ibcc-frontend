@@ -422,16 +422,12 @@
                   <span class="text-sm text-gray-500 dark:text-gray-400">{{ activitiesTotal }}</span>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                  <div class="relative w-44">
-                    <select
+                  <div class="w-44">
+                    <GenericSelect
                       v-model="activityActionFilter"
-                      class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                    >
-                      <option value="all">All Actions</option>
-                      <option value="created">Created</option>
-                      <option value="updated">Updated</option>
-                      <option value="deleted">Deleted</option>
-                    </select>
+                      :options="activityActionOptions"
+                      placeholder="All Actions"
+                    />
                   </div>
                 </div>
               </div>
@@ -753,6 +749,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import GenericSelect from '@/components/forms/GenericSelect.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import { usePermissions } from '@/composables/usePermissions'
@@ -767,7 +764,13 @@ const loading = ref(true)
 const customer = ref<any>(null)
 const activities = ref<any[]>([])
 const currentTab = ref('documents')
-const activityActionFilter = ref<'all' | 'created' | 'updated' | 'deleted'>('all')
+const activityActionFilter = ref('all')
+const activityActionOptions = [
+  { value: 'all', label: 'All Actions' },
+  { value: 'created', label: 'Created' },
+  { value: 'updated', label: 'Updated' },
+  { value: 'deleted', label: 'Deleted' }
+]
 
 // pagination state
 const documentsPage = ref(1)
