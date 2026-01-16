@@ -38,7 +38,7 @@
                   Sign In
                 </h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Enter your email and password to sign in!
+                  Enter your email and password to sign in! (v1.0.9)
                 </p>
               </div>
 
