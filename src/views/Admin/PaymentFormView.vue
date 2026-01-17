@@ -23,83 +23,10 @@
           <!-- Project Dropdown -->
           <div class="md:col-span-2">
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Project</label>
-            <div class="relative">
-              <button
-                type="button"
-                @click="isProjectDropdownOpen = !isProjectDropdownOpen"
-                class="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-3 text-left text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-              >
-                <span v-if="selectedProject" class="flex items-center gap-2">
-                  <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                    <img
-                      v-if="getProjectThumbnail(selectedProject)"
-                      :src="getProjectThumbnail(selectedProject)"
-                      alt=""
-                      class="h-full w-full object-cover"
-                    />
-                    <div v-else class="h-full w-full flex items-center justify-center text-xs font-bold text-gray-400 dark:text-gray-600">
-                      {{ selectedProject.name.charAt(0).toUpperCase() }}
-                    </div>
-                  </div>
-                  <div>
-                    <div class="font-medium">{{ selectedProject.name }}</div>
-                    <div class="text-xs text-gray-500">{{ selectedProject.address || 'No address' }}</div>
-                  </div>
-                </span>
-                <span v-else class="text-gray-500">Select project (Optional)</span>
-                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              <div
-                v-if="isProjectDropdownOpen"
-                class="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-              >
-                <div class="px-3 py-2 sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                  <input
-                    v-model="projectSearch"
-                    type="text"
-                    class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    placeholder="Search projects..."
-                    @click.stop
-                  />
-                </div>
-                <div
-                  @click="selectProject(null)"
-                  class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 italic"
-                >
-                  No Project
-                </div>
-                <div
-                  v-for="project in filteredProjects"
-                  :key="project.id"
-                  @click="selectProject(project)"
-                  class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                    <img
-                      v-if="getProjectThumbnail(project)"
-                      :src="getProjectThumbnail(project)"
-                      alt=""
-                      class="h-full w-full object-cover"
-                    />
-                    <div v-else class="h-full w-full flex items-center justify-center text-xs font-bold text-gray-400 dark:text-gray-600">
-                      {{ project.name.charAt(0).toUpperCase() }}
-                    </div>
-                  </div>
-                  <div>
-                    <div class="font-medium text-gray-900 dark:text-white">{{ project.name }}</div>
-                    <div class="text-xs text-gray-500">{{ project.address || 'No address' }}</div>
-                  </div>
-                </div>
-                <div v-if="filteredProjects.length === 0" class="px-3 py-2 text-sm text-gray-500 text-center">
-                  No projects found
-                </div>
-              </div>
-            </div>
-            <!-- Overlay to close dropdown -->
-            <div v-if="isProjectDropdownOpen" @click="isProjectDropdownOpen = false" class="fixed inset-0 z-10"></div>
+            <ProjectSelect
+              v-model="form.project_id"
+              placeholder="Select project (Optional)"
+            />
           </div>
 
           <!-- Direction & Party Type -->
@@ -176,7 +103,11 @@
           <!-- Payment Date -->
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Payment Date</label>
-            <input v-model="form.payment_date" type="date" class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white" required />
+            <DatePicker
+              v-model="form.payment_date"
+              placeholder="Select date"
+              required
+            />
           </div>
 
           <!-- Payment Method -->
@@ -200,97 +131,19 @@
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               {{ form.direction === 'outgoing' ? 'Paid By' : 'Received By' }}
             </label>
-            <div class="relative">
-              <button
-                type="button"
-                @click="toggleUserDropdown('received')"
-                class="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-3 text-left text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-              >
-                <span v-if="selectedReceivedUser" class="flex items-center gap-2 overflow-hidden">
-                  <img v-if="getUserPhoto(selectedReceivedUser)" :src="getUserPhoto(selectedReceivedUser)" class="h-6 w-6 rounded-full object-cover flex-shrink-0" />
-                  <span v-else class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700 flex-shrink-0">
-                    {{ selectedReceivedUser.name.charAt(0) }}
-                  </span>
-                  <div class="truncate">
-                    <div class="font-medium truncate">{{ getUserDisplay(selectedReceivedUser) }}</div>
-                    <div class="text-xs text-gray-500 truncate">{{ getUserRole(selectedReceivedUser) }}</div>
-                  </div>
-                </span>
-                <span v-else class="text-gray-500">Select user</span>
-                <svg class="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div
-                v-if="isReceivedDropdownOpen"
-                class="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-              >
-                <div
-                  v-for="user in users"
-                  :key="user.id"
-                  @click="selectReceivedUser(user)"
-                  class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <img v-if="getUserPhoto(user)" :src="getUserPhoto(user)" class="h-8 w-8 rounded-full object-cover" />
-                  <span v-else class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">
-                    {{ user.name.charAt(0) }}
-                  </span>
-                  <div>
-                    <div class="font-medium text-gray-900 dark:text-white">{{ getUserDisplay(user) }}</div>
-                    <div class="text-xs text-gray-500">{{ getUserRole(user) }}</div>
-                  </div>
-                </div>
-                <div v-if="users.length === 0" class="px-3 py-2 text-sm text-gray-500 text-center">No users found</div>
-              </div>
-            </div>
+            <UserSelect
+              v-model="form.received_by"
+              placeholder="Select user"
+            />
           </div>
 
           <!-- Approved By -->
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Approved By</label>
-            <div class="relative">
-              <button
-                type="button"
-                @click="toggleUserDropdown('approved')"
-                class="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-3 text-left text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-              >
-                <span v-if="selectedApprovedUser" class="flex items-center gap-2 overflow-hidden">
-                  <img v-if="getUserPhoto(selectedApprovedUser)" :src="getUserPhoto(selectedApprovedUser)" class="h-6 w-6 rounded-full object-cover flex-shrink-0" />
-                  <span v-else class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700 flex-shrink-0">
-                    {{ selectedApprovedUser.name.charAt(0) }}
-                  </span>
-                  <div class="truncate">
-                    <div class="font-medium truncate">{{ getUserDisplay(selectedApprovedUser) }}</div>
-                    <div class="text-xs text-gray-500 truncate">{{ getUserRole(selectedApprovedUser) }}</div>
-                  </div>
-                </span>
-                <span v-else class="text-gray-500">Select user</span>
-                <svg class="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div
-                v-if="isApprovedDropdownOpen"
-                class="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-              >
-                <div
-                  v-for="user in users"
-                  :key="user.id"
-                  @click="selectApprovedUser(user)"
-                  class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <img v-if="getUserPhoto(user)" :src="getUserPhoto(user)" class="h-8 w-8 rounded-full object-cover" />
-                  <span v-else class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700">
-                    {{ user.name.charAt(0) }}
-                  </span>
-                  <div>
-                    <div class="font-medium text-gray-900 dark:text-white">{{ getUserDisplay(user) }}</div>
-                    <div class="text-xs text-gray-500">{{ getUserRole(user) }}</div>
-                  </div>
-                </div>
-                <div v-if="users.length === 0" class="px-3 py-2 text-sm text-gray-500 text-center">No users found</div>
-              </div>
-            </div>
+            <UserSelect
+              v-model="form.approved_by"
+              placeholder="Select user"
+            />
           </div>
 
           <!-- Notes -->
@@ -401,7 +254,10 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import ProjectSelect from '@/components/forms/ProjectSelect.vue'
+import UserSelect from '@/components/forms/UserSelect.vue'
 import GenericSelect from '@/components/forms/GenericSelect.vue'
+import DatePicker from '@/components/forms/DatePicker.vue'
 import { formatAmount } from '@/utils/currency'
 
 const route = useRoute()

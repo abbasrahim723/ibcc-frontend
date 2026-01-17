@@ -38,13 +38,11 @@
               </svg>
             </button>
           </div>
-          <div v-else class="h-10 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>          <!-- User Filter (super-admin only) -->
-          <GenericSelect
+          <!-- User Filter (super-admin only) -->
+          <UserSelect
             v-if="!loading && isSuperAdmin"
             v-model="filters.user_id"
-            :options="userOptions"
             placeholder="All Users"
-            searchable
             class="w-full sm:w-[220px]"
             @change="handleFilter"
           />
@@ -61,20 +59,12 @@
 
           <!-- Date Range -->
           <div v-if="!loading" class="flex items-center gap-2">
-            <flat-pickr
-              v-model="filters.start_date"
-              :config="dateConfig"
-              @on-change="handleFilter"
-              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white h-11"
-              placeholder="Start date"
-            />
-            <span class="text-gray-500 dark:text-gray-400">-</span>
-            <flat-pickr
-              v-model="filters.end_date"
-              :config="dateConfig"
-              @on-change="handleFilter"
-              class="cursor-pointer rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white h-11"
-              placeholder="End date"
+            <DatePicker
+              v-model="dateRange"
+              mode="range"
+              placeholder="Select date range"
+              class="w-full sm:w-[240px]"
+              @change="handleRangeChange"
             />
           </div>
           <div v-else class="flex items-center gap-2">
@@ -443,9 +433,9 @@ import { useAuthStore } from '@/stores/auth'
 import { useDateTimeFormat } from '@/composables/useDateTimeFormat'
 import { usePermissions } from '@/composables/usePermissions'
 import { useViewPreferences } from '@/composables/useViewPreferences'
-import flatPickr from 'vue-flatpickr-component'
+import DatePicker from '@/components/forms/DatePicker.vue'
 import GenericSelect from '@/components/forms/GenericSelect.vue'
-import 'flatpickr/dist/flatpickr.css'
+import UserSelect from '@/components/forms/UserSelect.vue'
 
 const route = useRoute()
 const toast = useToast()
@@ -488,6 +478,7 @@ const filters = ref({
   start_date: '',
   end_date: ''
 })
+const dateRange = ref('')
 const isUserDropdownOpen = ref(false)
 const userSearch = ref('')
 
@@ -508,10 +499,30 @@ const filteredUsers = computed(() => {
   })
 })
 
-const dateConfig = {
-  dateFormat: 'Y-m-d',
-  altInput: true,
-  altFormat: 'd/m/Y',
+const handleRangeChange = (selectedDates: Date[]) => {
+  if (selectedDates.length === 2) {
+    const start = selectedDates[0]
+    const end = selectedDates[1]
+    
+    // Format to Y-m-d
+    const formatDate = (date: Date) => {
+      const d = new Date(date)
+      let month = '' + (d.getMonth() + 1)
+      let day = '' + d.getDate()
+      const year = d.getFullYear()
+      if (month.length < 2) month = '0' + month
+      if (day.length < 2) day = '0' + day
+      return [year, month, day].join('-')
+    }
+    
+    filters.value.start_date = formatDate(start)
+    filters.value.end_date = formatDate(end)
+    handleFilter()
+  } else if (selectedDates.length === 0) {
+    filters.value.start_date = ''
+    filters.value.end_date = ''
+    handleFilter()
+  }
 }
 
 const formattedActionOptions = computed(() =>
@@ -523,16 +534,6 @@ const formattedActionOptions = computed(() =>
       label: action.charAt(0).toUpperCase() + action.slice(1)
     }))
 )
-
-const userOptions = computed(() => [
-  { value: '', label: 'All Users' },
-  ...users.value.map(user => ({
-    value: user.id.toString(),
-    label: getUserDisplay(user),
-    avatar: getUserPhoto(user),
-    subLabel: getUserRole(user) || 'Role'
-  }))
-])
 
 const pagination = ref({
   current_page: 1,

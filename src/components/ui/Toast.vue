@@ -1,12 +1,12 @@
 <template>
   <teleport to="body">
-    <div class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
+    <div class="fixed bottom-4 left-1/2 -translate-x-1/2 sm:bottom-auto sm:top-4 sm:right-4 sm:left-auto sm:translate-x-0 z-[9999] flex flex-col gap-2 pointer-events-none w-full max-w-[90%] sm:max-w-md items-center sm:items-end">
       <transition-group name="toast">
         <div
           v-for="toast in toasts"
           :key="toast.id"
           :class="[
-            'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm border transition-all duration-300 min-w-[300px] max-w-md',
+            'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl backdrop-blur-md border transition-all duration-300 w-full sm:w-auto sm:min-w-[300px]',
             toastClasses[toast.type]
           ]"
         >
@@ -100,17 +100,31 @@ const toastClasses = {
 <style scoped>
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(100%);
+/* Mobile transition: from bottom */
+@media (max-width: 639px) {
+  .toast-enter-from {
+    opacity: 0;
+    transform: translateY(100%) scale(0.9);
+  }
+  .toast-leave-to {
+    opacity: 0;
+    transform: translateY(100%) scale(0.9);
+  }
 }
 
-.toast-leave-to {
-  opacity: 0;
-  transform: translateX(100%) scale(0.8);
+/* Desktop transition: from right */
+@media (min-width: 640px) {
+  .toast-enter-from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  .toast-leave-to {
+    opacity: 0;
+    transform: translateX(100%) scale(0.8);
+  }
 }
 
 .toast-move {

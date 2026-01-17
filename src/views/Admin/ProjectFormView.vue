@@ -506,21 +506,17 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Project Manager</label>
-            <GenericSelect
+            <UserSelect
               v-model="form.project_manager_id"
-              :options="projectManagerOptions"
               placeholder="Select project manager"
-              searchable
             />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Site Engineer</label>
-            <GenericSelect
+            <UserSelect
               v-model="form.site_engineer_id"
-              :options="siteEngineerOptions"
               placeholder="Select site engineer"
-              searchable
             />
           </div>
         </div>
@@ -763,6 +759,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
 import GenericSelect from '@/components/forms/GenericSelect.vue'
+import UserSelect from '@/components/forms/UserSelect.vue'
 import DatePicker from '@/components/forms/DatePicker.vue'
 import api from '@/utils/axios'
 import { useToast } from '@/composables/useToast'
@@ -904,8 +901,6 @@ const structureTypeOptions = [
 ]
 
 const contractTypeOptions = computed(() => contractTypes.value.map(t => ({ value: t.id, label: t.name })))
-const projectManagerOptions = computed(() => projectManagers.value.map(u => ({ value: u.id, label: u.name })))
-const siteEngineerOptions = computed(() => siteEngineers.value.map(u => ({ value: u.id, label: u.name })))
 
 const stateOptions = computed(() => states.value.map(s => ({ value: s.id, label: s.name })))
 const cityOptions = computed(() => cities.value.map(c => ({ value: c.id, label: c.name })))

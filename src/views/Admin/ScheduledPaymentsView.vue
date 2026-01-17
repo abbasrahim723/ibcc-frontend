@@ -60,12 +60,10 @@
             searchable
             @change="handleFilterChange"
           />
-          <GenericSelect
+          <UserSelect
             v-else
             v-model="filters.payer_id"
-            :options="userOptions"
             placeholder="All Labour/Staff"
-            searchable
             @change="handleFilterChange"
           />
 
@@ -188,8 +186,7 @@
       </div>
       <div
         v-else
-        class="grid grid-cols-1 gap-6 w-full"
-        :style="{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }"
+        class="grid grid-cols-1 gap-6 w-full lg:grid-cols-3"
       >
         <!-- Upcoming Column -->
         <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900/50 min-h-[70vh] max-h-[70vh]">
@@ -539,10 +536,11 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
-import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
-import ProjectSelect from '@/components/forms/ProjectSelect.vue'
 import CustomerSelect from '@/components/forms/CustomerSelect.vue'
+import ProjectSelect from '@/components/forms/ProjectSelect.vue'
+import UserSelect from '@/components/forms/UserSelect.vue'
 import GenericSelect from '@/components/forms/GenericSelect.vue'
+import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import ScheduleCard from '@/components/schedules/ScheduleCard.vue'
 import { usePaymentSchedule } from '@/composables/usePaymentSchedule'
 import { usePermissions } from '@/composables/usePermissions'

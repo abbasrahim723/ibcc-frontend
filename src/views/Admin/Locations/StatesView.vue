@@ -13,7 +13,7 @@
             :options="countryOptions"
             placeholder="All Countries"
             searchable
-            class="w-[200px]"
+            class="w-full sm:w-[200px]"
             @change="handleCountryChange"
           />
 

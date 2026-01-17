@@ -195,27 +195,29 @@
 
           <!-- Actual Chart -->
           <div v-else>
-          <div class="mb-4 flex items-center justify-between">
+          <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Statistics</h3>
               <p class="text-sm text-gray-500 dark:text-gray-400">Revenue trends over time</p>
             </div>
             <div class="flex items-center gap-3">
-              <GenericSelect
-                v-model="chartRange"
-                :options="rangeOptions"
-                placeholder="Select range"
-                class="w-[200px]"
-                @change="handleRangeChange"
-              />
+              <div class="min-w-0 flex-1 sm:flex-none">
+                <GenericSelect
+                  v-model="chartRange"
+                  :options="rangeOptions"
+                  placeholder="Select range"
+                  class="w-full sm:w-[180px]"
+                  @change="handleRangeChange"
+                />
+              </div>
               <FlatPickr
                 v-if="chartRange === 'week'"
                 v-model="chartMonth"
                 :config="monthPickerConfig"
-                class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                class="flex-shrink-0 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white h-11"
               />
-              <button @click="toggleFullscreen" class="rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700" title="Toggle fullscreen">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button @click="toggleFullscreen" class="flex-shrink-0 rounded-md border border-gray-300 p-2.5 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700" title="Toggle fullscreen">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V5a1 1 0 011-1h3M4 16v3a1 1 0 001 1h3m8-15h3a1 1 0 011 1v3m-4 12h3a1 1 0 001-1v-3" />
                 </svg>
               </button>

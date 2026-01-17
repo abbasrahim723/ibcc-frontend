@@ -7,8 +7,19 @@
       class="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-3 text-left text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed"
       :class="{ 'border-brand-500 ring-1 ring-brand-500': isOpen }"
     >
-      <span v-if="selectedOption" class="truncate font-medium">
-        {{ selectedOption.label }}
+      <span v-if="selectedOption" class="flex items-center gap-2 overflow-hidden flex-1">
+        <img
+          v-if="selectedOption.image"
+          :src="selectedOption.image"
+          class="h-6 w-6 rounded-full object-cover flex-shrink-0"
+          alt=""
+        />
+        <span v-else-if="selectedOption.image === ''" class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30 text-xs font-bold text-brand-600 dark:text-brand-400 flex-shrink-0">
+          {{ selectedOption.label.charAt(0) }}
+        </span>
+        <span class="truncate font-medium">
+          {{ selectedOption.label }}
+        </span>
       </span>
       <span v-else class="text-gray-500 truncate">{{ placeholder || 'Select an option' }}</span>
       
@@ -47,10 +58,29 @@
           class="flex cursor-pointer items-center justify-between gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           :class="{ 'bg-brand-50 dark:bg-brand-900/20': modelValue === option.value }"
         >
-          <span class="text-sm font-medium text-gray-900 dark:text-white truncate">
-            {{ option.label }}
-          </span>
-          <div v-if="modelValue === option.value" class="text-brand-600 dark:text-brand-400">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <!-- Image -->
+            <img
+              v-if="option.image"
+              :src="option.image"
+              class="h-8 w-8 rounded-full object-cover flex-shrink-0"
+              alt=""
+            />
+            <div v-else-if="option.image === ''" class="h-8 w-8 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold flex-shrink-0">
+              {{ option.label.charAt(0).toUpperCase() }}
+            </div>
+
+            <div class="min-w-0 flex-1">
+              <span class="block text-sm font-medium text-gray-900 dark:text-white truncate">
+                {{ option.label }}
+              </span>
+              <span v-if="option.subtitle" class="block text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                {{ option.subtitle }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="modelValue === option.value" class="text-brand-600 dark:text-brand-400 flex-shrink-0">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
@@ -83,6 +113,8 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 interface Option {
   value: string | number
   label: string
+  subtitle?: string
+  image?: string
 }
 
 const props = withDefaults(defineProps<{
@@ -120,7 +152,8 @@ const filteredOptions = computed(() => {
   if (!searchQuery.value) return props.options
   const search = searchQuery.value.toLowerCase()
   return props.options.filter(opt => 
-    opt.label.toLowerCase().includes(search)
+    opt.label.toLowerCase().includes(search) ||
+    (opt.subtitle && opt.subtitle.toLowerCase().includes(search))
   )
 })
 
